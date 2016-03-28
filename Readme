@@ -1,0 +1,14 @@
+### Monte Carlo simulation program for generalized skyrmion models
+
+#### Description
+A completed framework for MC simulations of the skyrmion model 
+> * Skyrmion model : the model with off-diagonal interactions between spins
+> * MC simulations : PT, annealings, single spin flips, over-relaxation
+> * 1D, 2D, thin film (BC)
+> * Lattice : triangular lattice, cubic lattice
+
+
+#### TODO list
+> * The framework of lattice
+> * SSF for different lattices
+> * Different frameworks of MC
