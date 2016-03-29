@@ -1,3 +1,7 @@
+#ifndef UPDATE_H
+#define UPDATE_H
+#define "measurements.cuh"
+#endif
 __global__ void cal(float *confx, float *confy, float *confz, double *out){
 	//Energy variables
 	__shared__ double sD[BlockSize_y][BlockSize_x];

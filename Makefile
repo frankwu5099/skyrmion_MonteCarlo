@@ -181,7 +181,7 @@ endif
 
 ################################################################################
 
-
+VPATH = src
 OBJS= Heisenberg.o
 DEPS=  flip1.cu flip2.cu relax1.cu relax2.cu cals.cu relax1_oppo.cu relax2_oppo.cu
 # Target rules
