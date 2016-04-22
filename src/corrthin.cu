@@ -1,4 +1,8 @@
-__global__ void getcorr(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
+#ifndef UPDATE_H
+#define UPDATE_H
+#define "measurement.cuh"
+#endif
+__global__ void getcorrthin(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
 	/*****************************************************************
 	Set ( original_i, original_j) as our original point.
 	for tx_o , ty_o in 2x2 block of (original_i, original_j):

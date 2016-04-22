@@ -2,10 +2,8 @@
 #define PARAMS_H
 #include "params.cuh"
 #endif
-#define coo(k, j, i) ((k) * Nplane + (j) * SpinSize + (i))
-#define coo2D(j, i) ((j) * SpinSize + (i))
-#define SSF(confx, confy, confz, rng, hs, invT) {flipTLBR_thin(confx, confy, confz, rng, hs, invT);\
-  flipBLTR_thin(confx, confy, confz, rng, hs, invT);}
+#define SSF(confx, confy, confz, rng, hs, invT) {flipTLBR_thin<<<grid, block>>>(confx, confy, confz, rng, hs, invT);\
+  flipBLTR_thin<<<grid, block>>>(confx, confy, confz, rng, hs, invT);}
 
 __global__ void flipTLBR_thin(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT);
 __global__ void flipBLTR_thin(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT);

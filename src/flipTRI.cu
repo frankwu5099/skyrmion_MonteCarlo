@@ -2,12 +2,12 @@
 #define UPDATE_H
 #define "update.cuh"
 #endif
-__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT){
+__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float H = Hs[blockIdx.x / BN];
+  float Pparameter = Pparameters[blockIdx.x / BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;
@@ -151,12 +151,12 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 
 
 
-__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT){
+__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float H = Hs[blockIdx.x / BN];
+  float Pparameter = Pparameters[blockIdx.x / BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;
@@ -301,12 +301,12 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 }
 
 
-__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT){
+__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float H = Hs[blockIdx.x / BN];
+  float Pparameter = Pparameters[blockIdx.x / BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;

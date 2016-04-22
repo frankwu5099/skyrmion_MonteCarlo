@@ -1,5 +1,10 @@
-__global__ void getcorr(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
+#ifndef UPDATE_H
+#define UPDATE_H
+#define "measurement.cuh"
+#endif
+__global__ void getcorr2D(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
 	/*****************************************************************
+          !!!!!!!!!!!!!!! It can be used for square lattice and triangular lattice.
 	Set ( original_i, original_j) as our original point.
 	for tx_o , ty_o in 2x2 block of (original_i, original_j):
     corr[i - tx_o][j - ty_o] <-  the correlation between  and  (i, j)
@@ -46,118 +51,118 @@ __global__ void getcorr(const float *confx, const float *confy, const float *con
 	else  fy4 = ty + original_j + 4;
 
 	//Calculate the two pair-energy of each spin on the thread square step by step and store the summing energy of each thread square in sD.
-  sx00 = confx[(oy) * SpinSize + ox];
-  sy00 = confy[(oy) * SpinSize + ox];
-  sz00 = confz[(oy) * SpinSize + ox];
-  sx01 = confx[(oy) * SpinSize + ox+1];
-  sy01 = confy[(oy) * SpinSize + ox+1];
-  sz01 = confz[(oy) * SpinSize + ox+1];
-  sx02 = confx[(oy) * SpinSize + ox+2];
-  sy02 = confy[(oy) * SpinSize + ox+2];
-  sz02 = confz[(oy) * SpinSize + ox+2];
-  sx03 = confx[(oy) * SpinSize + ox+3];
-  sy03 = confy[(oy) * SpinSize + ox+3];
-  sz03 = confz[(oy) * SpinSize + ox+3];
-  sx10 = confx[(oy+1) * SpinSize + ox];
-  sy10 = confy[(oy+1) * SpinSize + ox];
-  sz10 = confz[(oy+1) * SpinSize + ox];
-  sx11 = confx[(oy+1) * SpinSize + ox+1];
-  sy11 = confy[(oy+1) * SpinSize + ox+1];
-  sz11 = confz[(oy+1) * SpinSize + ox+1];
-  sx12 = confx[(oy+1) * SpinSize + ox+2];
-  sy12 = confy[(oy+1) * SpinSize + ox+2];
-  sz12 = confz[(oy+1) * SpinSize + ox+2];
-  sx13 = confx[(oy+1) * SpinSize + ox+3];
-  sy13 = confy[(oy+1) * SpinSize + ox+3];
-  sz13 = confz[(oy+1) * SpinSize + ox+3];
-  sx20 = confx[(oy+2) * SpinSize + ox];
-  sy20 = confy[(oy+2) * SpinSize + ox];
-  sz20 = confz[(oy+2) * SpinSize + ox];
-  sx21 = confx[(oy+2) * SpinSize + ox+1];
-  sy21 = confy[(oy+2) * SpinSize + ox+1];
-  sz21 = confz[(oy+2) * SpinSize + ox+1];
-  sx22 = confx[(oy+2) * SpinSize + ox+2];
-  sy22 = confy[(oy+2) * SpinSize + ox+2];
-  sz22 = confz[(oy+2) * SpinSize + ox+2];
-  sx23 = confx[(oy+2) * SpinSize + ox+3];
-  sy23 = confy[(oy+2) * SpinSize + ox+3];
-  sz23 = confz[(oy+2) * SpinSize + ox+3];
-  sx30 = confx[(oy+3) * SpinSize + ox];
-  sy30 = confy[(oy+3) * SpinSize + ox];
-  sz30 = confz[(oy+3) * SpinSize + ox];
-  sx31 = confx[(oy+3) * SpinSize + ox+1];
-  sy31 = confy[(oy+3) * SpinSize + ox+1];
-  sz31 = confz[(oy+3) * SpinSize + ox+1];
-  sx32 = confx[(oy+3) * SpinSize + ox+2];
-  sy32 = confy[(oy+3) * SpinSize + ox+2];
-  sz32 = confz[(oy+3) * SpinSize + ox+2];
-  sx33 = confx[(oy+3) * SpinSize + ox+3];
-  sy33 = confy[(oy+3) * SpinSize + ox+3];
-  sz33 = confz[(oy+3) * SpinSize + ox+3];
-  corr[ty * SpinSize + tx] += sx00 * confx[ fy0 * SpinSize + fx0] + sy00 * confy[ fy0 * SpinSize + fx0] + sz00 * confz[ fy0 * SpinSize + fx0] +
-                              sx01 * confx[ fy0 * SpinSize + fx1] + sy01 * confy[ fy0 * SpinSize + fx1] + sz01 * confz[ fy0 * SpinSize + fx1] +
-                              sx02 * confx[ fy0 * SpinSize + fx2] + sy02 * confy[ fy0 * SpinSize + fx2] + sz02 * confz[ fy0 * SpinSize + fx2] +
-                              sx03 * confx[ fy0 * SpinSize + fx3] + sy03 * confy[ fy0 * SpinSize + fx3] + sz03 * confz[ fy0 * SpinSize + fx3] +
-                              sx10 * confx[ fy1 * SpinSize + fx0] + sy10 * confy[ fy1 * SpinSize + fx0] + sz10 * confz[ fy1 * SpinSize + fx0] +
-                              sx11 * confx[ fy1 * SpinSize + fx1] + sy11 * confy[ fy1 * SpinSize + fx1] + sz11 * confz[ fy1 * SpinSize + fx1] +
-                              sx12 * confx[ fy1 * SpinSize + fx2] + sy12 * confy[ fy1 * SpinSize + fx2] + sz12 * confz[ fy1 * SpinSize + fx2] +
-                              sx13 * confx[ fy1 * SpinSize + fx3] + sy13 * confy[ fy1 * SpinSize + fx3] + sz13 * confz[ fy1 * SpinSize + fx3] +
-                              sx20 * confx[ fy2 * SpinSize + fx0] + sy20 * confy[ fy2 * SpinSize + fx0] + sz20 * confz[ fy2 * SpinSize + fx0] +
-                              sx21 * confx[ fy2 * SpinSize + fx1] + sy21 * confy[ fy2 * SpinSize + fx1] + sz21 * confz[ fy2 * SpinSize + fx1] +
-                              sx22 * confx[ fy2 * SpinSize + fx2] + sy22 * confy[ fy2 * SpinSize + fx2] + sz22 * confz[ fy2 * SpinSize + fx2] +
-                              sx23 * confx[ fy2 * SpinSize + fx3] + sy23 * confy[ fy2 * SpinSize + fx3] + sz23 * confz[ fy2 * SpinSize + fx3] +
-                              sx30 * confx[ fy3 * SpinSize + fx0] + sy30 * confy[ fy3 * SpinSize + fx0] + sz30 * confz[ fy3 * SpinSize + fx0] +
-                              sx31 * confx[ fy3 * SpinSize + fx1] + sy31 * confy[ fy3 * SpinSize + fx1] + sz31 * confz[ fy3 * SpinSize + fx1] +
-                              sx32 * confx[ fy3 * SpinSize + fx2] + sy32 * confy[ fy3 * SpinSize + fx2] + sz32 * confz[ fy3 * SpinSize + fx2] +
-                              sx33 * confx[ fy3 * SpinSize + fx3] + sy33 * confy[ fy3 * SpinSize + fx3] + sz33 * confz[ fy3 * SpinSize + fx3] ;
-  corr[ty * SpinSize + tx+1] += sx00 * confx[ fy0 * SpinSize + fx1] + sy00 * confy[ fy0 * SpinSize + fx1] + sz00 * confz[ fy0 * SpinSize + fx1] +
-                                sx01 * confx[ fy0 * SpinSize + fx2] + sy01 * confy[ fy0 * SpinSize + fx2] + sz01 * confz[ fy0 * SpinSize + fx2] +
-                                sx02 * confx[ fy0 * SpinSize + fx3] + sy02 * confy[ fy0 * SpinSize + fx3] + sz02 * confz[ fy0 * SpinSize + fx3] +
-                                sx03 * confx[ fy0 * SpinSize + fx4] + sy03 * confy[ fy0 * SpinSize + fx4] + sz03 * confz[ fy0 * SpinSize + fx4] +
-                                sx10 * confx[ fy1 * SpinSize + fx1] + sy10 * confy[ fy1 * SpinSize + fx1] + sz10 * confz[ fy1 * SpinSize + fx1] +
-                                sx11 * confx[ fy1 * SpinSize + fx2] + sy11 * confy[ fy1 * SpinSize + fx2] + sz11 * confz[ fy1 * SpinSize + fx2] +
-                                sx12 * confx[ fy1 * SpinSize + fx3] + sy12 * confy[ fy1 * SpinSize + fx3] + sz12 * confz[ fy1 * SpinSize + fx3] +
-                                sx13 * confx[ fy1 * SpinSize + fx4] + sy13 * confy[ fy1 * SpinSize + fx4] + sz13 * confz[ fy1 * SpinSize + fx4] +
-                                sx20 * confx[ fy2 * SpinSize + fx1] + sy20 * confy[ fy2 * SpinSize + fx1] + sz20 * confz[ fy2 * SpinSize + fx1] +
-                                sx21 * confx[ fy2 * SpinSize + fx2] + sy21 * confy[ fy2 * SpinSize + fx2] + sz21 * confz[ fy2 * SpinSize + fx2] +
-                                sx22 * confx[ fy2 * SpinSize + fx3] + sy22 * confy[ fy2 * SpinSize + fx3] + sz22 * confz[ fy2 * SpinSize + fx3] +
-                                sx23 * confx[ fy2 * SpinSize + fx4] + sy23 * confy[ fy2 * SpinSize + fx4] + sz23 * confz[ fy2 * SpinSize + fx4] +
-                                sx30 * confx[ fy3 * SpinSize + fx1] + sy30 * confy[ fy3 * SpinSize + fx1] + sz30 * confz[ fy3 * SpinSize + fx1] +
-                                sx31 * confx[ fy3 * SpinSize + fx2] + sy31 * confy[ fy3 * SpinSize + fx2] + sz31 * confz[ fy3 * SpinSize + fx2] +
-                                sx32 * confx[ fy3 * SpinSize + fx3] + sy32 * confy[ fy3 * SpinSize + fx3] + sz32 * confz[ fy3 * SpinSize + fx3] +
-                                sx33 * confx[ fy3 * SpinSize + fx4] + sy33 * confy[ fy3 * SpinSize + fx4] + sz33 * confz[ fy3 * SpinSize + fx4] ;
-  corr[(ty+1) * SpinSize + tx] += sx00 * confx[ fy1 * SpinSize + fx0] + sy00 * confy[ fy1 * SpinSize + fx0] + sz00 * confz[ fy1 * SpinSize + fx0] +
-                                  sx01 * confx[ fy1 * SpinSize + fx1] + sy01 * confy[ fy1 * SpinSize + fx1] + sz01 * confz[ fy1 * SpinSize + fx1] +
-                                  sx02 * confx[ fy1 * SpinSize + fx2] + sy02 * confy[ fy1 * SpinSize + fx2] + sz02 * confz[ fy1 * SpinSize + fx2] +
-                                  sx03 * confx[ fy1 * SpinSize + fx3] + sy03 * confy[ fy1 * SpinSize + fx3] + sz03 * confz[ fy1 * SpinSize + fx3] +
-                                  sx10 * confx[ fy2 * SpinSize + fx0] + sy10 * confy[ fy2 * SpinSize + fx0] + sz10 * confz[ fy2 * SpinSize + fx0] +
-                                  sx11 * confx[ fy2 * SpinSize + fx1] + sy11 * confy[ fy2 * SpinSize + fx1] + sz11 * confz[ fy2 * SpinSize + fx1] +
-                                  sx12 * confx[ fy2 * SpinSize + fx2] + sy12 * confy[ fy2 * SpinSize + fx2] + sz12 * confz[ fy2 * SpinSize + fx2] +
-                                  sx13 * confx[ fy2 * SpinSize + fx3] + sy13 * confy[ fy2 * SpinSize + fx3] + sz13 * confz[ fy2 * SpinSize + fx3] +
-                                  sx20 * confx[ fy3 * SpinSize + fx0] + sy20 * confy[ fy3 * SpinSize + fx0] + sz20 * confz[ fy3 * SpinSize + fx0] +
-                                  sx21 * confx[ fy3 * SpinSize + fx1] + sy21 * confy[ fy3 * SpinSize + fx1] + sz21 * confz[ fy3 * SpinSize + fx1] +
-                                  sx22 * confx[ fy3 * SpinSize + fx2] + sy22 * confy[ fy3 * SpinSize + fx2] + sz22 * confz[ fy3 * SpinSize + fx2] +
-                                  sx23 * confx[ fy3 * SpinSize + fx3] + sy23 * confy[ fy3 * SpinSize + fx3] + sz23 * confz[ fy3 * SpinSize + fx3] +
-                                  sx30 * confx[ fy4 * SpinSize + fx0] + sy30 * confy[ fy4 * SpinSize + fx0] + sz30 * confz[ fy4 * SpinSize + fx0] +
-                                  sx31 * confx[ fy4 * SpinSize + fx1] + sy31 * confy[ fy4 * SpinSize + fx1] + sz31 * confz[ fy4 * SpinSize + fx1] +
-                                  sx32 * confx[ fy4 * SpinSize + fx2] + sy32 * confy[ fy4 * SpinSize + fx2] + sz32 * confz[ fy4 * SpinSize + fx2] +
-                                  sx33 * confx[ fy4 * SpinSize + fx3] + sy33 * confy[ fy4 * SpinSize + fx3] + sz33 * confz[ fy4 * SpinSize + fx3] ;
-  corr[(ty+1) * SpinSize + tx+1] += sx00 * confx[ fy1 * SpinSize + fx1] + sy00 * confy[ fy1 * SpinSize + fx1] + sz00 * confz[ fy1 * SpinSize + fx1] +
-                                    sx01 * confx[ fy1 * SpinSize + fx2] + sy01 * confy[ fy1 * SpinSize + fx2] + sz01 * confz[ fy1 * SpinSize + fx2] +
-                                    sx02 * confx[ fy1 * SpinSize + fx3] + sy02 * confy[ fy1 * SpinSize + fx3] + sz02 * confz[ fy1 * SpinSize + fx3] +
-                                    sx03 * confx[ fy1 * SpinSize + fx4] + sy03 * confy[ fy1 * SpinSize + fx4] + sz03 * confz[ fy1 * SpinSize + fx4] +
-                                    sx10 * confx[ fy2 * SpinSize + fx1] + sy10 * confy[ fy2 * SpinSize + fx1] + sz10 * confz[ fy2 * SpinSize + fx1] +
-                                    sx11 * confx[ fy2 * SpinSize + fx2] + sy11 * confy[ fy2 * SpinSize + fx2] + sz11 * confz[ fy2 * SpinSize + fx2] +
-                                    sx12 * confx[ fy2 * SpinSize + fx3] + sy12 * confy[ fy2 * SpinSize + fx3] + sz12 * confz[ fy2 * SpinSize + fx3] +
-                                    sx13 * confx[ fy2 * SpinSize + fx4] + sy13 * confy[ fy2 * SpinSize + fx4] + sz13 * confz[ fy2 * SpinSize + fx4] +
-                                    sx20 * confx[ fy3 * SpinSize + fx1] + sy20 * confy[ fy3 * SpinSize + fx1] + sz20 * confz[ fy3 * SpinSize + fx1] +
-                                    sx21 * confx[ fy3 * SpinSize + fx2] + sy21 * confy[ fy3 * SpinSize + fx2] + sz21 * confz[ fy3 * SpinSize + fx2] +
-                                    sx22 * confx[ fy3 * SpinSize + fx3] + sy22 * confy[ fy3 * SpinSize + fx3] + sz22 * confz[ fy3 * SpinSize + fx3] +
-                                    sx23 * confx[ fy3 * SpinSize + fx4] + sy23 * confy[ fy3 * SpinSize + fx4] + sz23 * confz[ fy3 * SpinSize + fx4] +
-                                    sx30 * confx[ fy4 * SpinSize + fx1] + sy30 * confy[ fy4 * SpinSize + fx1] + sz30 * confz[ fy4 * SpinSize + fx1] +
-                                    sx31 * confx[ fy4 * SpinSize + fx2] + sy31 * confy[ fy4 * SpinSize + fx2] + sz31 * confz[ fy4 * SpinSize + fx2] +
-                                    sx32 * confx[ fy4 * SpinSize + fx3] + sy32 * confy[ fy4 * SpinSize + fx3] + sz32 * confz[ fy4 * SpinSize + fx3] +
-                                    sx33 * confx[ fy4 * SpinSize + fx4] + sy33 * confy[ fy4 * SpinSize + fx4] + sz33 * confz[ fy4 * SpinSize + fx4] ;
+  sx00 = confx[coo2D(coo2D(oy,ox)];
+  sy00 = confy[coo2D(coo2D(oy,ox)];
+  sz00 = confz[coo2D(coo2D(oy,ox)];
+  sx01 = confx[coo2D(coo2D(oy,ox+1)];
+  sy01 = confy[coo2D(coo2D(oy,ox+1)];
+  sz01 = confz[coo2D(coo2D(oy,ox+1)];
+  sx02 = confx[coo2D(coo2D(oy,ox+2)];
+  sy02 = confy[coo2D(coo2D(oy,ox+2)];
+  sz02 = confz[coo2D(coo2D(oy,ox+2)];
+  sx03 = confx[coo2D(coo2D(oy,ox+3)];
+  sy03 = confy[coo2D(coo2D(oy,ox+3)];
+  sz03 = confz[coo2D(coo2D(oy,ox+3)];
+  sx10 = confx[coo2D(coo2D(oy+1,ox)];
+  sy10 = confy[coo2D(coo2D(oy+1,ox)];
+  sz10 = confz[coo2D(coo2D(oy+1,ox)];
+  sx11 = confx[coo2D(coo2D(oy+1,ox+1)];
+  sy11 = confy[coo2D(coo2D(oy+1,ox+1)];
+  sz11 = confz[coo2D(coo2D(oy+1,ox+1)];
+  sx12 = confx[coo2D(coo2D(oy+1,ox+2)];
+  sy12 = confy[coo2D(coo2D(oy+1,ox+2)];
+  sz12 = confz[coo2D(coo2D(oy+1,ox+2)];
+  sx13 = confx[coo2D(coo2D(oy+1,ox+3)];
+  sy13 = confy[coo2D(coo2D(oy+1,ox+3)];
+  sz13 = confz[coo2D(coo2D(oy+1,ox+3)];
+  sx20 = confx[coo2D(coo2D(oy+2,ox)];
+  sy20 = confy[coo2D(coo2D(oy+2,ox)];
+  sz20 = confz[coo2D(coo2D(oy+2,ox)];
+  sx21 = confx[coo2D(coo2D(oy+2,ox+1)];
+  sy21 = confy[coo2D(coo2D(oy+2,ox+1)];
+  sz21 = confz[coo2D(coo2D(oy+2,ox+1)];
+  sx22 = confx[coo2D(coo2D(oy+2,ox+2)];
+  sy22 = confy[coo2D(coo2D(oy+2,ox+2)];
+  sz22 = confz[coo2D(coo2D(oy+2,ox+2)];
+  sx23 = confx[coo2D(coo2D(oy+2,ox+3)];
+  sy23 = confy[coo2D(coo2D(oy+2,ox+3)];
+  sz23 = confz[coo2D(coo2D(oy+2,ox+3)];
+  sx30 = confx[coo2D(coo2D(oy+3,ox)];
+  sy30 = confy[coo2D(coo2D(oy+3,ox)];
+  sz30 = confz[coo2D(coo2D(oy+3,ox)];
+  sx31 = confx[coo2D(coo2D(oy+3,ox+1)];
+  sy31 = confy[coo2D(coo2D(oy+3,ox+1)];
+  sz31 = confz[coo2D(coo2D(oy+3,ox+1)];
+  sx32 = confx[coo2D(coo2D(oy+3,ox+2)];
+  sy32 = confy[coo2D(coo2D(oy+3,ox+2)];
+  sz32 = confz[coo2D(coo2D(oy+3,ox+2)];
+  sx33 = confx[coo2D(coo2D(oy+3,ox+3)];
+  sy33 = confy[coo2D(coo2D(oy+3,ox+3)];
+  sz33 = confz[coo2D(coo2D(oy+3,ox+3)];
+  corr[coo2D(ty,tx)] += sx00 * confx[coo2D( fy0,fx0)] + sy00 * confy[coo2D( fy0,fx0)] + sz00 * confz[coo2D( fy0,fx0)] +
+                              sx01 * confx[coo2D( fy0,fx1)] + sy01 * confy[coo2D( fy0,fx1)] + sz01 * confz[coo2D( fy0,fx1)] +
+                              sx02 * confx[coo2D( fy0,fx2)] + sy02 * confy[coo2D( fy0,fx2)] + sz02 * confz[coo2D( fy0,fx2)] +
+                              sx03 * confx[coo2D( fy0,fx3)] + sy03 * confy[coo2D( fy0,fx3)] + sz03 * confz[coo2D( fy0,fx3)] +
+                              sx10 * confx[coo2D( fy1,fx0)] + sy10 * confy[coo2D( fy1,fx0)] + sz10 * confz[coo2D( fy1,fx0)] +
+                              sx11 * confx[coo2D( fy1,fx1)] + sy11 * confy[coo2D( fy1,fx1)] + sz11 * confz[coo2D( fy1,fx1)] +
+                              sx12 * confx[coo2D( fy1,fx2)] + sy12 * confy[coo2D( fy1,fx2)] + sz12 * confz[coo2D( fy1,fx2)] +
+                              sx13 * confx[coo2D( fy1,fx3)] + sy13 * confy[coo2D( fy1,fx3)] + sz13 * confz[coo2D( fy1,fx3)] +
+                              sx20 * confx[coo2D( fy2,fx0)] + sy20 * confy[coo2D( fy2,fx0)] + sz20 * confz[coo2D( fy2,fx0)] +
+                              sx21 * confx[coo2D( fy2,fx1)] + sy21 * confy[coo2D( fy2,fx1)] + sz21 * confz[coo2D( fy2,fx1)] +
+                              sx22 * confx[coo2D( fy2,fx2)] + sy22 * confy[coo2D( fy2,fx2)] + sz22 * confz[coo2D( fy2,fx2)] +
+                              sx23 * confx[coo2D( fy2,fx3)] + sy23 * confy[coo2D( fy2,fx3)] + sz23 * confz[coo2D( fy2,fx3)] +
+                              sx30 * confx[coo2D( fy3,fx0)] + sy30 * confy[coo2D( fy3,fx0)] + sz30 * confz[coo2D( fy3,fx0)] +
+                              sx31 * confx[coo2D( fy3,fx1)] + sy31 * confy[coo2D( fy3,fx1)] + sz31 * confz[coo2D( fy3,fx1)] +
+                              sx32 * confx[coo2D( fy3,fx2)] + sy32 * confy[coo2D( fy3,fx2)] + sz32 * confz[coo2D( fy3,fx2)] +
+                              sx33 * confx[coo2D( fy3,fx3)] + sy33 * confy[coo2D( fy3,fx3)] + sz33 * confz[coo2D( fy3,fx3)] ;
+  corr[coo2D(ty,tx+1)] += sx00 * confx[coo2D( fy0,fx1)] + sy00 * confy[coo2D( fy0,fx1)] + sz00 * confz[coo2D( fy0,fx1)] +
+                                sx01 * confx[coo2D( fy0,fx2)] + sy01 * confy[coo2D( fy0,fx2)] + sz01 * confz[coo2D( fy0,fx2)] +
+                                sx02 * confx[coo2D( fy0,fx3)] + sy02 * confy[coo2D( fy0,fx3)] + sz02 * confz[coo2D( fy0,fx3)] +
+                                sx03 * confx[coo2D( fy0,fx4)] + sy03 * confy[coo2D( fy0,fx4)] + sz03 * confz[coo2D( fy0,fx4)] +
+                                sx10 * confx[coo2D( fy1,fx1)] + sy10 * confy[coo2D( fy1,fx1)] + sz10 * confz[coo2D( fy1,fx1)] +
+                                sx11 * confx[coo2D( fy1,fx2)] + sy11 * confy[coo2D( fy1,fx2)] + sz11 * confz[coo2D( fy1,fx2)] +
+                                sx12 * confx[coo2D( fy1,fx3)] + sy12 * confy[coo2D( fy1,fx3)] + sz12 * confz[coo2D( fy1,fx3)] +
+                                sx13 * confx[coo2D( fy1,fx4)] + sy13 * confy[coo2D( fy1,fx4)] + sz13 * confz[coo2D( fy1,fx4)] +
+                                sx20 * confx[coo2D( fy2,fx1)] + sy20 * confy[coo2D( fy2,fx1)] + sz20 * confz[coo2D( fy2,fx1)] +
+                                sx21 * confx[coo2D( fy2,fx2)] + sy21 * confy[coo2D( fy2,fx2)] + sz21 * confz[coo2D( fy2,fx2)] +
+                                sx22 * confx[coo2D( fy2,fx3)] + sy22 * confy[coo2D( fy2,fx3)] + sz22 * confz[coo2D( fy2,fx3)] +
+                                sx23 * confx[coo2D( fy2,fx4)] + sy23 * confy[coo2D( fy2,fx4)] + sz23 * confz[coo2D( fy2,fx4)] +
+                                sx30 * confx[coo2D( fy3,fx1)] + sy30 * confy[coo2D( fy3,fx1)] + sz30 * confz[coo2D( fy3,fx1)] +
+                                sx31 * confx[coo2D( fy3,fx2)] + sy31 * confy[coo2D( fy3,fx2)] + sz31 * confz[coo2D( fy3,fx2)] +
+                                sx32 * confx[coo2D( fy3,fx3)] + sy32 * confy[coo2D( fy3,fx3)] + sz32 * confz[coo2D( fy3,fx3)] +
+                                sx33 * confx[coo2D( fy3,fx4)] + sy33 * confy[coo2D( fy3,fx4)] + sz33 * confz[coo2D( fy3,fx4)] ;
+  corr[coo2D((ty+1),tx)] += sx00 * confx[coo2D( fy1,fx0)] + sy00 * confy[coo2D( fy1,fx0)] + sz00 * confz[coo2D( fy1,fx0)] +
+                                  sx01 * confx[coo2D( fy1,fx1)] + sy01 * confy[coo2D( fy1,fx1)] + sz01 * confz[coo2D( fy1,fx1)] +
+                                  sx02 * confx[coo2D( fy1,fx2)] + sy02 * confy[coo2D( fy1,fx2)] + sz02 * confz[coo2D( fy1,fx2)] +
+                                  sx03 * confx[coo2D( fy1,fx3)] + sy03 * confy[coo2D( fy1,fx3)] + sz03 * confz[coo2D( fy1,fx3)] +
+                                  sx10 * confx[coo2D( fy2,fx0)] + sy10 * confy[coo2D( fy2,fx0)] + sz10 * confz[coo2D( fy2,fx0)] +
+                                  sx11 * confx[coo2D( fy2,fx1)] + sy11 * confy[coo2D( fy2,fx1)] + sz11 * confz[coo2D( fy2,fx1)] +
+                                  sx12 * confx[coo2D( fy2,fx2)] + sy12 * confy[coo2D( fy2,fx2)] + sz12 * confz[coo2D( fy2,fx2)] +
+                                  sx13 * confx[coo2D( fy2,fx3)] + sy13 * confy[coo2D( fy2,fx3)] + sz13 * confz[coo2D( fy2,fx3)] +
+                                  sx20 * confx[coo2D( fy3,fx0)] + sy20 * confy[coo2D( fy3,fx0)] + sz20 * confz[coo2D( fy3,fx0)] +
+                                  sx21 * confx[coo2D( fy3,fx1)] + sy21 * confy[coo2D( fy3,fx1)] + sz21 * confz[coo2D( fy3,fx1)] +
+                                  sx22 * confx[coo2D( fy3,fx2)] + sy22 * confy[coo2D( fy3,fx2)] + sz22 * confz[coo2D( fy3,fx2)] +
+                                  sx23 * confx[coo2D( fy3,fx3)] + sy23 * confy[coo2D( fy3,fx3)] + sz23 * confz[coo2D( fy3,fx3)] +
+                                  sx30 * confx[coo2D( fy4,fx0)] + sy30 * confy[coo2D( fy4,fx0)] + sz30 * confz[coo2D( fy4,fx0)] +
+                                  sx31 * confx[coo2D( fy4,fx1)] + sy31 * confy[coo2D( fy4,fx1)] + sz31 * confz[coo2D( fy4,fx1)] +
+                                  sx32 * confx[coo2D( fy4,fx2)] + sy32 * confy[coo2D( fy4,fx2)] + sz32 * confz[coo2D( fy4,fx2)] +
+                                  sx33 * confx[coo2D( fy4,fx3)] + sy33 * confy[coo2D( fy4,fx3)] + sz33 * confz[coo2D( fy4,fx3)] ;
+  corr[coo2D((ty+1),tx+1)] += sx00 * confx[coo2D( fy1,fx1)] + sy00 * confy[coo2D( fy1,fx1)] + sz00 * confz[coo2D( fy1,fx1)] +
+                                    sx01 * confx[coo2D( fy1,fx2)] + sy01 * confy[coo2D( fy1,fx2)] + sz01 * confz[coo2D( fy1,fx2)] +
+                                    sx02 * confx[coo2D( fy1,fx3)] + sy02 * confy[coo2D( fy1,fx3)] + sz02 * confz[coo2D( fy1,fx3)] +
+                                    sx03 * confx[coo2D( fy1,fx4)] + sy03 * confy[coo2D( fy1,fx4)] + sz03 * confz[coo2D( fy1,fx4)] +
+                                    sx10 * confx[coo2D( fy2,fx1)] + sy10 * confy[coo2D( fy2,fx1)] + sz10 * confz[coo2D( fy2,fx1)] +
+                                    sx11 * confx[coo2D( fy2,fx2)] + sy11 * confy[coo2D( fy2,fx2)] + sz11 * confz[coo2D( fy2,fx2)] +
+                                    sx12 * confx[coo2D( fy2,fx3)] + sy12 * confy[coo2D( fy2,fx3)] + sz12 * confz[coo2D( fy2,fx3)] +
+                                    sx13 * confx[coo2D( fy2,fx4)] + sy13 * confy[coo2D( fy2,fx4)] + sz13 * confz[coo2D( fy2,fx4)] +
+                                    sx20 * confx[coo2D( fy3,fx1)] + sy20 * confy[coo2D( fy3,fx1)] + sz20 * confz[coo2D( fy3,fx1)] +
+                                    sx21 * confx[coo2D( fy3,fx2)] + sy21 * confy[coo2D( fy3,fx2)] + sz21 * confz[coo2D( fy3,fx2)] +
+                                    sx22 * confx[coo2D( fy3,fx3)] + sy22 * confy[coo2D( fy3,fx3)] + sz22 * confz[coo2D( fy3,fx3)] +
+                                    sx23 * confx[coo2D( fy3,fx4)] + sy23 * confy[coo2D( fy3,fx4)] + sz23 * confz[coo2D( fy3,fx4)] +
+                                    sx30 * confx[coo2D( fy4,fx1)] + sy30 * confy[coo2D( fy4,fx1)] + sz30 * confz[coo2D( fy4,fx1)] +
+                                    sx31 * confx[coo2D( fy4,fx2)] + sy31 * confy[coo2D( fy4,fx2)] + sz31 * confz[coo2D( fy4,fx2)] +
+                                    sx32 * confx[coo2D( fy4,fx3)] + sy32 * confy[coo2D( fy4,fx3)] + sz32 * confz[coo2D( fy4,fx3)] +
+                                    sx33 * confx[coo2D( fy4,fx4)] + sy33 * confy[coo2D( fy4,fx4)] + sz33 * confz[coo2D( fy4,fx4)] ;
 	__syncthreads();
 }
 
@@ -169,10 +174,10 @@ __global__ void sumcorr(double *DSum_corr, const float *corr, int *DTo){
 	const int ty =(blockIdx.x / BN) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
 	const int ty_pt =(DTo[blockIdx.x / BN]) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
 	//calculate all the final position first
-	DSum_corr[ty_pt * SpinSize + tx] += corr[ty * SpinSize + tx]/SpinSize/SpinSize;
-	DSum_corr[ty_pt * SpinSize + tx+1] += corr[ty * SpinSize + tx+1]/SpinSize/SpinSize;
-	DSum_corr[(ty_pt + 1) * SpinSize + tx] += corr[(ty + 1) * SpinSize + tx]/SpinSize/SpinSize;
-	DSum_corr[(ty_pt + 1) * SpinSize + tx+1] += corr[(ty + 1) * SpinSize + tx+1]/SpinSize/SpinSize;
+	DSum_corr[coo2D(ty_pt,tx)] += corr[coo2D(ty,tx)]/SpinSize/SpinSize;
+	DSum_corr[coo2D(ty_pt,tx+1)] += corr[coo2D(ty,tx+1)]/SpinSize/SpinSize;
+	DSum_corr[coo2D((ty_pt + 1),tx)] += corr[coo2D((ty + 1),tx)]/SpinSize/SpinSize;
+	DSum_corr[coo2D((ty_pt + 1),tx+1)] += corr[coo2D((ty + 1),tx+1)]/SpinSize/SpinSize;
 	__syncthreads();
 }
 __global__ void avgcorr(double *DSum_corr, double N_corr){
@@ -190,9 +195,9 @@ __global__ void avgcorr(double *DSum_corr, double N_corr){
 	const int tx = 2 * (((blockIdx.x % BN) % GridSize_x) * BlockSize_x + x);
 	const int ty =(blockIdx.x / BN) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
 	//calculate all the final position first
-	DSum_corr[ty * SpinSize + tx] = DSum_corr[ty * SpinSize + tx]/N_corr;
-	DSum_corr[ty * SpinSize + tx+1] = DSum_corr[ty * SpinSize + tx+1]/N_corr;
-	DSum_corr[(ty + 1) * SpinSize + tx] = DSum_corr[(ty + 1) * SpinSize + tx]/N_corr;
-	DSum_corr[(ty + 1) * SpinSize + tx+1] = DSum_corr[(ty + 1) * SpinSize + tx+1]/N_corr;
+	DSum_corr[coo2D(ty,tx)] = DSum_corr[coo2D(ty,tx)]/N_corr;
+	DSum_corr[coo2D(ty,tx+1)] = DSum_corr[coo2D(ty,tx+1)]/N_corr;
+	DSum_corr[coo2D((ty + 1),tx)] = DSum_corr[coo2D((ty + 1),tx)]/N_corr;
+	DSum_corr[coo2D((ty + 1),tx+1)] = DSum_corr[coo2D((ty + 1),tx+1)]/N_corr;
 	__syncthreads();
 }

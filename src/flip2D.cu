@@ -2,12 +2,12 @@
 #define UPDATE_H
 #define "update.cuh"
 #endif
-__global__ void flipTLBR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT){
+__global__ void flipTLBR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float H = Hs[blockIdx.x / BN];
+  float Pparameter = Pparameters[blockIdx.x / BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;
@@ -105,12 +105,12 @@ __global__ void flipTLBR_2D(float *confx, float *confy, float *confz, unsigned i
 
 
 
-__global__ void flipBLTR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float invT){
+__global__ void flipBLTR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float H = Hs[blockIdx.x / BN];
+  float Pparameter = Pparameters[blockIdx.x / BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;

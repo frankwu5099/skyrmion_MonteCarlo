@@ -2,7 +2,7 @@
 #define UPDATE_H
 #define "measurements.cuh"
 #endif
-__global__ void cal(float *confx, float *confy, float *confz, double *out){
+__global__ void calthin(float *confx, float *confy, float *confz, double *out){
 	//Energy variables
 	__shared__ double sD[BlockSize_y][BlockSize_x];
 	const int x = threadIdx.x % (BlockSize_x);
