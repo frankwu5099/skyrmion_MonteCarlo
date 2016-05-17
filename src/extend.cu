@@ -1,3 +1,7 @@
+#ifndef PARAMS_H
+#define PARAMS_H
+#include "params.cuh"
+#endif
 int setDev(){
   int num_devices,flag=0;
   cudaError_t error = cudaErrorDevicesUnavailable;

@@ -1,7 +1,5 @@
-#ifndef UPDATE_H
-#define UPDATE_H
-#define "update.cuh"
-#endif
+#ifdef THIN
+#include "updates.cuh"
 __global__ void flipTLBRthin(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
@@ -77,7 +75,7 @@ __global__ void flipTLBRthin(float *confx, float *confy, float *confz, unsigned 
 	 + BXPzy * confy[coo(k, j, i+1)] + BYPzy * confy[coo(k, j+1, i)] + BXMzy * confy[coo(k, j, ib )] + BYMzy * confy[coo(k, jb , i)]\
 	 + BXPzz * confz[coo(k, j, i+1)] + BYPzz * confz[coo(k, j+1, i)] + BXMzz * confz[coo(k, j, ib )] + BYMzz * confz[coo(k, jb , i)] + H\
 	 + BZPzz * confz[coo(k+1, j, i)] + BZMzz * confz[coo(k-1, j, i)];
-    du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+    du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
     r = WarpStandard_Generate(rngRegs, rngShmem);
     sz = r * NORM - 1;
     th = asin( sz );
@@ -116,7 +114,7 @@ __global__ void flipTLBRthin(float *confx, float *confy, float *confz, unsigned 
        + BXPzy * confy[coo(k, j, i+1)] + BYPzy * confy[coo(k, j+1, i)] + BXMzy * confy[coo(k, j, ib )] + BYMzy * confy[coo(k, jb , i)]\
        + BXPzz * confz[coo(k, j, i+1)] + BYPzz * confz[coo(k, j+1, i)] + BXMzz * confz[coo(k, j, ib )] + BYMzz * confz[coo(k, jb , i)] + H\
        + BZMzz * confz[coo(k-1, j, i)];
-  du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+  du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
   r = WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
@@ -198,7 +196,7 @@ __global__ void flipTLBRthin(float *confx, float *confy, float *confz, unsigned 
 	 + BXPzy * confy[coo(k, j, ib)] + BYPzy * confy[coo(k, jb, i)] + BXMzy * confy[coo(k, j, i-1)] + BYMzy * confy[coo(k, j-1 , i)]\
 	 + BXPzz * confz[coo(k, j, ib)] + BYPzz * confz[coo(k, jb, i)] + BXMzz * confz[coo(k, j, i-1)] + BYMzz * confz[coo(k, j-1 , i)] + H\
 	 + BZPzz * confz[coo(k+1, j, i)] + BZMzz * confz[coo(k-1, j, i)];
-    du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+    du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
     r = WarpStandard_Generate(rngRegs, rngShmem);
     sz = r * NORM - 1;
     th = asin( sz );
@@ -237,7 +235,7 @@ __global__ void flipTLBRthin(float *confx, float *confy, float *confz, unsigned 
        + BXPzy * confy[coo(k, j, ib)] + BYPzy * confy[coo(k, jb, i)] + BXMzy * confy[coo(k, j, i-1)] + BYMzy * confy[coo(k, j-1 , i)]\
        + BXPzz * confz[coo(k, j, ib)] + BYPzz * confz[coo(k, jb, i)] + BXMzz * confz[coo(k, j, i-1)] + BYMzz * confz[coo(k, j-1 , i)] + H\
        + BZMzz * confz[coo(k-1, j, i)];
-  du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+  du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
   r = WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
@@ -341,7 +339,7 @@ __global__ void flipBLTRthin(float *confx, float *confy, float *confz, unsigned 
 	 + BXPzy * confy[coo(k, j, i+1)] + BYPzy * confy[coo(k, jb, i)] + BXMzy * confy[coo(k, j, ib )] + BYMzy * confy[coo(k, j-1 , i)]\
 	 + BXPzz * confz[coo(k, j, i+1)] + BYPzz * confz[coo(k, jb, i)] + BXMzz * confz[coo(k, j, ib )] + BYMzz * confz[coo(k, j-1 , i)] + H\
 	 + BZPzz * confz[coo(k+1, j, i)] + BZMzz * confz[coo(k-1, j, i)];
-    du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+    du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
     r = WarpStandard_Generate(rngRegs, rngShmem);
     sz = r * NORM - 1;
     th = asin( sz );
@@ -379,7 +377,7 @@ __global__ void flipBLTRthin(float *confx, float *confy, float *confz, unsigned 
        + BXPzy * confy[coo(k, j, i+1)] + BYPzy * confy[coo(k, jb, i)] + BXMzy * confy[coo(k, j, ib )] + BYMzy * confy[coo(k, j-1 , i)]\
        + BXPzz * confz[coo(k, j, i+1)] + BYPzz * confz[coo(k, jb, i)] + BXMzz * confz[coo(k, j, ib )] + BYMzz * confz[coo(k, j-1 , i)] + H\
        + BZMzz * confz[coo(k-1, j, i)];
-  du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+  du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
   r = WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
@@ -459,7 +457,7 @@ __global__ void flipBLTRthin(float *confx, float *confy, float *confz, unsigned 
 	 + BXPzy * confy[coo(k, j, ib)] + BYPzy * confy[coo(k, j+1, i)] + BXMzy * confy[coo(k, j, i-1 )] + BYMzy * confy[coo(k, jb , i)]\
 	 + BXPzz * confz[coo(k, j, ib)] + BYPzz * confz[coo(k, j+1, i)] + BXMzz * confz[coo(k, j, i-1 )] + BYMzz * confz[coo(k, jb , i)] + H\
 	 + BZPzz * confz[coo(k+1, j, i)] + BZMzz * confz[coo(k-1, j, i)];
-    du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+    du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
     r = WarpStandard_Generate(rngRegs, rngShmem);
     sz = r * NORM - 1;
     th = asin( sz );
@@ -497,7 +495,7 @@ __global__ void flipBLTRthin(float *confx, float *confy, float *confz, unsigned 
        + BXPzy * confy[coo(k, j, ib)] + BYPzy * confy[coo(k, j+1, i)] + BXMzy * confy[coo(k, j, i-1 )] + BYMzy * confy[coo(k, jb , i)]\
        + BXPzz * confz[coo(k, j, ib)] + BYPzz * confz[coo(k, j+1, i)] + BXMzz * confz[coo(k, j, i-1 )] + BYMzz * confz[coo(k, jb , i)] + H\
        + BZPzz * confz[coo(k+1, j, i)] + BZMzz * confz[coo(k-1, j, i)];
-  du -= confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
+  du = - confx[coo(k, j, i)] * hx - confy[coo(k, j, i)] * hy - confz[coo(k, j, i)] * hz + A * confz[coo(k, j, i)] * confz[coo(k, j, i)];
   r = WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
@@ -524,3 +522,4 @@ __global__ void flipBLTRthin(float *confx, float *confy, float *confz, unsigned 
   //Load random number back to global memory
   WarpStandard_SaveState(rngRegs, rngShmem, rngState);
 }
+#endif

@@ -1,7 +1,5 @@
-#ifndef UPDATE_H
-#define UPDATE_H
-#define "measurement.cuh"
-#endif
+#ifdef THIN
+#include "measurements.cuh"
 __global__ void getcorrthin(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
 	/*****************************************************************
 	Set ( original_i, original_j) as our original point.
@@ -168,38 +166,39 @@ __global__ void getcorrthin(const float *confx, const float *confy, const float 
   }
 }
 
-__global__ void sumcorr(double *DSum_corr, const float *corr, int *DTo){
-	//Energy variables
-	const int x = threadIdx.x % (BlockSize_x);
-	const int y = (threadIdx.x / BlockSize_x);
-	const int tx = 2 * (((blockIdx.x % BN) % GridSize_x) * BlockSize_x + x);
-	const int ty =(blockIdx.x / BN) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
-	const int ty_pt =(DTo[blockIdx.x / BN]) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
-	//calculate all the final position first
+__global__ void sumcorrTHIN(double *DSum_corr, const float *corr, int *DTo){
+  //Energy variables
+  const int x = threadIdx.x % (BlockSize_x);
+  const int y = (threadIdx.x / BlockSize_x);
+  const int tx = 2 * (((blockIdx.x % BN) % GridSize_x) * BlockSize_x + x);
+  const int ty =(blockIdx.x / BN) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
+  const int ty_pt =(DTo[blockIdx.x / BN]) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
+  //calculate all the final position first
   DSum_corr[ty_pt * SpinSize + tx] += corr[ty * SpinSize + tx]/SpinSize/SpinSize/SpinSize_z;
   DSum_corr[ty_pt * SpinSize + tx+1] += corr[ty * SpinSize + tx+1]/SpinSize/SpinSize/SpinSize_z;
   DSum_corr[(ty_pt + 1) * SpinSize + tx] += corr[(ty + 1) * SpinSize + tx]/SpinSize/SpinSize/SpinSize_z;
   DSum_corr[(ty_pt + 1) * SpinSize + tx+1] += corr[(ty + 1) * SpinSize + tx+1]/SpinSize/SpinSize/SpinSize_z;
-	__syncthreads();
+  __syncthreads();
 }
-__global__ void avgcorr(double *DSum_corr, double N_corr){
-	/*****************************************************************
-	Set ( original_i, original_j) as our original point.
-	for tx_o , ty_o in 2x2 block of (original_i, original_j):
+__global__ void avgcorrTHIN(double *DSum_corr, double N_corr){
+  /*****************************************************************
+    Set ( original_i, original_j) as our original point.
+    for tx_o , ty_o in 2x2 block of (original_i, original_j):
     corr[i - tx_o][j - ty_o] <-  the correlation between  and  (i, j)
     corr[   tx   ][   ty   ]
-	use the periodic condition to keep the index positive.
-	We need to sum over different (original_i, original_j) to get the correlation.
-	*****************************************************************/
-	//Energy variables
-	const int x = threadIdx.x % (BlockSize_x);
-	const int y = (threadIdx.x / BlockSize_x);
-	const int tx = 2 * (((blockIdx.x % BN) % GridSize_x) * BlockSize_x + x);
-	const int ty =(blockIdx.x / BN) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
-	//calculate all the final position first
-	DSum_corr[ty * SpinSize + tx] = DSum_corr[ty * SpinSize + tx]/N_corr;
-	DSum_corr[ty * SpinSize + tx+1] = DSum_corr[ty * SpinSize + tx+1]/N_corr;
-	DSum_corr[(ty + 1) * SpinSize + tx] = DSum_corr[(ty + 1) * SpinSize + tx]/N_corr;
-	DSum_corr[(ty + 1) * SpinSize + tx+1] = DSum_corr[(ty + 1) * SpinSize + tx+1]/N_corr;
-	__syncthreads();
+    use the periodic condition to keep the index positive.
+    We need to sum over different (original_i, original_j) to get the correlation.
+   *****************************************************************/
+  //Energy variables
+  const int x = threadIdx.x % (BlockSize_x);
+  const int y = (threadIdx.x / BlockSize_x);
+  const int tx = 2 * (((blockIdx.x % BN) % GridSize_x) * BlockSize_x + x);
+  const int ty =(blockIdx.x / BN) * SpinSize +  2 * ((((blockIdx.x % BN) / GridSize_x) % GridSize_y) * BlockSize_y + y);
+  //calculate all the final position first
+  DSum_corr[ty * SpinSize + tx] = DSum_corr[ty * SpinSize + tx]/N_corr;
+  DSum_corr[ty * SpinSize + tx+1] = DSum_corr[ty * SpinSize + tx+1]/N_corr;
+  DSum_corr[(ty + 1) * SpinSize + tx] = DSum_corr[(ty + 1) * SpinSize + tx]/N_corr;
+  DSum_corr[(ty + 1) * SpinSize + tx+1] = DSum_corr[(ty + 1) * SpinSize + tx+1]/N_corr;
+  __syncthreads();
 }
+#endif

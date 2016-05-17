@@ -1,45 +1,29 @@
-//!!!!!!!!!!!!!!!!!!!!!!! grid block
-
-
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <time.h>
-#include <vector>
+//Ms PT function writedata  HHs
+//why exchange conf and measurement works
 using namespace std;
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_01.hpp>
-using namespace boost;
-unsigned seed = 73;
-mt19937 rng(seed);
-uniform_01<mt19937> uni01_sampler(rng);
 
-#define BIN_SZ 10000//
+#define BIN_SZ 100//00//
 #define BIN_NUM 20
-#define EQUI_N 100000////16000000
+#define EQUI_N 100//0//00////16000000
 
 #define ID "skyr_d16z8AO_annealingT_thin"
 #define PTF	(float(0.00))	//Frequency of parallel tempering
-#ifndef PARAMS_H
-#define PARAMS_H
 #include "params.cuh"
-#endif
 #include "updates.cuh"
 #include "measurements.cuh"
+#include "configuration.cuh"
 #include "extend.cu"
-#define EQUI_Ni (400000)
+#define EQUI_Ni (40)//00)//00)
 #define GET_CORR
 #define f_CORR (500)
 
+
+unsigned seed = 73;
+mt19937 rng(seed);
+uniform_01<mt19937> uni01_sampler(rng);
 void tempering(double*, int*);
 unsigned int block = BlockSize_x * BlockSize_y;
-unsigned int grid;
+unsigned int grid = 0;
 vector<float> Tls;
 vector<float> Hls;
 vector<int>Po;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
@@ -47,6 +31,7 @@ vector<int>ivPo;		//order of Temperature, Tls[To[t]] is the temperature of t'th 
 unsigned int Tnum;
 unsigned int Hnum;
 float Cparameter = 0.8;
+void var_examine();
 
 
 
@@ -108,10 +93,7 @@ int main(int argc, char *argv[]){
   float *DPparameters;
   Cparameters = (float*)malloc(C_mem_size);
   HPparameters = (float*)malloc(P_mem_size);
-  cudaMalloc((void**)&DPparameters, P_mem_size);
-#ifdef GET_CORR
-  correlation CORR;
-#endif
+  CudaSafeCall(cudaMalloc((void**)&DPparameters, P_mem_size));
 
 
   //begin (initialize random seeds)
@@ -119,15 +101,12 @@ int main(int argc, char *argv[]){
   unsigned int totalRngs = Pnum * TN / WarpStandard_K;
   unsigned seedBytes = totalRngs * sizeof(unsigned int) * WarpStandard_STATE_WORDS;
   unsigned int *seedDevice = 0;
-  if(cudaMalloc((void **)&seedDevice, seedBytes)){
-    fprintf(stderr, "Error couldn't allocate state array of size %u\n", seedBytes);
-    exit(1);
-  }
+  CudaSafeCall(cudaMalloc((void **)&seedDevice, seedBytes));
   unsigned int* seedHost = (unsigned int*)malloc(seedBytes);
   srand(seed);
   for(int i = 0; i < seedBytes / sizeof(unsigned int); i++)
     seedHost[i] = uni01_sampler() * UINT_MAX;
-  cudaMemcpy(seedDevice, seedHost, seedBytes, cudaMemcpyHostToDevice);
+  CudaSafeCall(cudaMemcpy(seedDevice, seedHost, seedBytes, cudaMemcpyHostToDevice));
   //end (initialize random seeds)
 
 
@@ -147,8 +126,11 @@ int main(int argc, char *argv[]){
 
   //MEASUREMENT initialize
 
-  measurements MEASURE(dir, Pnum); //Tnum for parallel tempering for T
-  configuration CONF(dir, Pnum);
+  configuration CONF(Pnum, dir);
+  measurements MEASURE(dir, Pnum, BIN_SZ); //Tnum for parallel tempering for T
+#ifdef GET_CORR
+  correlation CORR(Pnum, dir);
+#endif
 
   StopWatchInterface *timer=NULL;
   sdkCreateTimer(&timer);
@@ -157,15 +139,12 @@ int main(int argc, char *argv[]){
 
   //Give initial configuration and settle the systems down to equilibrium states
   CONF.initialize(ORDER);
-#ifdef GET_CORR
-  corrsetzero;
-#endif
   int Eqii = 0;//150;
   for(int i = 0; i < Hnum; i++)
     HHs[i] = Hls[i];
   for(int i = 0; i < Tnum; i++)
     invTs[i] = 1.0/Tls[i];
-  cudaMemcpy(DPparameters, HPparameters, P_mem_size, cudaMemcpyHostToDevice);
+  CudaSafeCall(cudaMemcpy(DPparameters, HPparameters, P_mem_size, cudaMemcpyHostToDevice));
   double *Ms = (double*)malloc(Pnum * sizeof(double));
   int *accept1 = (int*)calloc(Pnum - 1, sizeof(int));
   float cnt = 0;
@@ -201,7 +180,7 @@ int main(int argc, char *argv[]){
   int *accept = (int*)calloc(Pnum - 1, sizeof(int));
   for(int C_i = 0 ; C_i < Cnum ; C_i ++){
     for (int i = 0; i< Pnum-1; i++) accept[i] = 0;
-    Cparameter = 1/Tls [Tls.size() - 1 - T_i];
+    Cparameter = Ccurrent(C_i);
     for(int i = 0; i < EQUI_Ni; i++){
       SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
       //======================= no PT ===============================
@@ -231,10 +210,10 @@ int main(int argc, char *argv[]){
       //Take the ensemble average
       for(int i = 0; i < BIN_SZ; i++){
 	SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
-	MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Ho, Ms);
+	MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, HHs);
 #ifdef GET_CORR
 	if ( i % f_CORR==0){
-	corrgetcorr
+	  CORR.extract(&Po, CONF);//==
 	}
 #endif
 	//Parallel Tempering
@@ -255,9 +234,9 @@ int main(int argc, char *argv[]){
       ivPo[Po[iii]] = Po[iii];
     }
     CONF.backtoHost();
-    CONF.write();
+    CONF.writedata();
 #ifdef GET_CORR
-    //corrwritesetzero
+    CORR.avg_write_reset();
 #endif
   }
   free(Ms);
@@ -321,8 +300,8 @@ int main(int argc, char *argv[]){
 
   //Set free memory
   free(seedHost);
-  cudaFree(DPparameters);
-  cudaFree(seedDevice);
+  CudaSafeCall(cudaFree(DPparameters));
+  CudaSafeCall(cudaFree(seedDevice));
   CORR.~correlation();
   return 0;
 }
@@ -358,6 +337,7 @@ void tempering(double *Ms, int *accept){
   }
 }
 void var_examine(){
+#ifndef TRI
   if(SpinSize % (BlockSize_x * 2) != 0){
     fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_x * 2);
     exit(0);
@@ -366,4 +346,21 @@ void var_examine(){
     fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_y * 2);
     exit(0);
   }
+#endif
+#ifdef TRI
+  if(SpinSize % (BlockSize_x * 3) != 0){
+    fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_x * 2);
+    exit(0);
+  }
+  if(SpinSize % (BlockSize_y * 3) != 0){
+    fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_y * 2);
+    exit(0);
+  }
+#endif
+#ifndef THIN 
+  if (SpinSize_z != 1){
+    fprintf(stderr, "SpinSize_z must be 1 %d\n", BlockSize_y * 2);
+    exit(0);
+  }
+#endif
 }

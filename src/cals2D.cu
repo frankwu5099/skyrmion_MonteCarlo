@@ -1,7 +1,6 @@
-#ifndef UPDATE_H
-#define UPDATE_H
-#define "measurement.cuh"
-#endif
+#ifdef SQ
+
+#include "measurements.cuh"
 __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 	//Energy variables
 	__shared__ double sD[BlockSize_y][BlockSize_x];
@@ -289,4 +288,4 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 		out[dataoff + (blockIdx.x % BN) + 4 * BN] = sD[0][0];
 	__syncthreads();
 }
-
+#endif

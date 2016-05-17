@@ -1,4 +1,3 @@
-
 ################################################################################
 #
 # Copyright 1993-2013 NVIDIA Corporation.  All rights reserved.
@@ -127,7 +126,6 @@ endif
 endif
 
 # Debug build flags
-dbg := 1
 ifeq ($(dbg),1)
       NVCCFLAGS += -g -G
       TARGET := debug
@@ -147,7 +145,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -I ${CUDA_PATH}/samples/common/inc
+INCLUDES  := -I${CUDA_PATH}/samples/common/inc
 LIBRARIES :=
 
 ################################################################################
@@ -169,14 +167,13 @@ endif
 
 ifeq ($(GENCODE_FLAGS),)
 # Generate SASS code for each SM architecture listed in $(SMS)
-#$(foreach sm,$(SMS),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
-$(foreach sm,$(SMS),$(eval GENCODE_FLAGS += -arch=sm_$(sm)))
- 
+$(foreach sm,$(SMS),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
+
 # Generate PTX code from the highest SM architecture in $(SMS) to guarantee forward-compatibility
-#HIGHEST_SM := $(lastword $(sort $(SMS)))
-#ifneq ($(HIGHEST_SM),)
-#GENCODE_FLAGS += -gencode arch=compute_$(HIGHEST_SM),code=compute_$(HIGHEST_SM)
-#endif
+HIGHEST_SM := $(lastword $(sort $(SMS)))
+ifneq ($(HIGHEST_SM),)
+GENCODE_FLAGS += -gencode arch=compute_$(HIGHEST_SM),code=compute_$(HIGHEST_SM)
+endif
 endif
 
 ifeq ($(SAMPLE_ENABLED),0)
@@ -184,12 +181,12 @@ EXEC ?= @echo "[@]"
 endif
 
 ################################################################################
-SRCDIR = ./src
 
-OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o flipTRI.o measurements.o WarpStandard.o
-DEPS= cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu WarpStandard.cu
+#VPATH = src
+OBJS= Heisenberg.o
+DEPS= cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu Heisenberg.cu relax1.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu relax2.cu
 # Target rules
-all: build
+all: DEPS build
 
 build: JmatH2DAOL32_annTd16z8
 
@@ -200,8 +197,8 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-%.o:$(SRCDIR)/%.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<  --std=c++11 --relocatable-device-code=true
+$(DEPS):%.o:%.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -c $< -o $@
 
 JmatH2DAOL32_annTd16z8: ${OBJS}
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)

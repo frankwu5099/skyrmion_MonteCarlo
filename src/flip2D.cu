@@ -1,7 +1,5 @@
-#ifndef UPDATE_H
-#define UPDATE_H
-#define "update.cuh"
-#endif
+#ifdef SQ
+#include "updates.cuh"
 __global__ void flipTLBR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
   __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
@@ -205,3 +203,4 @@ __global__ void flipBLTR_2D(float *confx, float *confy, float *confz, unsigned i
   //Load random number back to global memory
   WarpStandard_SaveState(rngRegs, rngShmem, rngState);
 }
+#endif

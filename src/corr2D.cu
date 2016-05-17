@@ -1,7 +1,5 @@
-#ifndef UPDATE_H
-#define UPDATE_H
-#define "measurement.cuh"
-#endif
+#ifdef SQ
+#include "measurements.cuh"
 __global__ void getcorr2D(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
 	/*****************************************************************
           !!!!!!!!!!!!!!! It can be used for square lattice and triangular lattice.
@@ -166,7 +164,7 @@ __global__ void getcorr2D(const float *confx, const float *confy, const float *c
 	__syncthreads();
 }
 
-__global__ void sumcorr(double *DSum_corr, const float *corr, int *DTo){
+__global__ void sumcorr2D(double *DSum_corr, const float *corr, int *DTo){
 	//Energy variables
 	const int x = threadIdx.x % (BlockSize_x);
 	const int y = (threadIdx.x / BlockSize_x);
@@ -180,7 +178,7 @@ __global__ void sumcorr(double *DSum_corr, const float *corr, int *DTo){
 	DSum_corr[coo2D((ty_pt + 1),tx+1)] += corr[coo2D((ty + 1),tx+1)]/SpinSize/SpinSize;
 	__syncthreads();
 }
-__global__ void avgcorr(double *DSum_corr, double N_corr){
+__global__ void avgcorr2D(double *DSum_corr, double N_corr){
 	/*****************************************************************
 	Set ( original_i, original_j) as our original point.
 	for tx_o , ty_o in 2x2 block of (original_i, original_j):
@@ -201,3 +199,4 @@ __global__ void avgcorr(double *DSum_corr, double N_corr){
 	DSum_corr[coo2D((ty + 1),tx+1)] = DSum_corr[coo2D((ty + 1),tx+1)]/N_corr;
 	__syncthreads();
 }
+#endif
