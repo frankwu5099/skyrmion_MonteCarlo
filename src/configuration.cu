@@ -49,12 +49,6 @@ void configuration::backtoHost(){
   CudaSafeCall(cudaMemcpy(Hx, Dx, Spin_mem_size, cudaMemcpyDeviceToHost));
   CudaSafeCall(cudaMemcpy(Hy, Dy, Spin_mem_size, cudaMemcpyDeviceToHost));
   CudaSafeCall(cudaMemcpy(Hz, Dz, Spin_mem_size, cudaMemcpyDeviceToHost));
-  free(Hx);
-  free(Hy);
-  free(Hz);
-  CudaSafeCall(cudaFree(Dx));
-  CudaSafeCall(cudaFree(Dy));
-  CudaSafeCall(cudaFree(Dz));
   //cudaFree(Dcorr);
 }
 void configuration::writedata(){
@@ -64,7 +58,17 @@ void configuration::writedata(){
 }
 
 configuration::~configuration(){
+  printf("conf free begin!\n");
+  fflush(stdout);
+  free(Hx);
+  free(Hy);
+  free(Hz);
+  CudaSafeCall(cudaFree(Dx));
+  CudaSafeCall(cudaFree(Dy));
+  CudaSafeCall(cudaFree(Dz));
   close(Confxfd);
   close(Confyfd);
   close(Confzfd);
+  printf("conf free succeed!\n");
+  fflush(stdout);
 }

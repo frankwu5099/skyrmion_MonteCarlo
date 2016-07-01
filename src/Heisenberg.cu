@@ -2,9 +2,9 @@
 //why exchange conf and measurement works
 using namespace std;
 
-#define BIN_SZ 100//00//
-#define BIN_NUM 20
-#define EQUI_N 100//0//00////16000000
+#define BIN_SZ 3//00//
+#define BIN_NUM 3
+#define EQUI_N 3//0//00////16000000
 
 #define ID "skyr_d16z8AO_annealingT_thin"
 #define PTF	(float(0.00))	//Frequency of parallel tempering
@@ -13,7 +13,7 @@ using namespace std;
 #include "measurements.cuh"
 #include "configuration.cuh"
 #include "extend.cu"
-#define EQUI_Ni (40)//00)//00)
+#define EQUI_Ni (4)//00)//00)
 #define GET_CORR
 #define f_CORR (500)
 
@@ -112,11 +112,8 @@ int main(int argc, char *argv[]){
 
   //Set up output data path
   char dir[128];
-  char conf_dir[128];
   sprintf(dir, "Data/L_%d-%s", SpinSize, ID);
-  sprintf(conf_dir, "Conf/L_%d-%s", SpinSize, ID);
   mkdir(dir, 0755);
-  mkdir(conf_dir, 0755);
   char Seedfn[128];
   sprintf(Seedfn, "Conf/L_%d-%s/seed", SpinSize, ID);
   int seedfd = open(Seedfn, O_CREAT | O_WRONLY, 0644);
@@ -151,6 +148,7 @@ int main(int argc, char *argv[]){
   Cparameter = Cparameters[Cnum-1];
 
   for(int i = 0; i < EQUI_N; i++){
+    if (i % 10 ==0) printf("%d\n",i);
     SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
     //================================= no PT ==========================================
     /*
@@ -182,6 +180,7 @@ int main(int argc, char *argv[]){
     for (int i = 0; i< Pnum-1; i++) accept[i] = 0;
     Cparameter = Ccurrent(C_i);
     for(int i = 0; i < EQUI_Ni; i++){
+      if (i % 10 ==0) printf("%f : %d\n", Cparameter, i);
       SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
       //======================= no PT ===============================
       /*
@@ -213,7 +212,7 @@ int main(int argc, char *argv[]){
 	MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, HHs);
 #ifdef GET_CORR
 	if ( i % f_CORR==0){
-	  CORR.extract(&Po, CONF);//==
+	  CORR.extract(Po, CONF);//==
 	}
 #endif
 	//Parallel Tempering
@@ -303,6 +302,8 @@ int main(int argc, char *argv[]){
   CudaSafeCall(cudaFree(DPparameters));
   CudaSafeCall(cudaFree(seedDevice));
   CORR.~correlation();
+  MEASURE.~measurements();
+  CONF.~configuration();
   return 0;
 }
 

@@ -3,7 +3,7 @@
 
 measurements::measurements(char * indir, int Parallel_num, unsigned int binSize){
   measurement_num = 7;
-  void* raw_memmory = operator new[] (measurement_num * sizeof(measurement));
+  //raw_memmory = operator new[] (measurement_num * sizeof(measurement));
   strcpy(names[0], "E");
   strcpy(names[1], "M");
   strcpy(names[2], "Chern");
@@ -18,25 +18,28 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   norms[4] = binSize * N * N * N * N;
   norms[5] = binSize * N * N;
   norms[6] = binSize * N * N * N * N;
-  O = static_cast<measurement*>(raw_memmory);
+  O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
-    new (&O[i])measurement(indir, names[i], norms[i], Parallel_num);
+    O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
   }
   data_num = Parallel_num;
   Out_mem_size = Parallel_num * MEASURE_NUM * BN * sizeof(double);
   printf("%u\n", Out_mem_size);
   Hout = (double*)malloc(Out_mem_size);
   CudaSafeCall(cudaMalloc(&Dout, Out_mem_size));
-  operator delete[] (raw_memmory);
 }
 
 
 measurements::~measurements(){
+  printf("measure free begin!\n");
+  fflush(stdout);
   for (int i =0 ; i< 7; i++){
     O[i].~measurement();
   }
   free(Hout);
   CudaSafeCall(cudaFree(Dout));
+  printf("measure free succeed!\n");
+  fflush(stdout);
 }
 
 
@@ -78,8 +81,8 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
 }
 
 measurement::measurement(char* indir, char* Oname, int normin, int Parallel_num){
-  strcpy(Oname, name);
-  strcpy(indir, dir);
+  strcpy(name, Oname);
+  strcpy(dir, indir);
   data_num = Parallel_num;
   norm = normin;
   data_mem_size = data_num * sizeof(double);
@@ -90,7 +93,11 @@ measurement::measurement(char* indir, char* Oname, int normin, int Parallel_num)
 
 
 measurement::~measurement(){
+  printf("measuresingle free begin!\n");
+  fflush(stdout);
   close(fd);
+  printf("measuresingle free succeed!\n");
+  fflush(stdout);
 }
 
 
@@ -122,7 +129,7 @@ correlation::correlation(int Pnum, char* dir){
   corrcount = 0;
   HSum = (double*)malloc(Spin_mem_size_d);
 
-  CudaSafeCall(cudaMalloc((void**)&D, Spin_mem_size_p));
+  CudaSafeCall(cudaMalloc((void**)&Dcorr, Spin_mem_size_p));
 
   CudaSafeCall(cudaMalloc((void**)&DSum, Spin_mem_size_d));
   CudaSafeCall(cudaMalloc((void**)&DPo, Pnum * sizeof(int)));
@@ -135,25 +142,25 @@ correlation::correlation(int Pnum, char* dir){
 }
 
 
-void correlation::extract(std::vector<int>* Ho, configuration &CONF){//in &Ho[0]
-  CudaSafeCall(cudaMemcpy(DPo, Ho, data_num * sizeof(int), cudaMemcpyHostToDevice));
-  CudaSafeCall(cudaMemset(D, 0, Spin_mem_size));
+void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
+  CudaSafeCall(cudaMemcpy(DPo, &Ho[0], data_num * sizeof(int), cudaMemcpyHostToDevice));
+  CudaSafeCall(cudaMemset(Dcorr, 0, Spin_mem_size_p));
 #ifndef TRI
   for (int labelx = 0; labelx < SpinSize; labelx += 4){
     for (int labely = 0; labely < SpinSize; labely += 4){
-      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, D, labelx, labely);
+      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
     }
   }
-  sumcorr<<<grid, block>>>(DSum, D, DPo);
+  sumcorr<<<grid, block>>>(DSum, Dcorr, DPo);
   CudaCheckError();
 #endif
 #ifdef TRI
   for (int labelx = 0; labelx < SpinSize; labelx += 3){
     for (int labely = 0; labely < SpinSize; labely += 3){
-      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, D, labelx, labely);
+      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
     }
   }
-  sumcorrTRI<<<grid, block>>>(DSum, D, DPo);
+  sumcorrTRI<<<grid, block>>>(DSum, Dcorr, DPo);
   CudaCheckError();
 #endif
   corrcount += 1;
@@ -171,7 +178,7 @@ void correlation::avg_write_reset(){
 #endif
   CudaSafeCall(cudaMemcpy(HSum, DSum, Spin_mem_size_d, cudaMemcpyDeviceToHost));
   write(Corrfd, HSum, Spin_mem_size_d);
-  CudaSafeCall(cudaMemset((void*)DSum, 0, Spin_mem_size_d));
+  CudaSafeCall(cudaMemset(DSum, 0, Spin_mem_size_d));
 }
 
 
@@ -179,9 +186,9 @@ void correlation::avg_write_reset(){
 correlation::~correlation(){
   close(Corrfd);
   free(HSum);
-  CudaSafeCall(cudaFree(D));
-  CudaSafeCall(cudaFree(DPo));//
-  CudaSafeCall(cudaFree(DSum));
+  CudaSafeCall(cudaFree(this->Dcorr));
+  CudaSafeCall(cudaFree(this->DPo));//
+  CudaSafeCall(cudaFree(this->DSum));
 }
 /*
    char Efn[128];

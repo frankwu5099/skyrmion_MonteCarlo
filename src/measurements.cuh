@@ -41,6 +41,7 @@ class measurement{
 
 class measurements{
   public:
+    void* raw_memmory;
     unsigned int Out_mem_size;
     measurements(char* indir, int Parallel_num, unsigned int binSize);
     ~measurements();
@@ -48,7 +49,7 @@ class measurements{
     char names[7][10];
     int norms[7];
     int data_num;
-    measurement* O;
+    std::vector<measurement> O;
     double *Hout;
     double *Dout;
     void measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, float* HHs);
@@ -67,13 +68,13 @@ class correlation{
     unsigned int Spin_mem_size_d;
     int corrcount;
     double *HSum;
-    float *D;
+    float *Dcorr;
     double *DSum;
     char Corrfn[128];
     int Corrfd;
     int *DPo;//only use it only when extracting correlation 
     void avg_write_reset();//set zero
-    void extract(std::vector<int>* Ho, configuration &CONF);//==
+    void extract(std::vector<int>& Ho, configuration &CONF);//==
     //write and set
 };
 #endif
