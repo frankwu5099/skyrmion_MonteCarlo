@@ -252,8 +252,8 @@ extern uniform_01<mt19937> uni01_sampler;
 #define BYPzx (sqrt(3.0)/2.0 * DD - 0.5 * DR)
 #define BWPzx (sqrt(3.0)/2.0 * DD + 0.5 * DR)
 #define BXMzx (-DR)
-#define BYMzx (sqrt(3.0)/2.0 * DD + 0.5 * DR)
-#define BWMzx (sqrt(3.0)/2.0 * DD - 0.5 * DR)
+#define BYMzx (-sqrt(3.0)/2.0 * DD + 0.5 * DR)
+#define BWMzx (-sqrt(3.0)/2.0 * DD - 0.5 * DR)
 #endif
 //--------variables for one temperature replica----------
 #define SpinSize 48                          //Each thread controls 2 by 2 by 2 spins

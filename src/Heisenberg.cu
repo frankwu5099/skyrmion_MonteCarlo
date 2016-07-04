@@ -2,11 +2,11 @@
 //why exchange conf and measurement works
 using namespace std;
 
-#define BIN_SZ 3//00//
+#define BIN_SZ 300//00//
 #define BIN_NUM 3
-#define EQUI_N 3//0//00////16000000
+#define EQUI_N 1000//0//00////16000000
 
-#define ID "skyr_d16z8AO_annealingT_thin"
+#define ID "skyr_d16AO_annealingT_TRI"
 #define PTF	(float(0.00))	//Frequency of parallel tempering
 #include "params.cuh"
 #include "updates.cuh"
@@ -36,7 +36,7 @@ void var_examine();
 
 
 int main(int argc, char *argv[]){
-  //call GPU 
+  //call GPU
 
   if (setDev()==1){
     return 1;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]){
   sprintf(dir, "Data/L_%d-%s", SpinSize, ID);
   mkdir(dir, 0755);
   char Seedfn[128];
-  sprintf(Seedfn, "Conf/L_%d-%s/seed", SpinSize, ID);
+  sprintf(Seedfn, "Data/L_%d-%s/seed", SpinSize, ID);
   int seedfd = open(Seedfn, O_CREAT | O_WRONLY, 0644);
   write(seedfd, seedHost, seedBytes);
   close(seedfd);
@@ -301,9 +301,9 @@ int main(int argc, char *argv[]){
   free(seedHost);
   CudaSafeCall(cudaFree(DPparameters));
   CudaSafeCall(cudaFree(seedDevice));
-  CORR.~correlation();
-  MEASURE.~measurements();
-  CONF.~configuration();
+  //CORR.~correlation();
+  //MEASURE.~measurements();
+  //CONF.~configuration();
   return 0;
 }
 
@@ -358,7 +358,7 @@ void var_examine(){
     exit(0);
   }
 #endif
-#ifndef THIN 
+#ifndef THIN
   if (SpinSize_z != 1){
     fprintf(stderr, "SpinSize_z must be 1 %d\n", BlockSize_y * 2);
     exit(0);
