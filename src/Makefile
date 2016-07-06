@@ -156,7 +156,7 @@ ifeq ($(OS_ARCH),armv7l)
 SMS ?= 20 30 32 35 37 50
 else
 #SMS ?= 11 20 30 35 37 50
-SMS ?=   52  # Change according to your GPU hardware specs
+SMS ?=   20  # Change according to your GPU hardware specs
 endif
 
 ifeq ($(SMS),)
@@ -186,7 +186,7 @@ DEPS= cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configu
 # Target rules
 all: build
 
-build: JmatH2DAOL32_annTd16z8
+build: ../TRI_L32_annTd16ACtest
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -196,10 +196,10 @@ else
 endif
 
 %.o:%.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-JmatH2DAOL32_annTd16z8: ${OBJS}
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+../TRI_L32_annTd16ACtest: ${OBJS}
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 

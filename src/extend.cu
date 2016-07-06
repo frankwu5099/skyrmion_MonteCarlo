@@ -1,18 +1,16 @@
-#ifndef PARAMS_H
-#define PARAMS_H
-#include "params.cuh"
-#endif
 int setDev(){
   int num_devices,flag=0;
   cudaError_t error = cudaErrorDevicesUnavailable;
   cudaGetDeviceCount(&num_devices);
   bool *Dtest;
+
   for (int device = 0; device < num_devices; device++) {//
     cudaSetDevice(device);
     error = cudaMalloc((void**)&Dtest, 100*sizeof(bool));
     if (error == cudaSuccess){
       printf("using device %d !\n",device);
-      cudaFree(Dtest);
+      //cudaFree(Dtest);
+      cudaDeviceReset();
       break;
 
     }else{

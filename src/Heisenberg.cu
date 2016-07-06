@@ -2,18 +2,18 @@
 //why exchange conf and measurement works
 using namespace std;
 
-#define BIN_SZ 300//00//
-#define BIN_NUM 3
-#define EQUI_N 1000//0//00////16000000
+#define BIN_SZ 3000//0//00//
+#define BIN_NUM 3//0
+#define EQUI_N 20000//0//0//00////16000000
 
-#define ID "skyr_d16AO_annealingT_TRI"
+#define ID "skyr_d16AC_testmeasurement_TRI"
 #define PTF	(float(0.00))	//Frequency of parallel tempering
 #include "params.cuh"
 #include "updates.cuh"
 #include "measurements.cuh"
 #include "configuration.cuh"
 #include "extend.cu"
-#define EQUI_Ni (4)//00)//00)
+#define EQUI_Ni (4000)//0)
 #define GET_CORR
 #define f_CORR (500)
 
@@ -41,6 +41,8 @@ int main(int argc, char *argv[]){
   if (setDev()==1){
     return 1;
   }
+  cudaGetLastError();
+  CudaCheckError();
 
   //examine variables
   var_examine();
@@ -337,6 +339,8 @@ void tempering(double *Ms, int *accept){
     }
   }
 }
+
+
 void var_examine(){
 #ifndef TRI
   if(SpinSize % (BlockSize_x * 2) != 0){

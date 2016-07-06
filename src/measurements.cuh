@@ -8,7 +8,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out);
 __global__ void getcorr2D(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j);
 __global__ void sumcorr2D(double *DSum_corr, const float *corr, int *DTo);
 __global__ void avgcorr2D(double *DSum_corr, double N_corr);
-#endif 
+#endif
 #ifdef TRI
 __global__ void calTRI(float *confx, float *confy, float *confz, double *out);
 __global__ void getcorrTRI(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j);
@@ -30,7 +30,7 @@ class measurement{
     char fn[128];
     char dir[128];
     char name[128];
-    int fd;
+    FILE *fp;
     int data_num;
     unsigned int data_mem_size;
     double *outdata;
@@ -72,7 +72,7 @@ class correlation{
     double *DSum;
     char Corrfn[128];
     int Corrfd;
-    int *DPo;//only use it only when extracting correlation 
+    int *DPo;//only use it only when extracting correlation
     void avg_write_reset();//set zero
     void extract(std::vector<int>& Ho, configuration &CONF);//==
     //write and set

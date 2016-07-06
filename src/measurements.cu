@@ -21,6 +21,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
     O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
+    O[O.size() - 1].fp = fopen(O[O.size() - 1].fn, "w");
   }
   data_num = Parallel_num;
   Out_mem_size = Parallel_num * MEASURE_NUM * BN * sizeof(double);
@@ -34,10 +35,10 @@ measurements::~measurements(){
   printf("measure free begin!\n");
   fflush(stdout);
   for (int i =0 ; i< 7; i++){
-    O[i].~measurement();
+    fclose(O[i].fp);
   }
   free(Hout);
-  CudaSafeCall(cudaFree(Dout));
+  //CudaSafeCall(cudaFree(Dout));
   printf("measure free succeed!\n");
   fflush(stdout);
 }
@@ -87,7 +88,6 @@ measurement::measurement(char* indir, char* Oname, int normin, int Parallel_num)
   norm = normin;
   data_mem_size = data_num * sizeof(double);
   sprintf(fn, "%s/%s", dir, name);
-  fd = open(fn, O_CREAT | O_WRONLY, 0644); //watch out, there might be some problem
   outdata = (double*)calloc(data_num, sizeof(double));
 }
 
@@ -95,7 +95,6 @@ measurement::measurement(char* indir, char* Oname, int normin, int Parallel_num)
 measurement::~measurement(){
   printf("measuresingle free begin!\n");
   fflush(stdout);
-  close(fd);
   printf("measuresingle free succeed!\n");
   fflush(stdout);
 }
@@ -105,7 +104,7 @@ void measurement::normalize_and_save_and_reset(){
   for (int t = 0; t < data_num; t++)
     outdata[t] = outdata[t]/norm;
 
-  write(fd, outdata, data_mem_size);
+  fwrite(outdata, sizeof(double), data_num, fp);
 
   for (int t = 0; t < data_num; t++)
     outdata[t] = 0.0;//memset????
@@ -184,11 +183,12 @@ void correlation::avg_write_reset(){
 
 
 correlation::~correlation(){
+  printf("corr %d\n", Corrfd);
   close(Corrfd);
   free(HSum);
-  CudaSafeCall(cudaFree(this->Dcorr));
-  CudaSafeCall(cudaFree(this->DPo));//
-  CudaSafeCall(cudaFree(this->DSum));
+  //CudaSafeCall(cudaFree(this->Dcorr));
+  //CudaSafeCall(cudaFree(this->DPo));//
+  //CudaSafeCall(cudaFree(this->DSum));
 }
 /*
    char Efn[128];

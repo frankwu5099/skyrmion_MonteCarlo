@@ -307,10 +307,10 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	sD[y][x] += confx[coo2D(ty, txp)] * (
 	 (confy[coo2D(ty, txp)]-confy[coo2D(ty, tx)])*(2*confz[coo2D(ty, txp)]-confz[coo2D(by, txp)]-confz[coo2D(by, tx)])
 	-(confz[coo2D(ty, txp)]-confz[coo2D(ty, tx)])*(2*confy[coo2D(ty, txp)]-confy[coo2D(by, txp)]-confy[coo2D(by, tx)])
-	)+confy[coo2D(ty, txp)]*(                                                                                        
+	)+confy[coo2D(ty, txp)]*(
 	 (confz[coo2D(ty, txp)]-confz[coo2D(ty, tx)])*(2*confx[coo2D(ty, txp)]-confx[coo2D(by, txp)]-confx[coo2D(by, tx)])
 	-(confx[coo2D(ty, txp)]-confx[coo2D(ty, tx)])*(2*confz[coo2D(ty, txp)]-confz[coo2D(by, txp)]-confz[coo2D(by, tx)])
-	)+confz[coo2D(ty, txp)] * (                                                                                      
+	)+confz[coo2D(ty, txp)] * (
 	 (confx[coo2D(ty, txp)]-confx[coo2D(ty, tx)])*(2*confy[coo2D(ty, txp)]-confy[coo2D(by, txp)]-confy[coo2D(by, tx)])
 	-(confy[coo2D(ty, txp)]-confy[coo2D(ty, tx)])*(2*confx[coo2D(ty, txp)]-confx[coo2D(by, txp)]-confx[coo2D(by, tx)])
 	);
@@ -340,10 +340,10 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	sD[y][x] += confx[coo2D(ty, txp2)] * (
 	 (confy[coo2D(ty, txp2)]-confy[coo2D(ty, txp)])*(2*confz[coo2D(ty, txp2)]-confz[coo2D(by, txp2)]-confz[coo2D(by, txp)])
 	-(confz[coo2D(ty, txp2)]-confz[coo2D(ty, txp)])*(2*confy[coo2D(ty, txp2)]-confy[coo2D(by, txp2)]-confy[coo2D(by, txp)])
-	)+confy[coo2D(ty, txp2)]*(                                                                                          
+	)+confy[coo2D(ty, txp2)]*(
 	 (confz[coo2D(ty, txp2)]-confz[coo2D(ty, txp)])*(2*confx[coo2D(ty, txp2)]-confx[coo2D(by, txp2)]-confx[coo2D(by, txp)])
 	-(confx[coo2D(ty, txp2)]-confx[coo2D(ty, txp)])*(2*confz[coo2D(ty, txp2)]-confz[coo2D(by, txp2)]-confz[coo2D(by, txp)])
-	)+confz[coo2D(ty, txp2)] * (                                                                                        
+	)+confz[coo2D(ty, txp2)] * (
 	 (confx[coo2D(ty, txp2)]-confx[coo2D(ty, txp)])*(2*confy[coo2D(ty, txp2)]-confy[coo2D(by, txp2)]-confy[coo2D(by, txp)])
 	-(confy[coo2D(ty, txp2)]-confy[coo2D(ty, txp)])*(2*confx[coo2D(ty, txp2)]-confx[coo2D(by, txp2)]-confx[coo2D(by, txp)])
 	);
@@ -351,10 +351,10 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	sD[y][x] += confx[coo2D(typ, txp2)] * (
 	 (confy[coo2D(typ, txp2)]-confy[coo2D(typ, txp)])*(2*confz[coo2D(typ, txp2)]-confz[coo2D(ty, txp2)]-confz[coo2D(ty, txp)])
 	-(confz[coo2D(typ, txp2)]-confz[coo2D(typ, txp)])*(2*confy[coo2D(typ, txp2)]-confy[coo2D(ty, txp2)]-confy[coo2D(ty, txp)])
-	)+confy[coo2D(typ, txp2)]*(                                                                                            
+	)+confy[coo2D(typ, txp2)]*(
 	 (confz[coo2D(typ, txp2)]-confz[coo2D(typ, txp)])*(2*confx[coo2D(typ, txp2)]-confx[coo2D(ty, txp2)]-confx[coo2D(ty, txp)])
 	-(confx[coo2D(typ, txp2)]-confx[coo2D(typ, txp)])*(2*confz[coo2D(typ, txp2)]-confz[coo2D(ty, txp2)]-confz[coo2D(ty, txp)])
-	)+confz[coo2D(typ, txp2)] * (                                                                                          
+	)+confz[coo2D(typ, txp2)] * (
 	 (confx[coo2D(typ, txp2)]-confx[coo2D(typ, txp)])*(2*confy[coo2D(typ, txp2)]-confy[coo2D(ty, txp2)]-confy[coo2D(ty, txp)])
 	-(confy[coo2D(typ, txp2)]-confy[coo2D(typ, txp)])*(2*confx[coo2D(typ, txp2)]-confx[coo2D(ty, txp2)]-confx[coo2D(ty, txp)])
 	);
@@ -362,7 +362,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	sD[y][x] += confx[coo2D(typ2, txp2)] * (
 	 (confy[coo2D(typ2, txp2)]-confy[coo2D(typ2, txp)])*(2*confz[coo2D(typ2, txp2)]-confz[coo2D(typ, txp2)]-confz[coo2D(typ, txp)])
 	-(confz[coo2D(typ2, txp2)]-confz[coo2D(typ2, txp)])*(2*confy[coo2D(typ2, txp2)]-confy[coo2D(typ, txp2)]-confy[coo2D(typ, txp)])
-	)+confy[coo2D(typ2, txp2)]*( 
+	)+confy[coo2D(typ2, txp2)]*(
 	 (confz[coo2D(typ2, txp2)]-confz[coo2D(typ2, txp)])*(2*confx[coo2D(typ2, txp2)]-confx[coo2D(typ, txp2)]-confx[coo2D(typ, txp)])
 	-(confx[coo2D(typ2, txp2)]-confx[coo2D(typ2, txp)])*(2*confz[coo2D(typ2, txp2)]-confz[coo2D(typ, txp2)]-confz[coo2D(typ, txp)])
 	)+confz[coo2D(typ2, txp2)] * (
@@ -398,7 +398,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	__syncthreads();
 
 	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 4 * BN] = sD[0][0];
+		out[dataoff + (blockIdx.x % BN) + 4 * BN] = sD[0][0]/2; //very important// in our calculation, the chern number should be divided.
 	__syncthreads();
 }
 #endif
