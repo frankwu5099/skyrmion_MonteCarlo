@@ -181,7 +181,7 @@ endif
 
 ################################################################################
 
-OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o flipTRI.o measurements.o WarpStandard.o read_params.cu
+OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o flipTRI.o measurements.o WarpStandard.o read_params.o
 DEPS= read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu WarpStandard.cu
 # Target rules
 all: build

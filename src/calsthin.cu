@@ -21,7 +21,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
 	//Calculate the two pair-energy of each spin on the thread square step by step and store the summing energy of each thread square in sD.
 	z = 0;
   //Top-left corner
-  sD[y][x] = -confx[coo(z, ty, tx)] * (BXMxx * confx[coo(z, ty, bx)] + BYMxx * confx[coo(z, by, tx)])\
+  sD[threadIdx.x] = -confx[coo(z, ty, tx)] * (BXMxx * confx[coo(z, ty, bx)] + BYMxx * confx[coo(z, by, tx)])\
              +confx[coo(z, ty, tx)] * (BXMxy * confy[coo(z, ty, bx)] + BYMxy * confy[coo(z, by, tx)])\
              +confx[coo(z, ty, tx)] * (BXMxz * confz[coo(z, ty, bx)] + BYMxz * confz[coo(z, by, tx)])\
              +confy[coo(z, ty, tx)] * (BXMyx * confx[coo(z, ty, bx)] + BYMyx * confx[coo(z, by, tx)])\
@@ -31,7 +31,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
              +confz[coo(z, ty, tx)] * (BXMzy * confy[coo(z, ty, bx)] + BYMzy * confy[coo(z, by, tx)])\
              +confz[coo(z, ty, tx)] * (BXMzz * confz[coo(z, ty, bx)] + BYMzz * confz[coo(z, by, tx)] - A * confz[coo(z, ty, tx)]);
   //Bottom-left corner
-  sD[y][x] -= confx[coo(z, ty+1, tx)] * (BXMxx * confx[coo(z, ty+1, bx)] + BYMxx * confx[coo(z, ty, tx)])\
+  sD[threadIdx.x] -= confx[coo(z, ty+1, tx)] * (BXMxx * confx[coo(z, ty+1, bx)] + BYMxx * confx[coo(z, ty, tx)])\
              +confx[coo(z, ty+1, tx)] * (BXMxy * confy[coo(z, ty+1, bx)] + BYMxy * confy[coo(z, ty, tx)])\
              +confx[coo(z, ty+1, tx)] * (BXMxz * confz[coo(z, ty+1, bx)] + BYMxz * confz[coo(z, ty, tx)])\
              +confy[coo(z, ty+1, tx)] * (BXMyx * confx[coo(z, ty+1, bx)] + BYMyx * confx[coo(z, ty, tx)])\
@@ -41,7 +41,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
              +confz[coo(z, ty+1, tx)] * (BXMzy * confy[coo(z, ty+1, bx)] + BYMzy * confy[coo(z, ty, tx)])\
              +confz[coo(z, ty+1, tx)] * (BXMzz * confz[coo(z, ty+1, bx)] + BYMzz * confz[coo(z, ty, tx)] - A * confz[coo(z, ty+1, tx)]);
   //Top-right corner
-  sD[y][x] -= confx[coo(z, ty, tx+1)] * (BXMxx * confx[coo(z, ty, tx)] + BYMxx * confx[coo(z, by, tx+1)])\
+  sD[threadIdx.x] -= confx[coo(z, ty, tx+1)] * (BXMxx * confx[coo(z, ty, tx)] + BYMxx * confx[coo(z, by, tx+1)])\
              +confx[coo(z, ty, tx+1)] * (BXMxy * confy[coo(z, ty, tx)] + BYMxy * confy[coo(z, by, tx+1)])\
              +confx[coo(z, ty, tx+1)] * (BXMxz * confz[coo(z, ty, tx)] + BYMxz * confz[coo(z, by, tx+1)])\
              +confy[coo(z, ty, tx+1)] * (BXMyx * confx[coo(z, ty, tx)] + BYMyx * confx[coo(z, by, tx+1)])\
@@ -51,7 +51,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
              +confz[coo(z, ty, tx+1)] * (BXMzy * confy[coo(z, ty, tx)] + BYMzy * confy[coo(z, by, tx+1)])\
              +confz[coo(z, ty, tx+1)] * (BXMzz * confz[coo(z, ty, tx)] + BYMzz * confz[coo(z, by, tx+1)] - A * confz[coo(z, ty, tx+1)]);
   //Bottom-right corner
-  sD[y][x] -= confx[coo(z, ty+1, tx+1)] * (BXMxx * confx[coo(z, ty+1, tx)] + BYMxx * confx[coo(z, ty, tx+1)])\
+  sD[threadIdx.x] -= confx[coo(z, ty+1, tx+1)] * (BXMxx * confx[coo(z, ty+1, tx)] + BYMxx * confx[coo(z, ty, tx+1)])\
              +confx[coo(z, ty+1, tx+1)] * (BXMxy * confy[coo(z, ty+1, tx)] + BYMxy * confy[coo(z, ty, tx+1)])\
              +confx[coo(z, ty+1, tx+1)] * (BXMxz * confz[coo(z, ty+1, tx)] + BYMxz * confz[coo(z, ty, tx+1)])\
              +confy[coo(z, ty+1, tx+1)] * (BXMyx * confx[coo(z, ty+1, tx)] + BYMyx * confx[coo(z, ty, tx+1)])\
@@ -63,7 +63,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
 
   for (z = 1; z < SpinSize_z; z++){
     //Top-left corner
-    sD[y][x] -= confx[coo(z, ty, tx)] * (BXMxx * confx[coo(z, ty, bx)] + BYMxx * confx[coo(z, by, tx)] + BZMxx * confx[coo(z-1, ty, tx)])\
+    sD[threadIdx.x] -= confx[coo(z, ty, tx)] * (BXMxx * confx[coo(z, ty, bx)] + BYMxx * confx[coo(z, by, tx)] + BZMxx * confx[coo(z-1, ty, tx)])\
                +confx[coo(z, ty, tx)] * (BXMxy * confy[coo(z, ty, bx)] + BYMxy * confy[coo(z, by, tx)] + BZMxy * confy[coo(z-1, ty, tx)])\
                +confx[coo(z, ty, tx)] * (BXMxz * confz[coo(z, ty, bx)] + BYMxz * confz[coo(z, by, tx)])\
                +confy[coo(z, ty, tx)] * (BXMyx * confx[coo(z, ty, bx)] + BYMyx * confx[coo(z, by, tx)] + BZMyx * confx[coo(z-1, ty, tx)])\
@@ -73,7 +73,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
                +confz[coo(z, ty, tx)] * (BXMzy * confy[coo(z, ty, bx)] + BYMzy * confy[coo(z, by, tx)])\
                +confz[coo(z, ty, tx)] * (BXMzz * confz[coo(z, ty, bx)] + BYMzz * confz[coo(z, by, tx)] + BZMzz * confz[coo(z-1, ty, tx)] - A * confz[coo(z, ty, tx)]);
     //Bottom-left corner
-    sD[y][x] -= confx[coo(z, ty+1, tx)] * (BXMxx * confx[coo(z, ty+1, bx)] + BYMxx * confx[coo(z, ty, tx)] + BZMxx * confx[coo(z-1, ty+1, tx)])\
+    sD[threadIdx.x] -= confx[coo(z, ty+1, tx)] * (BXMxx * confx[coo(z, ty+1, bx)] + BYMxx * confx[coo(z, ty, tx)] + BZMxx * confx[coo(z-1, ty+1, tx)])\
                +confx[coo(z, ty+1, tx)] * (BXMxy * confy[coo(z, ty+1, bx)] + BYMxy * confy[coo(z, ty, tx)] + BZMxy * confy[coo(z-1, ty+1, tx)])\
                +confx[coo(z, ty+1, tx)] * (BXMxz * confz[coo(z, ty+1, bx)] + BYMxz * confz[coo(z, ty, tx)])\
                +confy[coo(z, ty+1, tx)] * (BXMyx * confx[coo(z, ty+1, bx)] + BYMyx * confx[coo(z, ty, tx)] + BZMyx * confx[coo(z-1, ty+1, tx)])\
@@ -83,7 +83,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
                +confz[coo(z, ty+1, tx)] * (BXMzy * confy[coo(z, ty+1, bx)] + BYMzy * confy[coo(z, ty, tx)])\
                +confz[coo(z, ty+1, tx)] * (BXMzz * confz[coo(z, ty+1, bx)] + BYMzz * confz[coo(z, ty, tx)] + BZMzz * confz[coo(z-1, ty+1, tx)] - A * confz[coo(z, ty+1, tx)]);
     //Top-right corner
-    sD[y][x] -= confx[coo(z, ty, tx+1)] * (BXMxx * confx[coo(z, ty, tx)] + BYMxx * confx[coo(z, by, tx+1)] + BZMxx * confx[coo(z-1, ty, tx+1)])\
+    sD[threadIdx.x] -= confx[coo(z, ty, tx+1)] * (BXMxx * confx[coo(z, ty, tx)] + BYMxx * confx[coo(z, by, tx+1)] + BZMxx * confx[coo(z-1, ty, tx+1)])\
                +confx[coo(z, ty, tx+1)] * (BXMxy * confy[coo(z, ty, tx)] + BYMxy * confy[coo(z, by, tx+1)] + BZMxy * confy[coo(z-1, ty, tx+1)])\
                +confx[coo(z, ty, tx+1)] * (BXMxz * confz[coo(z, ty, tx)] + BYMxz * confz[coo(z, by, tx+1)])\
                +confy[coo(z, ty, tx+1)] * (BXMyx * confx[coo(z, ty, tx)] + BYMyx * confx[coo(z, by, tx+1)] + BZMyx * confx[coo(z-1, ty, tx+1)])\
@@ -93,7 +93,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
                +confz[coo(z, ty, tx+1)] * (BXMzy * confy[coo(z, ty, tx)] + BYMzy * confy[coo(z, by, tx+1)])\
                +confz[coo(z, ty, tx+1)] * (BXMzz * confz[coo(z, ty, tx)] + BYMzz * confz[coo(z, by, tx+1)] + BZMzz * confz[coo(z-1, ty, tx+1)] - A * confz[coo(z, ty, tx+1)]);
     //Bottom-right corner
-    sD[y][x] -= confx[coo(z, ty+1, tx+1)] * (BXMxx * confx[coo(z, ty+1, tx)] + BYMxx * confx[coo(z, ty, tx+1)] + BZMxx * confx[coo(z-1, ty+1, tx+1)])\
+    sD[threadIdx.x] -= confx[coo(z, ty+1, tx+1)] * (BXMxx * confx[coo(z, ty+1, tx)] + BYMxx * confx[coo(z, ty, tx+1)] + BZMxx * confx[coo(z-1, ty+1, tx+1)])\
                +confx[coo(z, ty+1, tx+1)] * (BXMxy * confy[coo(z, ty+1, tx)] + BYMxy * confy[coo(z, ty, tx+1)] + BZMxy * confy[coo(z-1, ty+1, tx+1)])\
                +confx[coo(z, ty+1, tx+1)] * (BXMxz * confz[coo(z, ty+1, tx)] + BYMxz * confz[coo(z, ty, tx+1)])\
                +confy[coo(z, ty+1, tx+1)] * (BXMyx * confx[coo(z, ty+1, tx)] + BYMyx * confx[coo(z, ty, tx+1)] + BZMyx * confx[coo(z-1, ty+1, tx+1)])\
@@ -105,161 +105,230 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
   }
 	__syncthreads();
 
-
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y<BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y<BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y<BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN)] = sD[0];
 	__syncthreads();
 
-	if(y==0 && x==0)
-		out[dataoff + (blockIdx.x % BN)] = sD[0][0];
-	__syncthreads();
 	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-  sD[y][x]  = 0;
+  sD[threadIdx.x]  = 0;
   for (z = 0; z < SpinSize_z; z++){
-    sD[y][x] += confx[coo(z, ty, tx)];
-    sD[y][x] += confx[coo(z, ty+1, tx)];
-    sD[y][x] += confx[coo(z, ty ,tx+1)];
-    sD[y][x] += confx[coo(z, ty+1, tx+1)];
+    sD[threadIdx.x] += confx[coo(z, ty, tx)];
+    sD[threadIdx.x] += confx[coo(z, ty+1, tx)];
+    sD[threadIdx.x] += confx[coo(z, ty ,tx+1)];
+    sD[threadIdx.x] += confx[coo(z, ty+1, tx+1)];
   }
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
-	__syncthreads();
-
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + BN] = sD[0][0];
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + BN] = sD[0];
 	__syncthreads();
 
 	//Sum over the magnetic moments in y direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
 	//Top-left corner
-  sD[y][x]  = 0;
+  sD[threadIdx.x]  = 0;
   for (z = 0; z < SpinSize_z; z++){
-    sD[y][x] += confy[coo(z, ty, tx)];
-    sD[y][x] += confy[coo(z, ty+1, tx)];
-    sD[y][x] += confy[coo(z, ty ,tx+1)];
-    sD[y][x] += confy[coo(z, ty+1, tx+1)];
+    sD[threadIdx.x] += confy[coo(z, ty, tx)];
+    sD[threadIdx.x] += confy[coo(z, ty+1, tx)];
+    sD[threadIdx.x] += confy[coo(z, ty ,tx+1)];
+    sD[threadIdx.x] += confy[coo(z, ty+1, tx+1)];
   }
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
-	__syncthreads();
-
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 2 * BN] = sD[0][0];
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + 2*BN] = sD[0];
 	__syncthreads();
 
 	//Sum over the magnetic moments in z direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-  sD[y][x]  = 0;
+  sD[threadIdx.x]  = 0;
   for (z = 0; z < SpinSize_z; z++){
-    sD[y][x] += confz[coo(z, ty, tx)];
-    sD[y][x] += confz[coo(z, ty+1, tx)];
-    sD[y][x] += confz[coo(z, ty ,tx+1)];
-    sD[y][x] += confz[coo(z, ty+1, tx+1)];
+    sD[threadIdx.x] += confz[coo(z, ty, tx)];
+    sD[threadIdx.x] += confz[coo(z, ty+1, tx)];
+    sD[threadIdx.x] += confz[coo(z, ty ,tx+1)];
+    sD[threadIdx.x] += confz[coo(z, ty+1, tx+1)];
   }
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + 3*BN] = sD[0];
 	__syncthreads();
 
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 3 * BN] = sD[0][0];
-	__syncthreads();
 	//try to measure Chern number
 	//Top-left corner
-  sD[y][x]  = 0;
+  sD[threadIdx.x]  = 0;
   for (z = 0; z < SpinSize_z; z++){
-    sD[y][x]  = confx[coo(z, ty, tx)] * (
+    sD[threadIdx.x]  = confx[coo(z, ty, tx)] * (
     (confy[coo(z, ty, tx)]-confy[coo(z, ty, bx)])*(confz[coo(z, ty, tx)]-confz[coo(z, by, tx)])
     -(confz[coo(z, ty, tx)]-confz[coo(z, ty, bx)])*(confy[coo(z, ty, tx)]-confy[coo(z, by, tx)])
     )+confy[coo(z, ty, tx)] * (
@@ -270,7 +339,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
     -(confy[coo(z, ty, tx)]-confy[coo(z, ty, bx)])*(confx[coo(z, ty, tx)]-confx[coo(z, by, tx)])
     );
     //Bottom-left corner
-    sD[y][x] += confx[coo(z, typ, tx)] * (
+    sD[threadIdx.x] += confx[coo(z, typ, tx)] * (
     (confy[coo(z, typ, tx)]-confy[coo(z, typ, bx)])*(confz[coo(z, typ, tx)]-confz[coo(z, ty, tx)])
     -(confz[coo(z, typ, tx)]-confz[coo(z, typ, bx)])*(confy[coo(z, typ, tx)]-confy[coo(z, ty, tx)])
     )+confy[coo(z, typ, tx)]*(
@@ -281,7 +350,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
     -(confy[coo(z, typ, tx)]-confy[coo(z, typ, bx)])*(confx[coo(z, typ, tx)]-confx[coo(z, ty, tx)])
     );
     //Top-right corner
-    sD[y][x] += confx[coo(z, ty, txp)] * (
+    sD[threadIdx.x] += confx[coo(z, ty, txp)] * (
     (confy[coo(z, ty, txp)]-confy[coo(z, ty, tx)])*(confz[coo(z, ty, txp)]-confz[coo(z, by, txp)])
     -(confz[coo(z, ty, txp)]-confz[coo(z, ty, tx)])*(confy[coo(z, ty, txp)]-confy[coo(z, by, txp)])
     )+confy[coo(z, ty, txp)]*(
@@ -292,7 +361,7 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
     -(confy[coo(z, ty, txp)]-confy[coo(z, ty, tx)])*(confx[coo(z, ty, txp)]-confx[coo(z, by, txp)])
     );
     //Bottom-right corner
-    sD[y][x] += confx[coo(z, typ, txp)] * (
+    sD[threadIdx.x] += confx[coo(z, typ, txp)] * (
     (confy[coo(z, typ, txp)]-confy[coo(z, typ, tx)])*(confz[coo(z, typ, txp)]-confz[coo(z, ty, txp)])
     -(confz[coo(z, typ, txp)]-confz[coo(z, typ, tx)])*(confy[coo(z, typ, txp)]-confy[coo(z, ty, txp)])
     )+confy[coo(z, typ, txp)]*(
@@ -306,33 +375,50 @@ __global__ void calthin(float *confx, float *confy, float *confz, double *out){
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
-	__syncthreads();
-
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 4 * BN] = sD[0][0];
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + 4*BN] = sD[0];
 	__syncthreads();
 }
 

@@ -22,7 +22,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 	//Calculate the two pair-energy of each spin on the thread square step by step and store the summing energy of each thread square in sD.
 
 	//Top-left corner
-	sD[y][x] = -confx[coo2D(ty, tx)] * ( BXMxx * confx[coo2D(ty, bx)] + BYMxx * confx[coo2D(by, tx)])\
+	sD[threadIdx.x] = -confx[coo2D(ty, tx)] * ( BXMxx * confx[coo2D(ty, bx)] + BYMxx * confx[coo2D(by, tx)])\
 	           -confx[coo2D(ty, tx)] * ( BXMxy * confy[coo2D(ty, bx)] + BYMxy * confy[coo2D(by, tx)])\
 	           -confx[coo2D(ty, tx)] * ( BXMxz * confz[coo2D(ty, bx)] + BYMxz * confz[coo2D(by, tx)])\
 		         -confy[coo2D(ty, tx)] * ( BXMyx * confx[coo2D(ty, bx)] + BYMyx * confx[coo2D(by, tx)])\
@@ -32,7 +32,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 		         -confz[coo2D(ty, tx)] * ( BXMzy * confy[coo2D(ty, bx)] + BYMzy * confy[coo2D(by, tx)])\
 		         -confz[coo2D(ty, tx)] * ( BXMzz * confz[coo2D(ty, bx)] + BYMzz * confz[coo2D(by, tx)] - A * confz[coo2D(ty, tx)]);
 	//Bottom-left corner
-	sD[y][x] -= confx[coo2D((ty+1), tx)] * ( BXMxx * confx[coo2D((ty+1), bx)] + BYMxx * confx[coo2D(ty, tx)])\
+	sD[threadIdx.x] -= confx[coo2D((ty+1), tx)] * ( BXMxx * confx[coo2D((ty+1), bx)] + BYMxx * confx[coo2D(ty, tx)])\
 		         +confx[coo2D((ty+1), tx)] * ( BXMxy * confy[coo2D((ty+1), bx)] + BYMxy * confy[coo2D(ty, tx)])\
 		         +confx[coo2D((ty+1), tx)] * ( BXMxz * confz[coo2D((ty+1), bx)] + BYMxz * confz[coo2D(ty, tx)])\
 		         +confy[coo2D((ty+1), tx)] * ( BXMyx * confx[coo2D((ty+1), bx)] + BYMyx * confx[coo2D(ty, tx)])\
@@ -42,7 +42,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 		         +confz[coo2D((ty+1), tx)] * ( BXMzy * confy[coo2D((ty+1), bx)] + BYMzy * confy[coo2D(ty, tx)])\
 		         +confz[coo2D((ty+1), tx)] * ( BXMzz * confz[coo2D((ty+1), bx)] + BYMzz * confz[coo2D(ty, tx)] - A * confz[coo2D((ty+1), tx)]);
 	//Top-right corner
-	sD[y][x] -= confx[coo2D(ty, tx+1)] * ( BXMxx * confx[coo2D(ty, tx)] + BYMxx * confx[coo2D(by, tx+1)])\
+	sD[threadIdx.x] -= confx[coo2D(ty, tx+1)] * ( BXMxx * confx[coo2D(ty, tx)] + BYMxx * confx[coo2D(by, tx+1)])\
 		         +confx[coo2D(ty, tx+1)] * ( BXMxy * confy[coo2D(ty, tx)] + BYMxy * confy[coo2D(by, tx+1)])\
 		         +confx[coo2D(ty, tx+1)] * ( BXMxz * confz[coo2D(ty, tx)] + BYMxz * confz[coo2D(by, tx+1)])\
 		         +confy[coo2D(ty, tx+1)] * ( BXMyx * confx[coo2D(ty, tx)] + BYMyx * confx[coo2D(by, tx+1)])\
@@ -52,7 +52,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 		         +confz[coo2D(ty, tx+1)] * ( BXMzy * confy[coo2D(ty, tx)] + BYMzy * confy[coo2D(by, tx+1)])\
 		         +confz[coo2D(ty, tx+1)] * ( BXMzz * confz[coo2D(ty, tx)] + BYMzz * confz[coo2D(by, tx+1)] - A * confz[coo2D(ty, tx+1)]);
 	//Bottom-right corner
-	sD[y][x] -= confx[coo2D((ty+1), tx+1)] * ( BXMxx * confx[coo2D((ty+1), tx)] + BYMxx * confx[coo2D(ty, tx+1)])\
+	sD[threadIdx.x] -= confx[coo2D((ty+1), tx+1)] * ( BXMxx * confx[coo2D((ty+1), tx)] + BYMxx * confx[coo2D(ty, tx+1)])\
 		         +confx[coo2D((ty+1), tx+1)] * ( BXMxy * confy[coo2D((ty+1), tx)] + BYMxy * confy[coo2D(ty, tx+1)])\
 		         +confx[coo2D((ty+1), tx+1)] * ( BXMxz * confz[coo2D((ty+1), tx)] + BYMxz * confz[coo2D(ty, tx+1)])\
 		         +confy[coo2D((ty+1), tx+1)] * ( BXMyx * confx[coo2D((ty+1), tx)] + BYMyx * confx[coo2D(ty, tx+1)])\
@@ -65,155 +65,226 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y<BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y<BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y<BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN)] = sD[0];
 	__syncthreads();
 
-	if(y==0 && x==0)
-		out[dataoff + (blockIdx.x % BN)] = sD[0][0];
-	__syncthreads();
 	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[y][x]  = confx[coo2D(ty, tx)];
-	sD[y][x] += confx[coo2D((ty+1), tx)];
-	sD[y][x] += confx[coo2D(ty, tx+1)];
-	sD[y][x] += confx[coo2D((ty+1), (tx+1))];
+	sD[threadIdx.x]  = confx[coo2D(ty, tx)];
+	sD[threadIdx.x] += confx[coo2D((ty+1), tx)];
+	sD[threadIdx.x] += confx[coo2D(ty, tx+1)];
+	sD[threadIdx.x] += confx[coo2D((ty+1), (tx+1))];
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
-	__syncthreads();
-
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + BN] = sD[0][0];
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + BN] = sD[0];
 	__syncthreads();
 
 	//Sum over the magnetic moments in y direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
 	//Top-left corner
-	sD[y][x]  = confy[coo2D(ty, tx)];
+	sD[threadIdx.x]  = confy[coo2D(ty, tx)];
 	//Bottom-left corner
-	sD[y][x] += confy[coo2D((ty+1), tx)];
+	sD[threadIdx.x] += confy[coo2D((ty+1), tx)];
 	//Top-right corner
-	sD[y][x] += confy[coo2D(ty, tx+1)];
+	sD[threadIdx.x] += confy[coo2D(ty, tx+1)];
 	//Bottom-right corner
-	sD[y][x] += confy[coo2D((ty+1), tx+1)];
+	sD[threadIdx.x] += confy[coo2D((ty+1), tx+1)];
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
-	__syncthreads();
-
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 2 * BN] = sD[0][0];
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + 2*BN] = sD[0];
 	__syncthreads();
 
 	//Sum over the magnetic moments in z direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
 	//Top-left corner
-	sD[y][x]  = confz[coo2D(ty, tx)];
+	sD[threadIdx.x]  = confz[coo2D(ty, tx)];
 	//Bottom-left corner
-	sD[y][x] += confz[coo2D((ty+1), tx)];
+	sD[threadIdx.x] += confz[coo2D((ty+1), tx)];
 	//Top-right corner
-	sD[y][x] += confz[coo2D(ty, tx+1)];
+	sD[threadIdx.x] += confz[coo2D(ty, tx+1)];
 	//Bottom-right corner
-	sD[y][x] += confz[coo2D((ty+1), tx+1)];
+	sD[threadIdx.x] += confz[coo2D((ty+1), tx+1)];
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + 3*BN] = sD[0];
 	__syncthreads();
 
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 3 * BN] = sD[0][0];
-	__syncthreads();
+
 	//try to measure Chern number
 	//Top-left corner
-	sD[y][x]  = confx[coo2D(ty, tx)] * (
+	sD[threadIdx.x]  = confx[coo2D(ty, tx)] * (
 	(confy[coo2D(ty, tx)]-confy[coo2D(ty, bx)])*(confz[coo2D(ty, tx)]-confz[coo2D(by, tx)])
 	-(confz[coo2D(ty, tx)]-confz[coo2D(ty, bx)])*(confy[coo2D(ty, tx)]-confy[coo2D(by, tx)])
 	)+confy[coo2D(ty, tx)] * (
@@ -224,7 +295,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 	-(confy[coo2D(ty, tx)]-confy[coo2D(ty, bx)])*(confx[coo2D(ty, tx)]-confx[coo2D(by, tx)])
 	);
 	//Bottom-left corner
-	sD[y][x] += confx[coo2D(typ, tx)] * (
+	sD[threadIdx.x] += confx[coo2D(typ, tx)] * (
 	(confy[coo2D(typ, tx)]-confy[coo2D(typ, bx)])*(confz[coo2D(typ, tx)]-confz[coo2D(ty, tx)])
 	-(confz[coo2D(typ, tx)]-confz[coo2D(typ, bx)])*(confy[coo2D(typ, tx)]-confy[coo2D(ty, tx)])
 	)+confy[coo2D(typ, tx)]*(
@@ -235,7 +306,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 	-(confy[coo2D(typ, tx)]-confy[coo2D(typ, bx)])*(confx[coo2D(typ, tx)]-confx[coo2D(ty, tx)])
 	);
 	//Top-right corner
-	sD[y][x] += confx[coo2D(ty, txp)] * (
+	sD[threadIdx.x] += confx[coo2D(ty, txp)] * (
 	(confy[coo2D(ty, txp)]-confy[coo2D(ty, tx)])*(confz[coo2D(ty, txp)]-confz[coo2D(by, txp)])
 	-(confz[coo2D(ty, txp)]-confz[coo2D(ty, tx)])*(confy[coo2D(ty, txp)]-confy[coo2D(by, txp)])
 	)+confy[coo2D(ty, txp)]*(
@@ -246,7 +317,7 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 	-(confy[coo2D(ty, txp)]-confy[coo2D(ty, tx)])*(confx[coo2D(ty, txp)]-confx[coo2D(by, txp)])
 	);
 	//Bottom-right corner
-	sD[y][x] += confx[coo2D(typ, txp)] * (
+	sD[threadIdx.x] += confx[coo2D(typ, txp)] * (
 	(confy[coo2D(typ, txp)]-confy[coo2D(typ, tx)])*(confz[coo2D(typ, txp)]-confz[coo2D(ty, txp)])
 	-(confz[coo2D(typ, txp)]-confz[coo2D(typ, tx)])*(confy[coo2D(typ, txp)]-confy[coo2D(ty, txp)])
 	)+confy[coo2D(typ, txp)]*(
@@ -259,33 +330,50 @@ __global__ void cal2D(float *confx, float *confy, float *confz, double *out){
 	__syncthreads();
 
 	//Sum over all elements in each sD
-	if(y < BlockSize_y/2)
-		sD[y][x] += sD[y+BlockSize_y/2] [x];
+	if(TN>=512){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(TN>=256){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(TN>=128){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/4)
-		sD[y][x] += sD[y+BlockSize_y/4] [x];
+	if(threadIdx.x < 16){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/8)
-		sD[y][x] += sD[y+BlockSize_y/8] [x];
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
 	__syncthreads();
-	if(y < BlockSize_y/16)
-		sD[y][x] += sD[y+BlockSize_y/16] [x];
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/2)
-		sD[y][x] += sD[y][x+BlockSize_x/2] ;
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/4)
-		sD[y][x] += sD[y][x+BlockSize_x/4] ;
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
 	__syncthreads();
-	if(y==0 && x<BlockSize_x/8)
-		sD[y][x] += sD[y][x+BlockSize_x/8] ;
-	__syncthreads();
-	if(y==0 && x<BlockSize_x/16)
-		sD[y][x] += sD[y][x+BlockSize_x/16] ;
-	__syncthreads();
-
-	if(x==0 && y==0)
-		out[dataoff + (blockIdx.x % BN) + 4 * BN] = sD[0][0];
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % BN) + 4*BN] = sD[0];
 	__syncthreads();
 }
 #endif

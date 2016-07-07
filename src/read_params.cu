@@ -77,7 +77,7 @@ void read_params(char* param_file){
   H_GridSize_y = H_SpinSize / H_BlockSize_y / 3;
   H_N = H_SpinSize * H_SpinSize * H_SpinSize_z;
   H_Nplane = H_SpinSize * H_SpinSize;
-  H_TN = H_Nplane / 9;
+  H_TN = H_BlockSize_x * H_BlockSize_y;
 #endif
 #ifndef TRI
   H_BlockSize_x = H_SpinSize / 2;
@@ -88,7 +88,7 @@ void read_params(char* param_file){
   H_GridSize_y = H_SpinSize / H_BlockSize_y / 2;
   H_N = H_SpinSize * H_SpinSize * H_SpinSize_z;
   H_Nplane = H_SpinSize * H_SpinSize;
-  H_TN = H_Nplane / 4;
+  H_TN = H_BlockSize_x * H_BlockSize_y;
 #endif
   H_BN = H_GridSize_x * H_GridSize_y;
   block = H_BlockSize_x * H_BlockSize_y;
@@ -110,7 +110,6 @@ void read_params(char* param_file){
     printf("read A error");
     exit(0);
   }
-  readidx = fscanf(paramfp, "%s %f", tmp, &H_DR);
   cudaMemcpyToSymbol( A , &H_A , sizeof(float));
 
   //----- system variable setting end ------
