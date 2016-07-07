@@ -2,18 +2,13 @@
 //why exchange conf and measurement works
 using namespace std;
 
-#define BIN_SZ 3000//0//00//
-#define BIN_NUM 3//0
-#define EQUI_N 20000//0//0//00////16000000
 
 #define ID "skyr_d16AC_testmeasurement_TRI"
-#define PTF	(float(0.00))	//Frequency of parallel tempering
 #include "params.cuh"
 #include "updates.cuh"
 #include "measurements.cuh"
 #include "configuration.cuh"
 #include "extend.cu"
-#define EQUI_Ni (4000)//0)
 #define GET_CORR
 #define f_CORR (500)
 
@@ -22,8 +17,6 @@ unsigned seed = 73;
 mt19937 rng(seed);
 uniform_01<mt19937> uni01_sampler(rng);
 void tempering(double*, int*);
-unsigned int block = BlockSize_x * BlockSize_y;
-unsigned int grid = 0;
 vector<float> Tls;
 vector<float> Hls;
 vector<int>Po;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
@@ -37,6 +30,7 @@ void var_examine();
 
 int main(int argc, char *argv[]){
   //call GPU
+  read_params(argv[1]);
 
   if (setDev()==1){
     return 1;
@@ -55,7 +49,7 @@ int main(int argc, char *argv[]){
 
   if(argc > 2){
     float tmp;
-    FILE *Tfp = fopen(argv[1], "r");
+    FILE *Tfp = fopen(argv[2], "r");
     int i = 0;
     while(fscanf(Tfp, "%f", &tmp) != EOF){
       Tls.push_back(tmp);
@@ -66,7 +60,7 @@ int main(int argc, char *argv[]){
     Temp_mem_size = Tnum * sizeof(float);
 
     i = 0;
-    Tfp = fopen(argv[2], "r");
+    Tfp = fopen(argv[3], "r");
     while(fscanf(Tfp, "%f", &tmp) != EOF){
       Hls.push_back((DD * DD + DR * DR)*tmp);
       i++;
@@ -75,7 +69,7 @@ int main(int argc, char *argv[]){
     Hnum = Hls.size();
     H_mem_size = Hnum * sizeof(float);
 
-    grid = Pnum * BN;
+    grid = Pnum * H_BN;
   }
   else{
     fprintf(stderr, "Give me a temperature set!!!\n");
@@ -100,7 +94,7 @@ int main(int argc, char *argv[]){
 
   //begin (initialize random seeds)
   //Declare sizes
-  unsigned int totalRngs = Pnum * TN / WarpStandard_K;
+  unsigned int totalRngs = Pnum * H_TN / WarpStandard_K;
   unsigned seedBytes = totalRngs * sizeof(unsigned int) * WarpStandard_STATE_WORDS;
   unsigned int *seedDevice = 0;
   CudaSafeCall(cudaMalloc((void **)&seedDevice, seedBytes));
@@ -114,10 +108,10 @@ int main(int argc, char *argv[]){
 
   //Set up output data path
   char dir[128];
-  sprintf(dir, "Data/L_%d-%s", SpinSize, ID);
+  sprintf(dir, "Data/L_%d-%s", H_SpinSize, ID);
   mkdir(dir, 0755);
   char Seedfn[128];
-  sprintf(Seedfn, "Data/L_%d-%s/seed", SpinSize, ID);
+  sprintf(Seedfn, "Data/L_%d-%s/seed", H_SpinSize, ID);
   int seedfd = open(Seedfn, O_CREAT | O_WRONLY, 0644);
   write(seedfd, seedHost, seedBytes);
   close(seedfd);
@@ -251,17 +245,17 @@ int main(int argc, char *argv[]){
   FILE *detailFp = fopen(detailFn, "w");
   fprintf(detailFp, "elapsed time = %f (sec)\n", time);
   double speed = 0;
-  speed = (N / time / 1000000000) * (BIN_SZ * BIN_NUM + EQUI_N) * Pnum * Cnum;
+  speed = (H_N / time / 1000000000) * ((EQUI_Ni + BIN_SZ * BIN_NUM) * Pnum + EQUI_N) * Cnum;
   fprintf(detailFp, "speed = %f (GHz)\n", speed);
-  fprintf(detailFp, "RNG: WarpStandard\n", SpinSize);
-  fprintf(detailFp, "SpinSize = %d\n", SpinSize);
-  fprintf(detailFp, "A = %4.3f\n", A);
+  fprintf(detailFp, "RNG: WarpStandard\n", H_SpinSize);
+  fprintf(detailFp, "SpinSize = %d\n", H_SpinSize);
+  fprintf(detailFp, "A = %4.3f\n", H_A);
   fprintf(detailFp, "D_Rashba = %4.3f\n", DR);
   fprintf(detailFp, "D_Dresselhaus = %4.3f\n", DD);
-  fprintf(detailFp, "BlockSize_x = %d\n", BlockSize_x);
-  fprintf(detailFp, "BlockSize_y = %d\n", BlockSize_y);
-  fprintf(detailFp, "GridSize_x = %d\n", GridSize_x);
-  fprintf(detailFp, "GridSize_y = %d\n", GridSize_y);
+  fprintf(detailFp, "BlockSize_x = %d\n", H_BlockSize_x);
+  fprintf(detailFp, "BlockSize_y = %d\n", H_BlockSize_y);
+  fprintf(detailFp, "GridSize_x = %d\n", H_GridSize_x);
+  fprintf(detailFp, "GridSize_y = %d\n", H_GridSize_y);
   fprintf(detailFp, "Bin Size = %d\n", BIN_SZ);
   fprintf(detailFp, "Bin Number = %d\n", BIN_NUM);
   fprintf(detailFp, "Equilibration N = %d\n", EQUI_N);
@@ -343,28 +337,28 @@ void tempering(double *Ms, int *accept){
 
 void var_examine(){
 #ifndef TRI
-  if(SpinSize % (BlockSize_x * 2) != 0){
-    fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_x * 2);
+  if(H_SpinSize % (H_BlockSize_x * 2) != 0){
+    fprintf(stderr, "SpinSize must be the multiple of %d\n", H_BlockSize_x * 2);
     exit(0);
   }
-  if(SpinSize % (BlockSize_y * 2) != 0){
-    fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_y * 2);
+  if(H_SpinSize % (H_BlockSize_y * 2) != 0){
+    fprintf(stderr, "SpinSize must be the multiple of %d\n", H_BlockSize_y * 2);
     exit(0);
   }
 #endif
 #ifdef TRI
-  if(SpinSize % (BlockSize_x * 3) != 0){
-    fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_x * 2);
+  if(H_SpinSize % (H_BlockSize_x * 3) != 0){
+    fprintf(stderr, "SpinSize must be the multiple of %d\n", H_BlockSize_x * 2);
     exit(0);
   }
-  if(SpinSize % (BlockSize_y * 3) != 0){
-    fprintf(stderr, "SpinSize must be the multiple of %d\n", BlockSize_y * 2);
+  if(H_SpinSize % (H_BlockSize_y * 3) != 0){
+    fprintf(stderr, "SpinSize must be the multiple of %d\n", H_BlockSize_y * 2);
     exit(0);
   }
 #endif
 #ifndef THIN
-  if (SpinSize_z != 1){
-    fprintf(stderr, "SpinSize_z must be 1 %d\n", BlockSize_y * 2);
+  if (H_SpinSize_z != 1){
+    fprintf(stderr, "SpinSize_z must be 1 %d\n", H_BlockSize_y * 2);
     exit(0);
   }
 #endif

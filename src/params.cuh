@@ -90,8 +90,6 @@ extern uniform_01<mt19937> uni01_sampler;
 #define TOPI (float(1.462918078360668e-9))
 #define TWOPI (float(6.28318530717956))	//2*pi
 #define Hfinal (0.016000)
-#define sqrt3d2 (0.866025f)
-#define A (0.171573f)//(-DR * DR)//(0.0)//
 #define DR (0.585786f)//(1.41421)//(0.585786)//(0.8)////(0.4)//(1.02749)
 #define DD (0.0f)//(1.41421)//(0.8)////(0.4)//(1.02749)
 
@@ -192,6 +190,7 @@ extern uniform_01<mt19937> uni01_sampler;
 #endif
 
 #ifdef TRI
+#define sqrt3d2 (0.866025f)
 #define BXPxx (1.000000)
 #define BYPxx (1.000000)
 #define BWPxx (1.000000)
@@ -231,60 +230,33 @@ extern uniform_01<mt19937> uni01_sampler;
 #define BWMyx (0.000000)
 
 #define BXPyz (DD)
-#define BYPyz (-0.5 * DD - sqrt3d2 * DR)
-#define BWPyz (0.5 * DD - sqrt3d2 * DR)
+#define BYPyz (-0.5 * DD + sqrt3d2 * DR)
+#define BWPyz (0.5 * DD + sqrt3d2 * DR)
 #define BXMyz (-DD)
-#define BYMyz (0.5 * DD + sqrt3d2 * DR)
-#define BWMyz (-0.5 * DD + sqrt3d2 * DR)
+#define BYMyz (0.5 * DD - sqrt3d2 * DR)
+#define BWMyz (-0.5 * DD - sqrt3d2 * DR)
 #define BXPzy (-DD)
-#define BYPzy  (0.5 * DD + sqrt3d2 * DR)
-#define BWPzy  (-0.5 * DD + sqrt3d2 * DR)
+#define BYPzy  (0.5 * DD - sqrt3d2 * DR)
+#define BWPzy  (-0.5 * DD - sqrt3d2 * DR)
 #define BXMzy (DD)
-#define BYMzy (-0.5 * DD - sqrt3d2 * DR)
-#define BWMzy (0.5 * DD - sqrt3d2 * DR)
+#define BYMzy (-0.5 * DD + sqrt3d2 * DR)
+#define BWMzy (0.5 * DD + sqrt3d2 * DR)
 
-#define BXPxz (-DR)
-#define BYPxz (-sqrt3d2 * DD + 0.5 * DR)
-#define BWPxz (-sqrt3d2 * DD - 0.5 * DR)
-#define BXMxz (DR)
-#define BYMxz (sqrt3d2 * DD - 0.5 * DR)
-#define BWMxz (sqrt3d2 * DD + 0.5 * DR)
-#define BXPzx (DR)
-#define BYPzx (sqrt3d2 * DD - 0.5 * DR)
-#define BWPzx (sqrt3d2 * DD + 0.5 * DR)
-#define BXMzx (-DR)
-#define BYMzx (-sqrt3d2 * DD + 0.5 * DR)
-#define BWMzx (-sqrt3d2 * DD - 0.5 * DR)
-#endif
-//--------variables for one temperature replica----------
-#define SpinSize 48                          //Each thread controls 2 by 2 by 2 spins
-#define SpinSize_z 1
-#define BlockSize_x 16
-#define BlockSize_y 16
-#define N (SpinSize*SpinSize*(SpinSize_z))      //The number of spins of the system
-#define Nplane (SpinSize*SpinSize)              //The number of spins of the system
-
-#ifdef THIN
-#define GridSize_x (SpinSize/BlockSize_x/2)
-#define GridSize_y (SpinSize/BlockSize_y/2)
-#define TN (Nplane / 4)				//The number of needed threads
+#define BXPxz (DR)
+#define BYPxz (sqrt3d2 * DD - 0.5 * DR)
+#define BWPxz (sqrt3d2 * DD + 0.5 * DR)
+#define BXMxz (-DR)
+#define BYMxz (-sqrt3d2 * DD + 0.5 * DR)
+#define BWMxz (-sqrt3d2 * DD - 0.5 * DR)
+#define BXPzx (-DR)
+#define BYPzx (-sqrt3d2 * DD + 0.5 * DR)
+#define BWPzx (-sqrt3d2 * DD - 0.5 * DR)
+#define BXMzx (DR)
+#define BYMzx (sqrt3d2 * DD - 0.5 * DR)
+#define BWMzx (sqrt3d2 * DD + 0.5 * DR)
 #endif
 
-#ifdef SQ
-#define GridSize_x (SpinSize/BlockSize_x/2)
-#define GridSize_y (SpinSize/BlockSize_y/2)
-#define TN (Nplane / 4)				//The number of needed threads
-#endif
-
-#ifdef TRI
-#define GridSize_x (SpinSize/BlockSize_x/3)
-#define GridSize_y (SpinSize/BlockSize_y/3)
-#define TN (Nplane / 9)				//The number of needed threads
-#endif
-
-#define BN (GridSize_x*GridSize_y)       //The number of needed blocks per replica
 #define MEASURE_NUM 5
-//---------------------End-------------------------------
 
 
 
@@ -297,18 +269,65 @@ extern uniform_01<mt19937> uni01_sampler;
 //------------ alias of kernel functions --------------
 
 #ifdef THIN
-#define CAL(confx, confy, confz, out) calthin<<<grid, block>>>(confx, confy, confz, out);
+#define CAL(confx, confy, confz, out) calthin<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j) getcorrthin<<<grid, block>>>(confx, confy, confz, corr, i, j);
 #endif
 #ifdef TRI
-#define CAL(confx, confy, confz, out) calTRI<<<grid, block>>>(confx, confy, confz, out);
+#define CAL(confx, confy, confz, out) calTRI<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j) getcorrTRI<<<grid, block>>>(confx, confy, confz, corr, i, j);
+#define SSF(confx, confy, confz, rng, hs, invT) {\
+  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
 #endif
 #ifdef SQ
-#define CAL(confx, confy, confz, out) cal2D<<<grid, block>>>(confx, confy, confz, out);
+#define CAL(confx, confy, confz, out) cal2D<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j) getcorr2D<<<grid, block>>>(confx, confy, confz, corr, i, j);
 #endif
 
 extern unsigned int grid;
 extern unsigned int block;
+extern unsigned int rngShmemsize;
+extern unsigned int caloutputsize;
+
+extern __constant__ unsigned int SpinSize;
+extern __constant__ unsigned int SpinSize_z;
+extern __constant__ unsigned int BlockSize_x;
+extern __constant__ unsigned int BlockSize_y;
+extern __constant__ unsigned int GridSize_x;
+extern __constant__ unsigned int GridSize_y;
+extern __constant__ unsigned int N;
+extern __constant__ unsigned int Nplane;
+extern __constant__ unsigned int TN;
+extern __constant__ unsigned int BN;
+extern unsigned int H_SpinSize;
+extern unsigned int H_SpinSize_z;
+extern unsigned int H_BlockSize_x;
+extern unsigned int H_BlockSize_y;
+extern unsigned int H_GridSize_x;
+extern unsigned int H_GridSize_y;
+extern unsigned int H_N;
+extern unsigned int H_Nplane;
+extern unsigned int H_TN;
+extern unsigned int H_BN;
+//------ system size setting end --------
+
+//------ system variable setting --------
+//!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
+extern __constant__ float A; //(0.0)
+extern float H_A; //(0.0)
+//----- system variable setting end ------
+
+//----- simulation setting ------
+extern unsigned int BIN_SZ;
+extern unsigned int BIN_NUM;
+extern unsigned int EQUI_N;
+extern unsigned int EQUI_Ni;//(4000)//0)
+extern unsigned int relax_N;
+extern float PTF;             //Frequency of parallel tempering
+extern char Output[128];  //set the output directory
+//#define BIN_SZ 3000//0//00//
+//#define BIN_NUM 3//0
+//#define EQUI_N 20000//0//0//00////16000000
+void read_params(char* param_file);
 #endif

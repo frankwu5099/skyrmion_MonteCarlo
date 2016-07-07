@@ -2,7 +2,7 @@
 #include "measurements.cuh"
 __global__ void calthin(float *confx, float *confy, float *confz, double *out){
 	//Energy variables
-	__shared__ double sD[BlockSize_y][BlockSize_x];
+	extern __shared__ double sD[];
 	const int x = threadIdx.x % (BlockSize_x);
 	const int y = (threadIdx.x / BlockSize_x);
 	const int tx = 2 * (((blockIdx.x % BN) % GridSize_x) * BlockSize_x + x);

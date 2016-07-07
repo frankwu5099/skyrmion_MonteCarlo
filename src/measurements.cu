@@ -11,20 +11,20 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   strcpy(names[4], "E4");
   strcpy(names[5], "M2");
   strcpy(names[6], "M4");
-  norms[0] = binSize * N;
-  norms[1] = binSize * N;
+  norms[0] = binSize * H_N;
+  norms[1] = binSize * H_N;
   norms[2] = binSize;
-  norms[3] = binSize * N * N;
-  norms[4] = binSize * N * N * N * N;
-  norms[5] = binSize * N * N;
-  norms[6] = binSize * N * N * N * N;
+  norms[3] = binSize * H_N * H_N;
+  norms[4] = binSize * H_N * H_N * H_N * H_N;
+  norms[5] = binSize * H_N * H_N;
+  norms[6] = binSize * H_N * H_N * H_N * H_N;
   O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
     O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
     O[O.size() - 1].fp = fopen(O[O.size() - 1].fn, "w");
   }
   data_num = Parallel_num;
-  Out_mem_size = Parallel_num * MEASURE_NUM * BN * sizeof(double);
+  Out_mem_size = Parallel_num * MEASURE_NUM * H_BN * sizeof(double);
   printf("%u\n", Out_mem_size);
   Hout = (double*)malloc(Out_mem_size);
   CudaSafeCall(cudaMalloc(&Dout, Out_mem_size));
@@ -54,18 +54,18 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
   CudaSafeCall(cudaMemcpy(Hout, Dout, Out_mem_size, cudaMemcpyDeviceToHost));
 
   for(int t = 0; t < data_num; t++){
-    raw_off = t * MEASURE_NUM * BN;
+    raw_off = t * MEASURE_NUM * H_BN;
     E = 0, E2 = 0;
     Mx = 0, My = 0, Mz = 0, Chern = 0;
-    for(int j = 0; j < BN; j++)
+    for(int j = 0; j < H_BN; j++)
       E += Hout[raw_off + j];
-    for(int j = BN; j < 2 * BN; j++)
+    for(int j = H_BN; j < 2 * H_BN; j++)
       Mx += Hout[raw_off + j];
-    for(int j = 2 * BN; j < 3 * BN; j++)
+    for(int j = 2 * H_BN; j < 3 * H_BN; j++)
       My += Hout[raw_off + j];
-    for(int j = 3 * BN; j < 4 * BN; j++)
+    for(int j = 3 * H_BN; j < 4 * H_BN; j++)
       Mz += Hout[raw_off + j];
-    for(int j = 4 * BN; j < 5 * BN; j++)
+    for(int j = 4 * H_BN; j < 5 * H_BN; j++)
       Chern += Hout[raw_off + j];
     Ms[Ho[t]] = Mz;	//Es is the energies in order of temperature set
     E = E - HHs[t] * Mz;
@@ -122,9 +122,9 @@ void measurements::normalize_and_save_and_reset(){
 
 correlation::correlation(int Pnum, char* dir){
   data_num = Pnum;
-  Spin_mem_size = Pnum * N * sizeof(float);
-  Spin_mem_size_p = Pnum * Nplane * sizeof(float);
-  Spin_mem_size_d = Pnum * Nplane * sizeof(double);
+  Spin_mem_size = Pnum * H_N * sizeof(float);
+  Spin_mem_size_p = Pnum * H_Nplane * sizeof(float);
+  Spin_mem_size_d = Pnum * H_Nplane * sizeof(double);
   corrcount = 0;
   HSum = (double*)malloc(Spin_mem_size_d);
 
@@ -134,7 +134,7 @@ correlation::correlation(int Pnum, char* dir){
   CudaSafeCall(cudaMalloc((void**)&DPo, Pnum * sizeof(int)));
   sprintf(Corrfn, "%s/Corr", dir);
   Corrfd = open(Corrfn, O_CREAT | O_WRONLY, 0644);
-  for(int i = 0; i < Nplane * data_num; i++){
+  for(int i = 0; i < H_Nplane * data_num; i++){
     HSum[i] = 0.0; //initialize
   }
   CudaSafeCall(cudaMemcpy(DSum, HSum, Spin_mem_size_d, cudaMemcpyHostToDevice));
@@ -145,8 +145,8 @@ void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
   CudaSafeCall(cudaMemcpy(DPo, &Ho[0], data_num * sizeof(int), cudaMemcpyHostToDevice));
   CudaSafeCall(cudaMemset(Dcorr, 0, Spin_mem_size_p));
 #ifndef TRI
-  for (int labelx = 0; labelx < SpinSize; labelx += 4){
-    for (int labely = 0; labely < SpinSize; labely += 4){
+  for (int labelx = 0; labelx < H_SpinSize; labelx += 4){
+    for (int labely = 0; labely < H_SpinSize; labely += 4){
       GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
     }
   }
@@ -154,8 +154,8 @@ void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
   CudaCheckError();
 #endif
 #ifdef TRI
-  for (int labelx = 0; labelx < SpinSize; labelx += 3){
-    for (int labely = 0; labely < SpinSize; labely += 3){
+  for (int labelx = 0; labelx < H_SpinSize; labelx += 3){
+    for (int labely = 0; labely < H_SpinSize; labely += 3){
       GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
     }
   }
@@ -190,72 +190,4 @@ correlation::~correlation(){
   //CudaSafeCall(cudaFree(this->DPo));//
   //CudaSafeCall(cudaFree(this->DSum));
 }
-/*
-   char Efn[128];
-   char Mfn[128];
-   char Chernfn[128];
-   char E2fn[128];
-   char E4fn[128];
-   char M2fn[128];
-   char M4fn[128];
-   sprintf(Efn, "%s/E", dir);
-   sprintf(Mfn, "%s/M", dir);
-   sprintf(Chernfn, "%s/Chern", dir);
-   sprintf(E2fn, "%s/E2", dir);
-   sprintf(E4fn, "%s/E4", dir);
-   sprintf(M2fn, "%s/M2", dir);
-   sprintf(M4fn, "%s/M4", dir);
-   int Efd = open(Efn, O_CREAT | O_WRONLY, 0644);
-   int Mfd = open(Mfn, O_CREAT | O_WRONLY, 0644);
-   int Chernfd = open(Chernfn, O_CREAT | O_WRONLY, 0644);
-   int E2fd = open(E2fn, O_CREAT | O_WRONLY, 0644);
-   int E4fd = open(E4fn, O_CREAT | O_WRONLY, 0644);
-   int M2fd = open(M2fn, O_CREAT | O_WRONLY, 0644);
-   int M4fd = open(M4fn, O_CREAT | O_WRONLY, 0644);
-   double *Eout = (double*)malloc(data_mem_size);
-   double *Mout = (double*)malloc(data_mem_size);
-   double *Chernout = (double*)malloc(data_mem_size);
-   double *E2out = (double*)malloc(data_mem_size);
-   double *E4out = (double*)malloc(data_mem_size);
-   double *M2out = (double*)malloc(data_mem_size);
-   double *M4out = (double*)malloc(data_mem_size);
-   double *binE = (double*)calloc(Hnum, sizeof(double));
-   double *binM = (double*)calloc(Hnum, sizeof(double));
-   double *binChern = (double*)calloc(Hnum, sizeof(double));
-   double *binE2 = (double*)calloc(Hnum, sizeof(double));
-   double *binM2 = (double*)calloc(Hnum, sizeof(double));
-   double *binE4 = (double*)calloc(Hnum, sizeof(double));
-   double *binM4 = (double*)calloc(Hnum, sizeof(double));
-   for(int t = 0; t < Hnum; t++){
-   Eout[t] = (double)binE[t] / BIN_SZ / N;
-   Mout[t] = (double)binM[t] / BIN_SZ / N;
-   Chernout[t] = (double)binChern[t] / BIN_SZ;
-   E2out[t] = (double)binE2[t] / BIN_SZ / N / N;
-   E4out[t] = (double)binE4[t] / BIN_SZ / N / N / N / N;
-   M2out[t] = (double)binM2[t] / BIN_SZ / N / N;
-   M4out[t] = (double)binM4[t] / BIN_SZ / N / N / N / N;
-//Helout[t] = (double)binHel[t] / BIN_SZ / N;
-}
-write(Efd, Eout, data_mem_size);
-write(Mfd, Mout, data_mem_size);
-write(Chernfd, Chernout, data_mem_size);
-write(E2fd, E2out, data_mem_size);
-write(E4fd, E4out, data_mem_size);
-write(M2fd, M2out, data_mem_size);
-write(M4fd, M4out, data_mem_size);
-close(Efd);
-close(Mfd);
-close(Chernfd);
-close(E2fd);
-close(E4fd);
-close(M2fd);
-close(M4fd);
-free(Eout);
-free(Mout);
-free(Chernout);
-free(E2out);
-free(E4out);
-free(M2out);
-free(M4out);
- */
 

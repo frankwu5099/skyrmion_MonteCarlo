@@ -2,8 +2,8 @@
 
 
 configuration::configuration(int Pnum, char* conf_dir){
-  Spin_mem_size = Pnum * N * sizeof(float);
-  spins_num = Pnum * N;
+  Spin_mem_size = Pnum * H_N * sizeof(float);
+  spins_num = Pnum * H_N;
   configurations_num = Pnum;
   sprintf(Confxfn, "%s/Confx", conf_dir);
   sprintf(Confyfn, "%s/Confy", conf_dir);

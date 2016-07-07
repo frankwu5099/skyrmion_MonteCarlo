@@ -2,7 +2,7 @@
 #ifdef TRI
 __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
-  __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
+  extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
   float Pparameter = Pparameters[blockIdx.x / BN];
@@ -151,7 +151,7 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 
 __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
-  __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
+  extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
   float Pparameter = Pparameters[blockIdx.x / BN];
@@ -301,7 +301,7 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 
 __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
-  __shared__ unsigned rngShmem[BlockSize_x * BlockSize_y * 4];
+  extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
   float Pparameter = Pparameters[blockIdx.x / BN];

@@ -10,8 +10,6 @@ __global__ void flipTLBR_2D(float *confx, float *confy, float *confz, unsigned i
 __global__ void flipBLTR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
 #endif
 #ifdef TRI
-#define SSF(confx, confy, confz, rng, hs, invT) {flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
 __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
 __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
 __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
