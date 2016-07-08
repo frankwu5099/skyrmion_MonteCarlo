@@ -16,4 +16,5 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
 #endif
 //__global__ void relaxTLBR_thin(float *confx, float *confy, float *confz, unsigned int *rngState, float H);
 //__global__ void relaxBLTR_thin(float *confx, float *confy, float *confz, unsigned int *rngState, float H);
+void move_params_device_flip();
 #endif

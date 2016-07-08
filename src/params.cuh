@@ -261,8 +261,12 @@ extern uniform_01<mt19937> uni01_sampler;
 
 
 //---------------------coo-----------------------------
-#define coo(k, j, i) ((k) * Nplane + (j) * SpinSize + (i))
-#define coo2D(j, i) ((j) * SpinSize + (i))
+#define cals_coo(k, j, i) ((k) * cals_Nplane + (j) * cals_SpinSize + (i))
+#define cals_coo2D(j, i) ((j) * cals_SpinSize + (i))
+#define corr_coo(k, j, i) ((k) * corr_Nplane + (j) * corr_SpinSize + (i))
+#define corr_coo2D(j, i) ((j) * corr_SpinSize + (i))
+#define flip_coo(k, j, i) ((k) * flip_Nplane + (j) * flip_SpinSize + (i))
+#define flip_coo2D(j, i) ((j) * flip_SpinSize + (i))
 //---------------------coo-----------------------------
 
 
@@ -275,10 +279,12 @@ extern uniform_01<mt19937> uni01_sampler;
 #ifdef TRI
 #define CAL(confx, confy, confz, out) calTRI<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j) getcorrTRI<<<grid, block>>>(confx, confy, confz, corr, i, j);
-#define SSF(confx, confy, confz, rng, hs, invT) {\
-  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
+//#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+//  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+//  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
+#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
 #endif
 #ifdef SQ
 #define CAL(confx, confy, confz, out) cal2D<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
@@ -290,16 +296,6 @@ extern unsigned int block;
 extern unsigned int rngShmemsize;
 extern unsigned int caloutputsize;
 
-extern __constant__ unsigned int SpinSize;
-extern __constant__ unsigned int SpinSize_z;
-extern __constant__ unsigned int BlockSize_x;
-extern __constant__ unsigned int BlockSize_y;
-extern __constant__ unsigned int GridSize_x;
-extern __constant__ unsigned int GridSize_y;
-extern __constant__ unsigned int N;
-extern __constant__ unsigned int Nplane;
-extern __constant__ unsigned int TN;
-extern __constant__ unsigned int BN;
 extern unsigned int H_SpinSize;
 extern unsigned int H_SpinSize_z;
 extern unsigned int H_BlockSize_x;
@@ -314,7 +310,6 @@ extern unsigned int H_BN;
 
 //------ system variable setting --------
 //!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
-extern __constant__ float A; //(0.0)
 extern float H_A; //(0.0)
 //----- system variable setting end ------
 

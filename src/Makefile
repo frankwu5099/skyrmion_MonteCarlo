@@ -186,7 +186,7 @@ DEPS= read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu cals
 # Target rules
 all: build
 
-build: ../TRI_L32_annTd16AC
+build: ../simulation_TRI
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -198,7 +198,7 @@ endif
 %.o:%.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-../TRI_L32_annTd16AC: ${OBJS}
+../simulation_TRI: ${OBJS}
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))

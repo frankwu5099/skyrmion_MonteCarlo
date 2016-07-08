@@ -3,16 +3,6 @@ unsigned int block;
 unsigned int grid;
 unsigned int rngShmemsize;
 unsigned int caloutputsize;
-__constant__ unsigned int SpinSize;
-__constant__ unsigned int SpinSize_z;
-__constant__ unsigned int BlockSize_x;
-__constant__ unsigned int BlockSize_y;
-__constant__ unsigned int GridSize_x;
-__constant__ unsigned int GridSize_y;
-__constant__ unsigned int N;
-__constant__ unsigned int Nplane;
-__constant__ unsigned int TN;
-__constant__ unsigned int BN;
 unsigned int H_SpinSize;
 unsigned int H_SpinSize_z;
 unsigned int H_BlockSize_x;
@@ -27,7 +17,6 @@ unsigned int H_BN;
 
 //------ system variable setting --------
 //!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
-__constant__ float A; //(0.0)
 float H_A; //(0.0)
 //----- system variable setting end ------
 
@@ -75,9 +64,6 @@ void read_params(char* param_file){
   H_BlockSize_y = (H_BlockSize_y > 16)?16:H_BlockSize_y;
   H_GridSize_x = H_SpinSize / H_BlockSize_x / 3;
   H_GridSize_y = H_SpinSize / H_BlockSize_y / 3;
-  H_N = H_SpinSize * H_SpinSize * H_SpinSize_z;
-  H_Nplane = H_SpinSize * H_SpinSize;
-  H_TN = H_BlockSize_x * H_BlockSize_y;
 #endif
 #ifndef TRI
   H_BlockSize_x = H_SpinSize / 2;
@@ -86,31 +72,22 @@ void read_params(char* param_file){
   H_BlockSize_y = (H_BlockSize_y > 16)?16:H_BlockSize_y;
   H_GridSize_x = H_SpinSize / H_BlockSize_x / 2;
   H_GridSize_y = H_SpinSize / H_BlockSize_y / 2;
+#endif
   H_N = H_SpinSize * H_SpinSize * H_SpinSize_z;
   H_Nplane = H_SpinSize * H_SpinSize;
   H_TN = H_BlockSize_x * H_BlockSize_y;
-#endif
   H_BN = H_GridSize_x * H_GridSize_y;
   block = H_BlockSize_x * H_BlockSize_y;
+  printf("%d\n", block);
+  fflush(stdout);
   caloutputsize = block * sizeof(double);
-  rngShmemsize = block * 4 * sizeof(float);
-  cudaMemcpyToSymbol( SpinSize, &H_SpinSize, sizeof(unsigned int));
-  cudaMemcpyToSymbol( SpinSize_z, &H_SpinSize_z, sizeof(unsigned int));
-  cudaMemcpyToSymbol( BlockSize_x, &H_BlockSize_x, sizeof(unsigned int));
-  cudaMemcpyToSymbol( BlockSize_y, &H_BlockSize_y, sizeof(unsigned int));
-  cudaMemcpyToSymbol( GridSize_x, &H_GridSize_x, sizeof(unsigned int));
-  cudaMemcpyToSymbol( GridSize_y, &H_GridSize_y, sizeof(unsigned int));
-  cudaMemcpyToSymbol( N , &H_N , sizeof(unsigned int));
-  cudaMemcpyToSymbol( Nplane , &H_Nplane , sizeof(unsigned int));
-  cudaMemcpyToSymbol( TN, &H_TN, sizeof(unsigned int));
-  cudaMemcpyToSymbol( BN, &H_BN, sizeof(unsigned int));
+  rngShmemsize = block * 4 * sizeof(unsigned);
 
   readidx = fscanf(paramfp, "%s %f", tmp, &H_A);
   if ((readidx == -1)||(strcmp(tmp,"A")!=0)){
     printf("read A error");
     exit(0);
   }
-  cudaMemcpyToSymbol( A , &H_A , sizeof(float));
 
   //----- system variable setting end ------
 

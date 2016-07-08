@@ -3,7 +3,6 @@
 using namespace std;
 
 
-#define ID "skyr_d16AC_testmeasurement_TRI"
 #include "params.cuh"
 #include "updates.cuh"
 #include "measurements.cuh"
@@ -37,6 +36,9 @@ int main(int argc, char *argv[]){
   }
   cudaGetLastError();
   CudaCheckError();
+  move_params_device_flip();
+  move_params_device_cals();
+  move_params_device_corr();
 
   //examine variables
   var_examine();
@@ -108,10 +110,10 @@ int main(int argc, char *argv[]){
 
   //Set up output data path
   char dir[128];
-  sprintf(dir, "Data/L_%d-%s", H_SpinSize, ID);
+  sprintf(dir, "Data/L_%d-%s", H_SpinSize, Output);
   mkdir(dir, 0755);
   char Seedfn[128];
-  sprintf(Seedfn, "Data/L_%d-%s/seed", H_SpinSize, ID);
+  sprintf(Seedfn, "Data/L_%d-%s/seed", H_SpinSize, Output);
   int seedfd = open(Seedfn, O_CREAT | O_WRONLY, 0644);
   write(seedfd, seedHost, seedBytes);
   close(seedfd);

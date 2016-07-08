@@ -21,6 +21,8 @@ __global__ void getcorrthin(const float *confx, const float *confy, const float 
 __global__ void avgcorrTHIN(double *DSum_corr, double N_corr);
 __global__ void sumcorrTHIN(double *DSum_corr, const float *corr, int *DTo);
 #endif
+void move_params_device_cals();
+void move_params_device_corr();
 
 
 class measurement{
