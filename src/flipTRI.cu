@@ -8,7 +8,32 @@ __constant__ unsigned int flip_GridSize_x;
 __constant__ unsigned int flip_GridSize_y;
 __constant__ unsigned int flip_BN;
 __constant__ float flip_A; //(0.0)
+__constant__ float BXPyz;
+__constant__ float BYPyz;
+__constant__ float BWPyz;
+__constant__ float BXMyz;
+__constant__ float BYMyz;
+__constant__ float BWMyz;
+__constant__ float BXPzy;
+__constant__ float BYPzy;
+__constant__ float BWPzy;
+__constant__ float BXMzy;
+__constant__ float BYMzy;
+__constant__ float BWMzy;
+__constant__ float BXPxz;
+__constant__ float BYPxz;
+__constant__ float BWPxz;
+__constant__ float BXMxz;
+__constant__ float BYMxz;
+__constant__ float BWMxz;
+__constant__ float BXPzx;
+__constant__ float BYPzx;
+__constant__ float BWPzx;
+__constant__ float BXMzx;
+__constant__ float BYMzx;
+__constant__ float BWMzx;
 void move_params_device_flip(){
+  float tmpp;
   cudaMemcpyToSymbol( flip_SpinSize, &H_SpinSize, sizeof(unsigned int));
   cudaMemcpyToSymbol( flip_SpinSize_z, &H_SpinSize_z, sizeof(unsigned int));
   cudaMemcpyToSymbol( flip_BlockSize_x, &H_BlockSize_x, sizeof(unsigned int));
@@ -17,11 +42,59 @@ void move_params_device_flip(){
   cudaMemcpyToSymbol( flip_GridSize_y, &H_GridSize_y, sizeof(unsigned int));
   cudaMemcpyToSymbol( flip_BN, &H_BN, sizeof(unsigned int));
   cudaMemcpyToSymbol( flip_A , &H_A , sizeof(float));
+  tmpp = (DD);
+  cudaMemcpyToSymbol( BXPyz, &tmpp, sizeof(float));
+  tmpp = (-0.5 * DD + sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BYPyz, &tmpp, sizeof(float));
+  tmpp = (0.5 * DD + sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BWPyz, &tmpp, sizeof(float));
+  tmpp = (-DD);
+  cudaMemcpyToSymbol( BXMyz, &tmpp, sizeof(float));
+  tmpp = (0.5 * DD - sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BYMyz, &tmpp, sizeof(float));
+  tmpp = (-0.5 * DD - sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BWMyz, &tmpp, sizeof(float));
+  tmpp = (-DD);
+  cudaMemcpyToSymbol( BXPzy, &tmpp, sizeof(float));
+  tmpp =  (0.5 * DD - sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BYPzy, &tmpp, sizeof(float));
+  tmpp =  (-0.5 * DD - sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BWPzy, &tmpp, sizeof(float));
+  tmpp = (DD);
+  cudaMemcpyToSymbol( BXMzy, &tmpp, sizeof(float));
+  tmpp = (-0.5 * DD + sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BYMzy, &tmpp, sizeof(float));
+  tmpp = (0.5 * DD + sqrt3d2 * DR);
+  cudaMemcpyToSymbol( BWMzy, &tmpp, sizeof(float));
+  tmpp = (DR);
+  cudaMemcpyToSymbol( BXPxz, &tmpp, sizeof(float));
+  tmpp = (sqrt3d2 * DD - 0.5 * DR);
+  cudaMemcpyToSymbol( BYPxz, &tmpp, sizeof(float));
+  tmpp = (sqrt3d2 * DD + 0.5 * DR);
+  cudaMemcpyToSymbol( BWPxz, &tmpp, sizeof(float));
+  tmpp = (-DR);
+  cudaMemcpyToSymbol( BXMxz, &tmpp, sizeof(float));
+  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
+  cudaMemcpyToSymbol( BYMxz, &tmpp, sizeof(float));
+  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
+  cudaMemcpyToSymbol( BWMxz, &tmpp, sizeof(float));
+  tmpp = (-DR);
+  cudaMemcpyToSymbol( BXPzx, &tmpp, sizeof(float));
+  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
+  cudaMemcpyToSymbol( BYPzx, &tmpp, sizeof(float));
+  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
+  cudaMemcpyToSymbol( BWPzx, &tmpp, sizeof(float));
+  tmpp = (DR);
+  cudaMemcpyToSymbol( BXMzx, &tmpp, sizeof(float));
+  tmpp = (sqrt3d2 * DD - 0.5 * DR);
+  cudaMemcpyToSymbol( BYMzx, &tmpp, sizeof(float));
+  tmpp = (sqrt3d2 * DD + 0.5 * DR);
+  cudaMemcpyToSymbol( BWMzx, &tmpp, sizeof(float));
 }
 __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
-  //extern __shared__ unsigned rngShmem[];
-  __shared__ unsigned rngShmem[1024];
+  extern __shared__ unsigned rngShmem[];
+  //__shared__ unsigned rngShmem[1024];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
   float Pparameter = Pparameters[blockIdx.x / flip_BN];
@@ -170,7 +243,8 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 
 __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
-  __shared__ unsigned rngShmem[1024];
+  //__shared__ unsigned rngShmem[1024];
+  extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
   float Pparameter = Pparameters[blockIdx.x / flip_BN];
@@ -320,7 +394,8 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 
 __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
   //Energy variables
-  __shared__ unsigned rngShmem[1024];
+  //__shared__ unsigned rngShmem[1024];
+  extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
   float Pparameter = Pparameters[blockIdx.x / flip_BN];

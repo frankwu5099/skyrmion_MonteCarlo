@@ -50,13 +50,13 @@ inline void __cudaCheckError( const char *file, const int line )
 
   // More careful checking. However, this will affect performance.
   // Comment away if needed.
-  err = cudaDeviceSynchronize();
+  /*err = cudaDeviceSynchronize();
   if( cudaSuccess != err )
   {
     fprintf( stderr, "cudaCheckError() with sync failed at %s:%i : %s\n",
 	file, line, cudaGetErrorString( err ) );
     exit( -1 );
-  }
+  }*/
 #endif
   return;
 }
@@ -229,31 +229,6 @@ extern uniform_01<mt19937> uni01_sampler;
 #define BYMyx (0.000000)
 #define BWMyx (0.000000)
 
-#define BXPyz (DD)
-#define BYPyz (-0.5 * DD + sqrt3d2 * DR)
-#define BWPyz (0.5 * DD + sqrt3d2 * DR)
-#define BXMyz (-DD)
-#define BYMyz (0.5 * DD - sqrt3d2 * DR)
-#define BWMyz (-0.5 * DD - sqrt3d2 * DR)
-#define BXPzy (-DD)
-#define BYPzy  (0.5 * DD - sqrt3d2 * DR)
-#define BWPzy  (-0.5 * DD - sqrt3d2 * DR)
-#define BXMzy (DD)
-#define BYMzy (-0.5 * DD + sqrt3d2 * DR)
-#define BWMzy (0.5 * DD + sqrt3d2 * DR)
-
-#define BXPxz (DR)
-#define BYPxz (sqrt3d2 * DD - 0.5 * DR)
-#define BWPxz (sqrt3d2 * DD + 0.5 * DR)
-#define BXMxz (-DR)
-#define BYMxz (-sqrt3d2 * DD + 0.5 * DR)
-#define BWMxz (-sqrt3d2 * DD - 0.5 * DR)
-#define BXPzx (-DR)
-#define BYPzx (-sqrt3d2 * DD + 0.5 * DR)
-#define BWPzx (-sqrt3d2 * DD - 0.5 * DR)
-#define BXMzx (DR)
-#define BYMzx (sqrt3d2 * DD - 0.5 * DR)
-#define BWMzx (sqrt3d2 * DD + 0.5 * DR)
 #endif
 
 #define MEASURE_NUM 5
@@ -279,12 +254,12 @@ extern uniform_01<mt19937> uni01_sampler;
 #ifdef TRI
 #define CAL(confx, confy, confz, out) calTRI<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j) getcorrTRI<<<grid, block>>>(confx, confy, confz, corr, i, j);
-//#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-//  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-//  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
-#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
+#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
+//#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+//  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
+//  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
 #endif
 #ifdef SQ
 #define CAL(confx, confy, confz, out) cal2D<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
