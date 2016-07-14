@@ -91,13 +91,14 @@ void move_params_device_flip(){
   tmpp = (sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( BWMzx, &tmpp, sizeof(float));
 }
-__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
+__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
   //Energy variables
   extern __shared__ unsigned rngShmem[];
   //__shared__ unsigned rngShmem[1024];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float Pparameter = Pparameters[blockIdx.x / flip_BN];
+  float H = Hs[blockIdx.x / flip_BN];
+  float invT = invTs[blockIdx.x / flip_BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;
@@ -241,13 +242,14 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 
 
 
-__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
+__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
   //Energy variables
   //__shared__ unsigned rngShmem[1024];
   extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float Pparameter = Pparameters[blockIdx.x / flip_BN];
+  float H = Hs[blockIdx.x / flip_BN];
+  float invT = invTs[blockIdx.x / flip_BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;
@@ -392,13 +394,14 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 }
 
 
-__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparameters, float Cparameter){
+__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
   //Energy variables
   //__shared__ unsigned rngShmem[1024];
   extern __shared__ unsigned rngShmem[];
   unsigned rngRegs[WarpStandard_REG_COUNT];
   WarpStandard_LoadState(rngState, rngRegs, rngShmem);
-  float Pparameter = Pparameters[blockIdx.x / flip_BN];
+  float H = Hs[blockIdx.x / flip_BN];
+  float invT = invTs[blockIdx.x / flip_BN];
   unsigned int r;
   float du;	//-dE
   float sx, sy, sz;

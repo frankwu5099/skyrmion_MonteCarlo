@@ -1,4 +1,5 @@
 //Ms PT function writedata  HHs
+//Po -> Cpara
 //why exchange conf and measurement works
 using namespace std;
 
@@ -15,14 +16,17 @@ using namespace std;
 unsigned seed = 73;
 mt19937 rng(seed);
 uniform_01<mt19937> uni01_sampler(rng);
-void tempering(double*, int*);
-vector<float> Tls;
-vector<float> Hls;
-vector<int>Po;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
-vector<int>ivPo;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
+void tempering(double*, double*, int*);
+vector< vector<float> > Tls;
+vector< vector<float> > Hls;
+vector<int> Po;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
+vector<int> ivPo;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
+unsigned int Pnum;
+unsigned int Cnum;
 unsigned int Tnum;
 unsigned int Hnum;
 float Cparameter = 0.8;
+int C_i = 0;
 void var_examine();
 
 
@@ -46,30 +50,34 @@ int main(int argc, char *argv[]){
   // ========================== initialize ===========================
 
   //begin (read in temperatures)
-  unsigned int Temp_mem_size;
-  unsigned int H_mem_size;
+  unsigned int params_mem_size;
 
   if(argc > 2){
-    float tmp;
-    FILE *Tfp = fopen(argv[2], "r");
-    int i = 0;
-    while(fscanf(Tfp, "%f", &tmp) != EOF){
-      Tls.push_back(tmp);
-      i++;
+    float tmpT, tmpH;
+    FILE *paramsfp = fopen(argv[2], "r");
+    vector<float> tmpTls;
+    vector<float> tmpHls;
+    fscanf(paramsfp, "%d %d", &Tnum, &Hnum);
+    while(fscanf(paramsfp, "%f %f", &tmpT, &tmpH) != EOF){
+      if (tmpT < 0){
+	Tls.push_back(tmpTls);
+	Hls.push_back(tmpHls);
+	tmpTls.clear();
+	tmpHls.clear();
+      }
+      else {
+	tmpTls.push_back(tmpT);
+	tmpHls.push_back(tmpH*(DR*DR + DD*DD));
+      }
     }
-    fclose(Tfp);
-    Tnum = Tls.size();
-    Temp_mem_size = Tnum * sizeof(float);
-
-    i = 0;
-    Tfp = fopen(argv[3], "r");
-    while(fscanf(Tfp, "%f", &tmp) != EOF){
-      Hls.push_back((DD * DD + DR * DR)*tmp);
-      i++;
+    fclose(paramsfp);
+    Pnum = Tls[0].size();
+    Cnum = Tls.size();
+    if (Tnum * Hnum != Pnum){
+      fprintf(stderr, "wrong temperatures and fields!!!\n");
+      exit(0);
     }
-    fclose(Tfp);
-    Hnum = Hls.size();
-    H_mem_size = Hnum * sizeof(float);
+    params_mem_size = Pnum * sizeof(float);
 
     grid = Pnum * H_BN;
   }
@@ -86,12 +94,14 @@ int main(int argc, char *argv[]){
     Po.push_back(i);
     ivPo.push_back(i);
   }
-  float *Cparameters;
-  float *HPparameters;
-  float *DPparameters;
-  Cparameters = (float*)malloc(C_mem_size);
-  HPparameters = (float*)malloc(P_mem_size);
-  CudaSafeCall(cudaMalloc((void**)&DPparameters, P_mem_size));
+  float *HHs;
+  float *DHs;
+  float *invTs;
+  float *DinvTs;
+  HHs = (float*)malloc(params_mem_size);
+  invTs = (float*)malloc(params_mem_size);
+  CudaSafeCall(cudaMalloc((void**)&DHs, params_mem_size));
+  CudaSafeCall(cudaMalloc((void**)&DinvTs, params_mem_size));
 
 
   //begin (initialize random seeds)
@@ -135,100 +145,93 @@ int main(int argc, char *argv[]){
   //Give initial configuration and settle the systems down to equilibrium states
   CONF.initialize(ORDER);
   int Eqii = 0;//150;
-  for(int i = 0; i < Hnum; i++)
-    HHs[i] = Hls[i];
-  for(int i = 0; i < Tnum; i++)
-    invTs[i] = 1.0/Tls[i];
-  CudaSafeCall(cudaMemcpy(DPparameters, HPparameters, P_mem_size, cudaMemcpyHostToDevice));
+  for(int i = 0; i < Pnum; i++){
+    HHs[i] = Hls[0][i];
+    invTs[i] = 1.0/Tls[0][i];
+  }
+  CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
+  CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
   double *Ms = (double*)malloc(Pnum * sizeof(double));
-  int *accept1 = (int*)calloc(Pnum - 1, sizeof(int));
+  double *Es = (double*)malloc(Pnum * sizeof(double));
+  int *accept1 = (int*)calloc((Tnum - 1)*Hnum + Tnum*(Hnum - 1), sizeof(int));
   float cnt = 0;
-  Cparameter = Cparameters[Cnum-1];
 
   for(int i = 0; i < EQUI_N; i++){
     if (i % 10 ==0) printf("%d\n",i);
-    SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
-    //================================= no PT ==========================================
-    /*
-       cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout); //, Dcorr);
-       cudaMemcpy(Hout, Dout, Out_mem_size, cudaMemcpyDeviceToHost);
-       for(int t = 0; t < Pnum; t++){
-       int raw_off = t * MEASURE_NUM * BN;
-       E = 0;
-       for(int j = 3 * BN; j < 4 * BN; j++)
-       E += Hout[raw_off + j];
-       Ms[Ho[t]] = E;	//Es is the energies in order of temperature set
-       }
+    SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
     //Parallel Tempering
     cnt += PTF;
     for(int p = 0; p < int(cnt); p++){
-    tempering(Ms, accept1);
-    for(int t = 0; t < Pnum; t++) HPparameters[t] = Porder(t);
-    cudaMemcpy(DPparameters, HPparameters, H_mem_size, cudaMemcpyHostToDevice);
+      MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
+      tempering(Ms, Es, accept1);
+      for(int t = 0; t < Pnum; t++){
+	HHs[t] = Hls[0][Po[t]];
+	invTs[t] = 1.0/Tls[0][Po[t]];
+      }
+      CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
+      CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
     }
     if(int(cnt))
     cnt = 0;
-     */
   }
 
   //Do measurements (annealing)
 
   int *accept = (int*)calloc(Pnum - 1, sizeof(int));
-  for(int C_i = 0 ; C_i < Cnum ; C_i ++){
+  for(C_i = 0 ; C_i < Cnum ; C_i ++){
+
+    for(int t = 0; t < Pnum; t++){
+      HHs[t] = Hls[C_i][Po[t]];
+      invTs[t] = 1.0/Tls[C_i][Po[t]];
+    }
     for (int i = 0; i< Pnum-1; i++) accept[i] = 0;
-    Cparameter = Ccurrent(C_i);
+    CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
+    CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+
     for(int i = 0; i < EQUI_Ni; i++){
-      if (i % 10 ==0) printf("%f : %d\n", Cparameter, i);
-      SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
-      //======================= no PT ===============================
-      /*
-	 cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout); //, Dcorr);
-	 cudaMemcpy(Hout, Dout, Out_mem_size, cudaMemcpyDeviceToHost);
-	 for(int t = 0; t < Pnum; t++){
-	 int raw_off = t * MEASURE_NUM * BN;
-	 E = 0;
-	 for(int j = 3 * BN; j < 4 * BN; j++)
-	 E += Hout[raw_off + j];
-	 Ms[Ho[t]] = E;	//Es is the energies in order of temperature set
-	 }
-      //Parallel Tempering
+      SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
-      tempering(Ms, accept1);
-      for(int t = 0; t < Pnum; t++) HPparameters[t] = Porder(t);
-      cudaMemcpy(DPparameters, HPparameters, P_mem_size, cudaMemcpyHostToDevice);
+	MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
+	tempering(Ms, Es, accept1);
+	for(int t = 0; t < Pnum; t++){
+	  HHs[t] = Hls[C_i][Po[t]];
+	  invTs[t] = 1.0/Tls[C_i][Po[t]];
+	}
+	CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
+	CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
       }
       if(int(cnt))
-      cnt = 0;
-       */
+	cnt = 0;
     }
     cnt = 0;
     for(int b = 0; b < BIN_NUM; b++){
       //Take the ensemble average
       for(int i = 0; i < BIN_SZ; i++){
-	SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DPparameters, Cparameter);
-	MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, HHs);
+	SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
+	MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
 #ifdef GET_CORR
 	if ( i % f_CORR==0){
 	  CORR.extract(Po, CONF);//==
 	}
 #endif
-	//Parallel Tempering
-	/*
-	   cnt += PTF;
-	   for(int p = 0; p < int(cnt); p++){
-	   tempering(Ms, accept);
-	   for(int t = 0; t < Pnum; t++) HPparameters[t] = Porder(t);
-	   cudaMemcpy(DPparameters, HPparameters, P_mem_size, cudaMemcpyHostToDevice);
-	   }
-	   if(int(cnt))
-	   cnt = 0;
-	 */
+	cnt += PTF;
+	for(int p = 0; p < int(cnt); p++){
+	  tempering(Ms, Es, accept);
+	  for(int t = 0; t < Pnum; t++){
+	    HHs[t] = Hls[C_i][Po[t]];
+	    invTs[t] = 1.0/Tls[C_i][Po[t]];
+	  }
+	  CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
+	  CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+	}
+	if(int(cnt))
+	  cnt = 0;
       }
       MEASURE.normalize_and_save_and_reset();
     }
     for (int iii = 0 ; iii < Pnum; iii ++){
-      ivPo[Po[iii]] = Po[iii];
+      ivPo[Po[iii]] = iii;
     }
     CONF.backtoHost();
     CONF.writedata();
@@ -247,7 +250,7 @@ int main(int argc, char *argv[]){
   FILE *detailFp = fopen(detailFn, "w");
   fprintf(detailFp, "elapsed time = %f (sec)\n", time);
   double speed = 0;
-  speed = (H_N / time / 1000000000) * ((EQUI_Ni + BIN_SZ * BIN_NUM) * Pnum + EQUI_N) * Cnum;
+  speed = (H_N / time / 1000000000) * ((EQUI_Ni + BIN_SZ * BIN_NUM) * Cnum + EQUI_N) * Pnum;
   fprintf(detailFp, "speed = %f (GHz)\n", speed);
   fprintf(detailFp, "RNG: WarpStandard\n", H_SpinSize);
   fprintf(detailFp, "SpinSize = %d\n", H_SpinSize);
@@ -264,15 +267,19 @@ int main(int argc, char *argv[]){
   fprintf(detailFp, "Equilibration Ni = %d\n", EQUI_Ni);
   fprintf(detailFp, "f_CORR = %d\n", f_CORR);
   fprintf(detailFp, "PT frequency = %3.2f\n", PTF);
-  fprintf(detailFp, "Tnum = %d\n", Tnum);
+  fprintf(detailFp, "Pnum = %d\n", Pnum);
   fprintf(detailFp, "Temperature Set: ");
-  for(int i = 0; i < Tnum; i++){
-    fprintf(detailFp, "%.5f  ", Tls[i]);
+  for(int i = 0; i < Cnum; i++){
+    for(int j = 0; j < Pnum; j++){
+      fprintf(detailFp, "%.5f  ", Tls[i][j]);
+    }
   }
-  fprintf(detailFp, "\nHnum = %d\n", Hnum);
+  fprintf(detailFp, "\n");
   fprintf(detailFp, "field Set: ");
-  for(int i = 0; i < Hnum; i++){
-    fprintf(detailFp, "%.5f  ", Hls[i]/(DR*DR + DD*DD));
+  for(int i = 0; i < Cnum; i++){
+    for(int j = 0; j < Pnum; j++){
+      fprintf(detailFp, "%.5f  ", Hls[i][j]/(DR*DR + DD*DD));
+    }
   }
   for(int i = 0; i < Pnum; i++){
     fprintf(detailFp, "\n");
@@ -297,7 +304,8 @@ int main(int argc, char *argv[]){
 
   //Set free memory
   free(seedHost);
-  CudaSafeCall(cudaFree(DPparameters));
+  CudaSafeCall(cudaFree(DinvTs));
+  CudaSafeCall(cudaFree(DHs));
   CudaSafeCall(cudaFree(seedDevice));
   //CORR.~correlation();
   //MEASURE.~measurements();
@@ -307,35 +315,69 @@ int main(int argc, char *argv[]){
 
 
 //=============================== functions ==================================
-void tempering(double *Ms, int *accept){
+void tempering(double *Ms, double *Es, int *accept){
   int map[Pnum];	//map[t] the configuration of t'th temperature
-  for(int i = 0; i < Pnum; i++){
+  int i, j, tmp, partT_num = (Tnum - 1) * Hnum;
+  double tmpEM;
+
+  for(i = 0; i < Pnum; i++)
     map[Po[i]] = i;
-  }
+
   double delta;
   int flag = 0;
-  for(int i = 0; i < Pnum - 1; i++){
-    delta = exchangecriterion(i);
-    if(delta > 0)
-      flag = 1;
-    else if(uni01_sampler() < exp(delta))
-      flag = 1;
-    if(flag){
-      int tmp = Po[map[i]];
-      Po[map[i]] = Po[map[i + 1]];
-      Po[map[i + 1]] = tmp;
-      tmp = map[i];
-      map[i] = map[i + 1];
-      map[i + 1] = tmp;
-      double tmpE = Ms[i];
-      Ms[i] = Ms[i + 1];
-      Ms[i + 1] = tmpE;
-      accept[i] += 1;
-      flag = 0;
+  for(i = 0; i < Tnum; i++){
+    for (j = 0; j < Hnum; j++){
+      //T excnange
+      if (i < Tnum -1){
+	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
+	if(delta > 0)
+	  flag = 1;
+	else if(uni01_sampler() < exp(delta))
+	  flag = 1;
+	if(flag){
+	  tmp = Po[map[j * Tnum + i]];
+	  Po[map[j * Tnum + i]] = Po[map[j * Tnum + i + 1]];
+	  Po[map[j * Tnum + i + 1]] = tmp;
+	  tmp = map[j * Tnum + i];
+	  map[j * Tnum + i] = map[j * Tnum + i + 1];
+	  map[j * Tnum + i + 1] = tmp;
+	  tmpEM = Es[j * Tnum + i];
+	  Es[j * Tnum + i] = Es[j * Tnum + i + 1];
+	  Es[j * Tnum + i + 1] = tmpEM;
+	  tmpEM = Ms[j * Tnum + i];
+	  Ms[j * Tnum + i] = Ms[j * Tnum + i + 1];
+	  Ms[j * Tnum + i + 1] = tmpEM;
+	  accept[j * (Tnum - 1) + i] += 1;
+	  flag = 0;
+	}
+      }
+      //H excnange
+      if (j < Hnum -1){
+        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
+        if(delta > 0)
+          flag = 1;
+        else if(uni01_sampler() < exp(delta))
+          flag = 1;
+        if(flag){
+          tmp = Po[map[j * Tnum + i]];
+          Po[map[j * Tnum + i]] = Po[map[(j + 1) * Tnum + i]];
+          Po[map[(j + 1) * Tnum + i]] = tmp;
+          tmp = map[j * Tnum + i];
+          map[j * Tnum + i] = map[(j + 1) * Tnum + i];
+          map[(j + 1) * Tnum + i] = tmp;
+          tmpEM = Es[j * Tnum + i];
+          Es[j * Tnum + i] = Es[(j + 1) * Tnum + i];
+          Es[(j + 1) * Tnum + i] = tmpEM;
+          tmpEM = Ms[j * Tnum + i];
+          Ms[j * Tnum + i] = Ms[(j + 1) * Tnum + i];
+          Ms[(j + 1) * Tnum + i] = tmpEM;
+          accept[partT_num + j * Tnum + i] += 1;
+          flag = 0;
+        }
+      }
     }
   }
 }
-
 
 void var_examine(){
 #ifndef TRI

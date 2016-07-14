@@ -10,9 +10,9 @@ __global__ void flipTLBR_2D(float *confx, float *confy, float *confz, unsigned i
 __global__ void flipBLTR_2D(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
 #endif
 #ifdef TRI
-__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
-__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
-__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Pparamters, float Cparameter);
+__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs);
+__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs);
+__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs);
 #endif
 //__global__ void relaxTLBR_thin(float *confx, float *confy, float *confz, unsigned int *rngState, float H);
 //__global__ void relaxBLTR_thin(float *confx, float *confy, float *confz, unsigned int *rngState, float H);

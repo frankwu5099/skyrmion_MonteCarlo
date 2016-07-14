@@ -45,7 +45,31 @@ measurements::~measurements(){
 
 
 
-void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, float* HHs){
+void measurements::virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs){
+  static int raw_off;
+  static double E;
+  static double Mz;
+  CAL(Dconfx, Dconfy, Dconfz, Dout);//cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout);
+  CudaCheckError();
+  CudaSafeCall(cudaMemcpy(Hout, Dout, Out_mem_size, cudaMemcpyDeviceToHost));
+
+  for(int t = 0; t < data_num; t++){
+    raw_off = t * MEASURE_NUM * H_BN;
+    E = 0;
+    Mz = 0;
+    for(int j = 0; j < H_BN; j++)
+      E += Hout[raw_off + j];
+    for(int j = 3 * H_BN; j < 4 * H_BN; j++)
+      Mz += Hout[raw_off + j];
+    Ms[Ho[t]] = Mz;	//Es is the energies in order of temperature set
+    E = E - HHs[t] * Mz;
+    Es[Ho[t]] = E;	//Es is the energies in order of temperature set
+  }
+}
+
+
+
+void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs){
   static int raw_off;
   static double E, E2;
   static double Mx, My, Mz, Chern, M2;
@@ -69,6 +93,7 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
       Chern += Hout[raw_off + j];
     Ms[Ho[t]] = Mz;	//Es is the energies in order of temperature set
     E = E - HHs[t] * Mz;
+    Es[Ho[t]] = E;	//Es is the energies in order of temperature set
     O[0].outdata[Ho[t]] += E;
     M2 = Mx * Mx + My * My + Mz * Mz;
     E2 = E * E;

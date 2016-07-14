@@ -374,15 +374,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	__syncthreads();
 
 	//Sum over the magnetic moments in z direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confy[cals_coo2D(ty, tx)];
-	sD[threadIdx.x] += confy[cals_coo2D(typ, tx)];
-	sD[threadIdx.x] += confy[cals_coo2D(typ2, tx)];
-	sD[threadIdx.x] += confy[cals_coo2D(ty, txp)];
-	sD[threadIdx.x] += confy[cals_coo2D(typ, txp)];
-	sD[threadIdx.x] += confy[cals_coo2D(typ2, txp)];
-	sD[threadIdx.x] += confy[cals_coo2D(ty, txp2)];
-	sD[threadIdx.x] += confy[cals_coo2D(typ, txp2)];
-	sD[threadIdx.x] += confy[cals_coo2D(typ2, txp2)];
+	sD[threadIdx.x]  = confz[cals_coo2D(ty, tx)];
+	sD[threadIdx.x] += confz[cals_coo2D(typ, tx)];
+	sD[threadIdx.x] += confz[cals_coo2D(typ2, tx)];
+	sD[threadIdx.x] += confz[cals_coo2D(ty, txp)];
+	sD[threadIdx.x] += confz[cals_coo2D(typ, txp)];
+	sD[threadIdx.x] += confz[cals_coo2D(typ2, txp)];
+	sD[threadIdx.x] += confz[cals_coo2D(ty, txp2)];
+	sD[threadIdx.x] += confz[cals_coo2D(typ, txp2)];
+	sD[threadIdx.x] += confz[cals_coo2D(typ2, txp2)];
 	__syncthreads();
 
 	//Sum over all elements in each sD

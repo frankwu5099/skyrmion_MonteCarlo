@@ -71,18 +71,6 @@ extern uniform_01<mt19937> uni01_sampler;
 #define ORDER 0
 
 //control the changing parameter and the parallel parameter
-#define Cparameters invTs   //control everything
-#define Cparameter invT   //control everything
-#define Pparameters Hs
-#define Pparameter H
-#define HPparameters HHs
-#define DPparameters DHs
-#define Cnum Tnum
-#define Pnum Hnum
-#define C_mem_size Temp_mem_size
-#define P_mem_size H_mem_size
-#define Porder(i)  Hls[Po[i]] //1.0/Tls[Po[i]]
-#define Ccurrent(i) (1/Tls[Cnum - 1 - i])
 #define exchangecriterion(i) ((Ms[i + 1] - Ms[i]) * ( Hls[i] - Hls[i + 1]) * invT)  //for parallel on H
 
 
@@ -254,9 +242,9 @@ extern uniform_01<mt19937> uni01_sampler;
 #ifdef TRI
 #define CAL(confx, confy, confz, out) calTRI<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j) getcorrTRI<<<grid, block>>>(confx, confy, confz, corr, i, j);
-#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
-  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
+#define SSF(confx, confy, confz, rng, hs, invTs) {  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
+  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
+  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
 //#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
