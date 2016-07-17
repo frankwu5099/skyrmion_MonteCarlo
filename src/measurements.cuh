@@ -27,7 +27,7 @@ void move_params_device_corr();
 
 class measurement{
   public:
-    measurement(char* indir, char* Oname, int normin, int Parallel_num);
+    measurement(char* indir, char* Oname, double normin, int Parallel_num);
     ~measurement();
     char fn[128];
     char dir[128];
@@ -48,8 +48,8 @@ class measurements{
     measurements(char* indir, int Parallel_num, unsigned int binSize);
     ~measurements();
     int measurement_num;
-    char names[7][10];
-    int norms[7];
+    char names[14][10];
+    double norms[14];
     int data_num;
     std::vector<measurement> O;
     double *Hout;
@@ -63,7 +63,7 @@ class measurements{
 
 class correlation{
   public:
-    correlation(int Pnum, char* dir);
+    correlation(int Pnum, char* _Corrfn);
     ~correlation();
     int data_num;
     unsigned int Spin_mem_size;
@@ -78,6 +78,7 @@ class correlation{
     int *DPo;//only use it only when extracting correlation
     void avg_write_reset();//set zero
     void extract(std::vector<int>& Ho, configuration &CONF);//==
+    void changefile(char* _Corrfn);
     //write and set
 };
 #endif

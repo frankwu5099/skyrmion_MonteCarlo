@@ -18,6 +18,12 @@ unsigned int H_BN;
 //------ system variable setting --------
 //!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
 float H_A; //(0.0)
+float DD; //(0.0)
+float DR; //(0.0)
+float H_Q1x; //(0.0)
+float H_Q1y; //(0.0)
+float H_Q2x; //(0.0)
+float H_Q2y; //(0.0)
 //----- system variable setting end ------
 
 //----- simulation setting ------
@@ -88,6 +94,20 @@ void read_params(char* param_file){
     printf("read A error");
     exit(0);
   }
+  readidx = fscanf(paramfp, "%s %f", tmp, &DR);
+  if ((readidx == -1)||(strcmp(tmp,"DR")!=0)){
+    printf("read DR error");
+    exit(0);
+  }
+  readidx = fscanf(paramfp, "%s %f", tmp, &DD);
+  if ((readidx == -1)||(strcmp(tmp,"DD")!=0)){
+    printf("read DD error");
+    exit(0);
+  }
+  H_Q1x = atan(sqrt((DD*DD+DR*DR)*3.0/4.0));//atan(sqrt((DD*DD+DR*DR)/2.0));
+  H_Q1y = -0.5*atan(sqrt((DD*DD+DR*DR)*3.0/4.0));
+  H_Q2x = 2*H_Q1x;
+  H_Q2y = 2*H_Q1y;
 
   //----- system variable setting end ------
 
@@ -120,6 +140,16 @@ void read_params(char* param_file){
   readidx = fscanf(paramfp, "%s %f", tmp, &PTF);
   if ((readidx == -1)||(strcmp(tmp,"PTF")!=0)){
     printf("read parallel tempering frequency error");
+    exit(0);
+  }
+  readidx = fscanf(paramfp, "%s %d", tmp, &f_CORR);
+  if ((readidx == -1)||(strcmp(tmp,"f_CORR")!=0)){
+    printf("read f_CORR error");
+    exit(0);
+  }
+  readidx = fscanf(paramfp, "%s %d", tmp, &CORR_N);
+  if ((readidx == -1)||(strcmp(tmp,"CORR_N")!=0)){
+    printf("read CORR_N error");
     exit(0);
   }
   readidx = fscanf(paramfp, "%s %s", tmp, &Output);

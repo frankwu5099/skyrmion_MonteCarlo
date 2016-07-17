@@ -78,8 +78,6 @@ extern uniform_01<mt19937> uni01_sampler;
 #define TOPI (float(1.462918078360668e-9))
 #define TWOPI (float(6.28318530717956))	//2*pi
 #define Hfinal (0.016000)
-#define DR (0.585786f)//(1.41421)//(0.585786)//(0.8)////(0.4)//(1.02749)
-#define DD (0.0f)//(1.41421)//(0.8)////(0.4)//(1.02749)
 
 #ifdef SQ
 #define BXPxx (1.000000)
@@ -219,7 +217,7 @@ extern uniform_01<mt19937> uni01_sampler;
 
 #endif
 
-#define MEASURE_NUM 5
+#define MEASURE_NUM 17
 
 
 
@@ -274,6 +272,12 @@ extern unsigned int H_BN;
 //------ system variable setting --------
 //!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
 extern float H_A; //(0.0)
+extern float DD; //(0.0)
+extern float DR; //(0.0)
+extern float H_Q1x; //(0.0)
+extern float H_Q1y; //(0.0)
+extern float H_Q2x; //(0.0)
+extern float H_Q2y; //(0.0)
 //----- system variable setting end ------
 
 //----- simulation setting ------
@@ -283,6 +287,8 @@ extern unsigned int EQUI_N;
 extern unsigned int EQUI_Ni;//(4000)//0)
 extern unsigned int relax_N;
 extern float PTF;             //Frequency of parallel tempering
+extern unsigned int f_CORR;
+extern unsigned int CORR_N;
 extern char Output[128];  //set the output directory
 //#define BIN_SZ 3000//0//00//
 //#define BIN_NUM 3//0

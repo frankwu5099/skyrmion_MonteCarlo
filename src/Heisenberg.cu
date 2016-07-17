@@ -10,7 +10,6 @@ using namespace std;
 #include "configuration.cuh"
 #include "extend.cu"
 #define GET_CORR
-#define f_CORR (500)
 
 
 unsigned seed = 73;
@@ -25,6 +24,8 @@ unsigned int Pnum;
 unsigned int Cnum;
 unsigned int Tnum;
 unsigned int Hnum;
+unsigned int f_CORR;
+unsigned int CORR_N;
 float Cparameter = 0.8;
 int C_i = 0;
 void var_examine();
@@ -134,7 +135,9 @@ int main(int argc, char *argv[]){
   configuration CONF(Pnum, dir);
   measurements MEASURE(dir, Pnum, BIN_SZ); //Tnum for parallel tempering for T
 #ifdef GET_CORR
-  correlation CORR(Pnum, dir);
+  char Corrfn[128];
+  sprintf(Corrfn, "%s/Corrpt", dir);
+  correlation CORR(Pnum, Corrfn);
 #endif
 
   StopWatchInterface *timer=NULL;
@@ -239,6 +242,17 @@ int main(int argc, char *argv[]){
     CORR.avg_write_reset();
 #endif
   }
+#ifdef GET_CORR
+  sprintf(Corrfn, "%s/Corr", dir);
+  CORR.changefile(Corrfn);
+  for(int i = 0; i < CORR_N * f_CORR; i++){
+    SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
+    if ( i % f_CORR==0){
+      CORR.extract(Po, CONF);//==
+    }
+  }
+  CORR.avg_write_reset();
+#endif
   free(Ms);
   sdkStopTimer(&timer);
   double time = 1.0e-3 * sdkGetTimerValue(&timer);
@@ -266,6 +280,7 @@ int main(int argc, char *argv[]){
   fprintf(detailFp, "Equilibration N = %d\n", EQUI_N);
   fprintf(detailFp, "Equilibration Ni = %d\n", EQUI_Ni);
   fprintf(detailFp, "f_CORR = %d\n", f_CORR);
+  fprintf(detailFp, "CORR_N = %d\n", CORR_N);
   fprintf(detailFp, "PT frequency = %3.2f\n", PTF);
   fprintf(detailFp, "Pnum = %d\n", Pnum);
   fprintf(detailFp, "Temperature Set: ");
