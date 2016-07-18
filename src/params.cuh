@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <helper_timer.h>
 #include "WarpStandard.cuh"
+#include "multigpu.cuh"
 #include <time.h>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_01.hpp>
@@ -290,6 +291,8 @@ extern float PTF;             //Frequency of parallel tempering
 extern unsigned int f_CORR;
 extern unsigned int CORR_N;
 extern char Output[128];  //set the output directory
+extern const int num_devices;
+extern const int devices[2];
 //#define BIN_SZ 3000//0//00//
 //#define BIN_NUM 3//0
 //#define EQUI_N 20000//0//0//00////16000000

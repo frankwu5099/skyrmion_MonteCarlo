@@ -13,6 +13,8 @@ unsigned int H_N;
 unsigned int H_Nplane;
 unsigned int H_TN;
 unsigned int H_BN;
+const int num_devices = 2;
+const int devices[2] = {0,1};
 //------ system size setting end --------
 
 //------ system variable setting --------
@@ -104,8 +106,8 @@ void read_params(char* param_file){
     printf("read DD error");
     exit(0);
   }
-  H_Q1x = atan(sqrt((DD*DD+DR*DR)*3.0/4.0));//atan(sqrt((DD*DD+DR*DR)/2.0));
-  H_Q1y = -0.5*atan(sqrt((DD*DD+DR*DR)*3.0/4.0));
+  H_Q1x = atan(sqrt((DD*DD+DR*DR)/2.0))*4.0/3.0;//atan(sqrt((DD*DD+DR*DR)/2.0));
+  H_Q1y = -0.5*atan(sqrt((DD*DD+DR*DR)/2.0))*4.0/3.0;
   H_Q2x = 2*H_Q1x;
   H_Q2y = 2*H_Q1y;
 

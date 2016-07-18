@@ -36,14 +36,18 @@ int main(int argc, char *argv[]){
   //call GPU
   read_params(argv[1]);
 
-  if (setDev()==1){
-    return 1;
+  //if (setDev()==1){
+  //  return 1;
+  //}
+  //cudaGetLastError();
+  //CudaCheckError();
+
+  for (int i_device = 0 ; i_device < num_devices; i_device++){
+    cudaSetDevice(devices[i_device]);
+    move_params_device_flip();
+    move_params_device_cals();
+    move_params_device_corr();
   }
-  cudaGetLastError();
-  CudaCheckError();
-  move_params_device_flip();
-  move_params_device_cals();
-  move_params_device_corr();
 
   //examine variables
   var_examine();
@@ -96,26 +100,24 @@ int main(int argc, char *argv[]){
     ivPo.push_back(i);
   }
   float *HHs;
-  float *DHs;
+  mgpudata<float> DHs(params_mem_size, devices, num_devices);
   float *invTs;
-  float *DinvTs;
+  mgpudata<float> DinvTs(params_mem_size, devices, num_devices);
   HHs = (float*)malloc(params_mem_size);
   invTs = (float*)malloc(params_mem_size);
-  CudaSafeCall(cudaMalloc((void**)&DHs, params_mem_size));
-  CudaSafeCall(cudaMalloc((void**)&DinvTs, params_mem_size));
 
 
   //begin (initialize random seeds)
   //Declare sizes
   unsigned int totalRngs = Pnum * H_TN / WarpStandard_K;
   unsigned seedBytes = totalRngs * sizeof(unsigned int) * WarpStandard_STATE_WORDS;
-  unsigned int *seedDevice = 0;
-  CudaSafeCall(cudaMalloc((void **)&seedDevice, seedBytes));
+  mgpudata<unsigned int> seedDevice(seedBytes,devices,num_devices);
   unsigned int* seedHost = (unsigned int*)malloc(seedBytes);
   srand(seed);
   for(int i = 0; i < seedBytes / sizeof(unsigned int); i++)
     seedHost[i] = uni01_sampler() * UINT_MAX;
   CudaSafeCall(cudaMemcpy(seedDevice, seedHost, seedBytes, cudaMemcpyHostToDevice));
+  mgpuHostToDevice(
   //end (initialize random seeds)
 
 
