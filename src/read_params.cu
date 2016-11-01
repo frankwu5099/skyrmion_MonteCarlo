@@ -45,7 +45,7 @@ void read_params(char* param_file){
     printf("read size error");
     exit(0);
   }
-  if (H_SpinSize % 16 != 0){
+  if (H_SpinSize % 24 != 0){
     fprintf(stderr, "Please give a legal Size or revise cals.cu.\n");
     exit(0);
   }
@@ -104,8 +104,8 @@ void read_params(char* param_file){
     printf("read DD error");
     exit(0);
   }
-  H_Q1x = atan(sqrt((DD*DD+DR*DR)*3.0/4.0));//atan(sqrt((DD*DD+DR*DR)/2.0));
-  H_Q1y = -0.5*atan(sqrt((DD*DD+DR*DR)*3.0/4.0));
+  H_Q1x = atan(sqrt((DD*DD+DR*DR)));//atan(sqrt((DD*DD+DR*DR)/2.0));
+  H_Q1y = -0.5*atan(sqrt((DD*DD+DR*DR)));
   H_Q2x = 2*H_Q1x;
   H_Q2y = 2*H_Q1y;
 

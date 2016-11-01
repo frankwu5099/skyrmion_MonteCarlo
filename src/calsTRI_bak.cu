@@ -115,7 +115,6 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	//const int ty = 2 * ((blockIdx.x / cals_BN) * cals_SpinSize + ((blockIdx.x % cals_BN) / cals_GridSize_x) * cals_BlockSize_y + y);
 	const int dataoff = (blockIdx.x / cals_BN) * MEASURE_NUM * cals_BN;
 	int bx, by, tx_ty = tx + (ty % cals_SpinSize);
-	float Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz;
 	//-----Calculate the energy of each spin pairs in the system-----
 	//To avoid double counting, for each spin, choose the neighbor spin on the left hand side of each spin and also one above each spin as pairs. Each spin has two pairs.
 
@@ -443,158 +442,104 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 
 	//try to measure Chern number
 	//(0,0)
-	Ax = confx[cals_coo2D(ty, tx)];
-	Ay = confy[cals_coo2D(ty, tx)];
-	Az = confz[cals_coo2D(ty, tx)];
-	Bx = confx[cals_coo2D(ty, bx)];
-	By = confy[cals_coo2D(ty, bx)];
-	Bz = confz[cals_coo2D(ty, bx)];
-	Cx = confx[cals_coo2D(by, bx)];
-	Cy = confy[cals_coo2D(by, bx)];
-	Cz = confz[cals_coo2D(by, bx)];
-	sD[threadIdx.x] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(by, tx)];
-	By = confy[cals_coo2D(by, tx)];
-	Bz = confz[cals_coo2D(by, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x]  = confx[cals_coo2D(ty, tx)] * (
+	 (confy[cals_coo2D(ty, tx)]-confy[cals_coo2D(ty, bx)])*(2*confz[cals_coo2D(ty, tx)]-confz[cals_coo2D(by, tx)]-confz[cals_coo2D(by, bx)])
+	-(confz[cals_coo2D(ty, tx)]-confz[cals_coo2D(ty, bx)])*(2*confy[cals_coo2D(ty, tx)]-confy[cals_coo2D(by, tx)]-confy[cals_coo2D(by, bx)])
+	)+confy[cals_coo2D(ty, tx)] * (
+	 (confz[cals_coo2D(ty, tx)]-confz[cals_coo2D(ty, bx)])*(2*confx[cals_coo2D(ty, tx)]-confx[cals_coo2D(by, tx)]-confx[cals_coo2D(by, bx)])
+	-(confx[cals_coo2D(ty, tx)]-confx[cals_coo2D(ty, bx)])*(2*confz[cals_coo2D(ty, tx)]-confz[cals_coo2D(by, tx)]-confz[cals_coo2D(by, bx)])
+	)+confz[cals_coo2D(ty, tx)] * (
+	 (confx[cals_coo2D(ty, tx)]-confx[cals_coo2D(ty, bx)])*(2*confy[cals_coo2D(ty, tx)]-confy[cals_coo2D(by, tx)]-confy[cals_coo2D(by, bx)])
+	-(confy[cals_coo2D(ty, tx)]-confy[cals_coo2D(ty, bx)])*(2*confx[cals_coo2D(ty, tx)]-confx[cals_coo2D(by, tx)]-confx[cals_coo2D(by, bx)])
+	);
 	//(1,0)
-	Ax = confx[cals_coo2D(typ, tx)];
-	Ay = confy[cals_coo2D(typ, tx)];
-	Az = confz[cals_coo2D(typ, tx)];
-	Bx = confx[cals_coo2D(typ, bx)];
-	By = confy[cals_coo2D(typ, bx)];
-	Bz = confz[cals_coo2D(typ, bx)];
-	Cx = confx[cals_coo2D(ty, bx)];
-	Cy = confy[cals_coo2D(ty, bx)];
-	Cz = confz[cals_coo2D(ty, bx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(ty, tx)];
-	By = confy[cals_coo2D(ty, tx)];
-	Bz = confz[cals_coo2D(ty, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(typ, tx)] * (
+	 (confy[cals_coo2D(typ, tx)]-confy[cals_coo2D(typ, bx)])*(2*confz[cals_coo2D(typ, tx)]-confz[cals_coo2D(ty, tx)]-confz[cals_coo2D(ty, bx)])
+	-(confz[cals_coo2D(typ, tx)]-confz[cals_coo2D(typ, bx)])*(2*confy[cals_coo2D(typ, tx)]-confy[cals_coo2D(ty, tx)]-confy[cals_coo2D(ty, bx)])
+	)+confy[cals_coo2D(typ, tx)]*(
+	 (confz[cals_coo2D(typ, tx)]-confz[cals_coo2D(typ, bx)])*(2*confx[cals_coo2D(typ, tx)]-confx[cals_coo2D(ty, tx)]-confx[cals_coo2D(ty, bx)])
+	-(confx[cals_coo2D(typ, tx)]-confx[cals_coo2D(typ, bx)])*(2*confz[cals_coo2D(typ, tx)]-confz[cals_coo2D(ty, tx)]-confz[cals_coo2D(ty, bx)])
+	)+confz[cals_coo2D(typ, tx)] * (
+	 (confx[cals_coo2D(typ, tx)]-confx[cals_coo2D(typ, bx)])*(2*confy[cals_coo2D(typ, tx)]-confy[cals_coo2D(ty, tx)]-confy[cals_coo2D(ty, bx)])
+	-(confy[cals_coo2D(typ, tx)]-confy[cals_coo2D(typ, bx)])*(2*confx[cals_coo2D(typ, tx)]-confx[cals_coo2D(ty, tx)]-confx[cals_coo2D(ty, bx)])
+	);
 	//(2,0)
-	Ax = confx[cals_coo2D(typ2, tx)];
-	Ay = confy[cals_coo2D(typ2, tx)];
-	Az = confz[cals_coo2D(typ2, tx)];
-	Bx = confx[cals_coo2D(typ2, bx)];
-	By = confy[cals_coo2D(typ2, bx)];
-	Bz = confz[cals_coo2D(typ2, bx)];
-	Cx = confx[cals_coo2D(typ, bx)];
-	Cy = confy[cals_coo2D(typ, bx)];
-	Cz = confz[cals_coo2D(typ, bx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(typ, tx)];
-	By = confy[cals_coo2D(typ, tx)];
-	Bz = confz[cals_coo2D(typ, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(typ2, tx)] * (
+	 (confy[cals_coo2D(typ2, tx)]-confy[cals_coo2D(typ2, bx)])*(2*confz[cals_coo2D(typ2, tx)]-confz[cals_coo2D(typ, tx)]-confz[cals_coo2D(typ, bx)])
+	-(confz[cals_coo2D(typ2, tx)]-confz[cals_coo2D(typ2, bx)])*(2*confy[cals_coo2D(typ2, tx)]-confy[cals_coo2D(typ, tx)]-confy[cals_coo2D(typ, bx)])
+	)+confy[cals_coo2D(typ2, tx)]*(
+	 (confz[cals_coo2D(typ2, tx)]-confz[cals_coo2D(typ2, bx)])*(2*confx[cals_coo2D(typ2, tx)]-confx[cals_coo2D(typ, tx)]-confx[cals_coo2D(typ, bx)])
+	-(confx[cals_coo2D(typ2, tx)]-confx[cals_coo2D(typ2, bx)])*(2*confz[cals_coo2D(typ2, tx)]-confz[cals_coo2D(typ, tx)]-confz[cals_coo2D(typ, bx)])
+	)+confz[cals_coo2D(typ2, tx)] * (
+	 (confx[cals_coo2D(typ2, tx)]-confx[cals_coo2D(typ2, bx)])*(2*confy[cals_coo2D(typ2, tx)]-confy[cals_coo2D(typ, tx)]-confy[cals_coo2D(typ, bx)])
+	-(confy[cals_coo2D(typ2, tx)]-confy[cals_coo2D(typ2, bx)])*(2*confx[cals_coo2D(typ2, tx)]-confx[cals_coo2D(typ, tx)]-confx[cals_coo2D(typ, bx)])
+	);
 	//(0,1)
-	Ax = confx[cals_coo2D(ty, txp)];
-	Ay = confy[cals_coo2D(ty, txp)];
-	Az = confz[cals_coo2D(ty, txp)];
-	Bx = confx[cals_coo2D(ty, tx)];
-	By = confy[cals_coo2D(ty, tx)];
-	Bz = confz[cals_coo2D(ty, tx)];
-	Cx = confx[cals_coo2D(by, tx)];
-	Cy = confy[cals_coo2D(by, tx)];
-	Cz = confz[cals_coo2D(by, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(by, txp)];
-	By = confy[cals_coo2D(by, txp)];
-	Bz = confz[cals_coo2D(by, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(ty, txp)] * (
+	 (confy[cals_coo2D(ty, txp)]-confy[cals_coo2D(ty, tx)])*(2*confz[cals_coo2D(ty, txp)]-confz[cals_coo2D(by, txp)]-confz[cals_coo2D(by, tx)])
+	-(confz[cals_coo2D(ty, txp)]-confz[cals_coo2D(ty, tx)])*(2*confy[cals_coo2D(ty, txp)]-confy[cals_coo2D(by, txp)]-confy[cals_coo2D(by, tx)])
+	)+confy[cals_coo2D(ty, txp)]*(
+	 (confz[cals_coo2D(ty, txp)]-confz[cals_coo2D(ty, tx)])*(2*confx[cals_coo2D(ty, txp)]-confx[cals_coo2D(by, txp)]-confx[cals_coo2D(by, tx)])
+	-(confx[cals_coo2D(ty, txp)]-confx[cals_coo2D(ty, tx)])*(2*confz[cals_coo2D(ty, txp)]-confz[cals_coo2D(by, txp)]-confz[cals_coo2D(by, tx)])
+	)+confz[cals_coo2D(ty, txp)] * (
+	 (confx[cals_coo2D(ty, txp)]-confx[cals_coo2D(ty, tx)])*(2*confy[cals_coo2D(ty, txp)]-confy[cals_coo2D(by, txp)]-confy[cals_coo2D(by, tx)])
+	-(confy[cals_coo2D(ty, txp)]-confy[cals_coo2D(ty, tx)])*(2*confx[cals_coo2D(ty, txp)]-confx[cals_coo2D(by, txp)]-confx[cals_coo2D(by, tx)])
+	);
 	//(1,1)
-	Ax = confx[cals_coo2D(typ, txp)];
-	Ay = confy[cals_coo2D(typ, txp)];
-	Az = confz[cals_coo2D(typ, txp)];
-	Bx = confx[cals_coo2D(typ, tx)];
-	By = confy[cals_coo2D(typ, tx)];
-	Bz = confz[cals_coo2D(typ, tx)];
-	Cx = confx[cals_coo2D(ty, tx)];
-	Cy = confy[cals_coo2D(ty, tx)];
-	Cz = confz[cals_coo2D(ty, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(ty, txp)];
-	By = confy[cals_coo2D(ty, txp)];
-	Bz = confz[cals_coo2D(ty, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(typ, txp)] * (
+	 (confy[cals_coo2D(typ, txp)]-confy[cals_coo2D(typ, tx)])*(2*confz[cals_coo2D(typ, txp)]-confz[cals_coo2D(ty, txp)]-confz[cals_coo2D(ty, tx)])
+	-(confz[cals_coo2D(typ, txp)]-confz[cals_coo2D(typ, tx)])*(2*confy[cals_coo2D(typ, txp)]-confy[cals_coo2D(ty, txp)]-confy[cals_coo2D(ty, tx)])
+	)+confy[cals_coo2D(typ, txp)]*(
+	 (confz[cals_coo2D(typ, txp)]-confz[cals_coo2D(typ, tx)])*(2*confx[cals_coo2D(typ, txp)]-confx[cals_coo2D(ty, txp)]-confx[cals_coo2D(ty, tx)])
+	-(confx[cals_coo2D(typ, txp)]-confx[cals_coo2D(typ, tx)])*(2*confz[cals_coo2D(typ, txp)]-confz[cals_coo2D(ty, txp)]-confz[cals_coo2D(ty, tx)])
+	)+confz[cals_coo2D(typ, txp)] * (
+	 (confx[cals_coo2D(typ, txp)]-confx[cals_coo2D(typ, tx)])*(2*confy[cals_coo2D(typ, txp)]-confy[cals_coo2D(ty, txp)]-confy[cals_coo2D(ty, tx)])
+	-(confy[cals_coo2D(typ, txp)]-confy[cals_coo2D(typ, tx)])*(2*confx[cals_coo2D(typ, txp)]-confx[cals_coo2D(ty, txp)]-confx[cals_coo2D(ty, tx)])
+	);
 	//(2,1)
-	Ax = confx[cals_coo2D(typ2, txp)];
-	Ay = confy[cals_coo2D(typ2, txp)];
-	Az = confz[cals_coo2D(typ2, txp)];
-	Bx = confx[cals_coo2D(typ2, tx)];
-	By = confy[cals_coo2D(typ2, tx)];
-	Bz = confz[cals_coo2D(typ2, tx)];
-	Cx = confx[cals_coo2D(typ, tx)];
-	Cy = confy[cals_coo2D(typ, tx)];
-	Cz = confz[cals_coo2D(typ, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(typ, txp)];
-	By = confy[cals_coo2D(typ, txp)];
-	Bz = confz[cals_coo2D(typ, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(typ2, txp)] * (
+	 (confy[cals_coo2D(typ2, txp)]-confy[cals_coo2D(typ2, tx)])*(2*confz[cals_coo2D(typ2, txp)]-confz[cals_coo2D(typ, txp)]-confz[cals_coo2D(typ, tx)])
+	-(confz[cals_coo2D(typ2, txp)]-confz[cals_coo2D(typ2, tx)])*(2*confy[cals_coo2D(typ2, txp)]-confy[cals_coo2D(typ, txp)]-confy[cals_coo2D(typ, tx)])
+	)+confy[cals_coo2D(typ2, txp)]*(
+	 (confz[cals_coo2D(typ2, txp)]-confz[cals_coo2D(typ2, tx)])*(2*confx[cals_coo2D(typ2, txp)]-confx[cals_coo2D(typ, txp)]-confx[cals_coo2D(typ, tx)])
+	-(confx[cals_coo2D(typ2, txp)]-confx[cals_coo2D(typ2, tx)])*(2*confz[cals_coo2D(typ2, txp)]-confz[cals_coo2D(typ, txp)]-confz[cals_coo2D(typ, tx)])
+	)+confz[cals_coo2D(typ2, txp)] * (
+	 (confx[cals_coo2D(typ2, txp)]-confx[cals_coo2D(typ2, tx)])*(2*confy[cals_coo2D(typ2, txp)]-confy[cals_coo2D(typ, txp)]-confy[cals_coo2D(typ, tx)])
+	-(confy[cals_coo2D(typ2, txp)]-confy[cals_coo2D(typ2, tx)])*(2*confx[cals_coo2D(typ2, txp)]-confx[cals_coo2D(typ, txp)]-confx[cals_coo2D(typ, tx)])
+	);
 	//(0,2)
-	Ax = confx[cals_coo2D(ty, txp2)];
-	Ay = confy[cals_coo2D(ty, txp2)];
-	Az = confz[cals_coo2D(ty, txp2)];
-	Bx = confx[cals_coo2D(ty, txp)];
-	By = confy[cals_coo2D(ty, txp)];
-	Bz = confz[cals_coo2D(ty, txp)];
-	Cx = confx[cals_coo2D(by, txp)];
-	Cy = confy[cals_coo2D(by, txp)];
-	Cz = confz[cals_coo2D(by, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(by, txp2)];
-	By = confy[cals_coo2D(by, txp2)];
-	Bz = confz[cals_coo2D(by, txp2)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(ty, txp2)] * (
+	 (confy[cals_coo2D(ty, txp2)]-confy[cals_coo2D(ty, txp)])*(2*confz[cals_coo2D(ty, txp2)]-confz[cals_coo2D(by, txp2)]-confz[cals_coo2D(by, txp)])
+	-(confz[cals_coo2D(ty, txp2)]-confz[cals_coo2D(ty, txp)])*(2*confy[cals_coo2D(ty, txp2)]-confy[cals_coo2D(by, txp2)]-confy[cals_coo2D(by, txp)])
+	)+confy[cals_coo2D(ty, txp2)]*(
+	 (confz[cals_coo2D(ty, txp2)]-confz[cals_coo2D(ty, txp)])*(2*confx[cals_coo2D(ty, txp2)]-confx[cals_coo2D(by, txp2)]-confx[cals_coo2D(by, txp)])
+	-(confx[cals_coo2D(ty, txp2)]-confx[cals_coo2D(ty, txp)])*(2*confz[cals_coo2D(ty, txp2)]-confz[cals_coo2D(by, txp2)]-confz[cals_coo2D(by, txp)])
+	)+confz[cals_coo2D(ty, txp2)] * (
+	 (confx[cals_coo2D(ty, txp2)]-confx[cals_coo2D(ty, txp)])*(2*confy[cals_coo2D(ty, txp2)]-confy[cals_coo2D(by, txp2)]-confy[cals_coo2D(by, txp)])
+	-(confy[cals_coo2D(ty, txp2)]-confy[cals_coo2D(ty, txp)])*(2*confx[cals_coo2D(ty, txp2)]-confx[cals_coo2D(by, txp2)]-confx[cals_coo2D(by, txp)])
+	);
 	//(1,2)
-	Ax = confx[cals_coo2D(typ, txp2)];
-	Ay = confy[cals_coo2D(typ, txp2)];
-	Az = confz[cals_coo2D(typ, txp2)];
-	Bx = confx[cals_coo2D(typ, txp)];
-	By = confy[cals_coo2D(typ, txp)];
-	Bz = confz[cals_coo2D(typ, txp)];
-	Cx = confx[cals_coo2D(ty, txp)];
-	Cy = confy[cals_coo2D(ty, txp)];
-	Cz = confz[cals_coo2D(ty, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(ty, txp2)];
-	By = confy[cals_coo2D(ty, txp2)];
-	Bz = confz[cals_coo2D(ty, txp2)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(typ, txp2)] * (
+	 (confy[cals_coo2D(typ, txp2)]-confy[cals_coo2D(typ, txp)])*(2*confz[cals_coo2D(typ, txp2)]-confz[cals_coo2D(ty, txp2)]-confz[cals_coo2D(ty, txp)])
+	-(confz[cals_coo2D(typ, txp2)]-confz[cals_coo2D(typ, txp)])*(2*confy[cals_coo2D(typ, txp2)]-confy[cals_coo2D(ty, txp2)]-confy[cals_coo2D(ty, txp)])
+	)+confy[cals_coo2D(typ, txp2)]*(
+	 (confz[cals_coo2D(typ, txp2)]-confz[cals_coo2D(typ, txp)])*(2*confx[cals_coo2D(typ, txp2)]-confx[cals_coo2D(ty, txp2)]-confx[cals_coo2D(ty, txp)])
+	-(confx[cals_coo2D(typ, txp2)]-confx[cals_coo2D(typ, txp)])*(2*confz[cals_coo2D(typ, txp2)]-confz[cals_coo2D(ty, txp2)]-confz[cals_coo2D(ty, txp)])
+	)+confz[cals_coo2D(typ, txp2)] * (
+	 (confx[cals_coo2D(typ, txp2)]-confx[cals_coo2D(typ, txp)])*(2*confy[cals_coo2D(typ, txp2)]-confy[cals_coo2D(ty, txp2)]-confy[cals_coo2D(ty, txp)])
+	-(confy[cals_coo2D(typ, txp2)]-confy[cals_coo2D(typ, txp)])*(2*confx[cals_coo2D(typ, txp2)]-confx[cals_coo2D(ty, txp2)]-confx[cals_coo2D(ty, txp)])
+	);
 	//(2,2)
-	Ax = confx[cals_coo2D(typ2, txp2)];
-	Ay = confy[cals_coo2D(typ2, txp2)];
-	Az = confz[cals_coo2D(typ2, txp2)];
-	Bx = confx[cals_coo2D(typ2, txp)];
-	By = confy[cals_coo2D(typ2, txp)];
-	Bz = confz[cals_coo2D(typ2, txp)];
-	Cx = confx[cals_coo2D(typ, txp)];
-	Cy = confy[cals_coo2D(typ, txp)];
-	Cz = confz[cals_coo2D(typ, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[cals_coo2D(typ, txp2)];
-	By = confy[cals_coo2D(typ, txp2)];
-	Bz = confz[cals_coo2D(typ, txp2)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	sD[threadIdx.x] += confx[cals_coo2D(typ2, txp2)] * (
+	 (confy[cals_coo2D(typ2, txp2)]-confy[cals_coo2D(typ2, txp)])*(2*confz[cals_coo2D(typ2, txp2)]-confz[cals_coo2D(typ, txp2)]-confz[cals_coo2D(typ, txp)])
+	-(confz[cals_coo2D(typ2, txp2)]-confz[cals_coo2D(typ2, txp)])*(2*confy[cals_coo2D(typ2, txp2)]-confy[cals_coo2D(typ, txp2)]-confy[cals_coo2D(typ, txp)])
+	)+confy[cals_coo2D(typ2, txp2)]*(
+	 (confz[cals_coo2D(typ2, txp2)]-confz[cals_coo2D(typ2, txp)])*(2*confx[cals_coo2D(typ2, txp2)]-confx[cals_coo2D(typ, txp2)]-confx[cals_coo2D(typ, txp)])
+	-(confx[cals_coo2D(typ2, txp2)]-confx[cals_coo2D(typ2, txp)])*(2*confz[cals_coo2D(typ2, txp2)]-confz[cals_coo2D(typ, txp2)]-confz[cals_coo2D(typ, txp)])
+	)+confz[cals_coo2D(typ2, txp2)] * (
+	 (confx[cals_coo2D(typ2, txp2)]-confx[cals_coo2D(typ2, txp)])*(2*confy[cals_coo2D(typ2, txp2)]-confy[cals_coo2D(typ, txp2)]-confy[cals_coo2D(typ, txp)])
+	-(confy[cals_coo2D(typ2, txp2)]-confy[cals_coo2D(typ2, txp)])*(2*confx[cals_coo2D(typ2, txp2)]-confx[cals_coo2D(typ, txp2)]-confx[cals_coo2D(typ, txp)])
+	);
 	__syncthreads();
 
 	//Sum over all elements in each sD

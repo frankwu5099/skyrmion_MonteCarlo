@@ -3,6 +3,7 @@
 
 configuration::configuration(int Pnum, char* conf_dir){
   Spin_mem_size = Pnum * H_N * sizeof(float);
+  Single_mem_size = H_N * sizeof(float);
   spins_num = Pnum * H_N;
   configurations_num = Pnum;
   sprintf(Confxfn, "%s/Confx", conf_dir);
@@ -49,6 +50,12 @@ void configuration::backtoHost(){
   CudaSafeCall(cudaMemcpy(Hx, Dx, Spin_mem_size, cudaMemcpyDeviceToHost));
   CudaSafeCall(cudaMemcpy(Hy, Dy, Spin_mem_size, cudaMemcpyDeviceToHost));
   CudaSafeCall(cudaMemcpy(Hz, Dz, Spin_mem_size, cudaMemcpyDeviceToHost));
+  //cudaFree(Dcorr);
+}
+void configuration::Dominatestateback(int hostid, int deviceid){
+  CudaSafeCall(cudaMemcpy(((float*)Hx) + hostid * H_N, ((float*)Dx) + deviceid * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
+  CudaSafeCall(cudaMemcpy(((float*)Hy) + hostid * H_N, ((float*)Dy) + deviceid * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
+  CudaSafeCall(cudaMemcpy(((float*)Hz) + hostid * H_N, ((float*)Dz) + deviceid * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
   //cudaFree(Dcorr);
 }
 void configuration::writedata(){

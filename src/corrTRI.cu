@@ -200,6 +200,148 @@ __global__ void sumcorrTRI(double *DSum_corr, const float *corr, int *DTo){
   DSum_corr[corr_coo2D((ty_pt + 2),tx+2)] += corr[corr_coo2D((ty + 2),tx+2)]/corr_SpinSize/corr_SpinSize;
   __syncthreads();
 }
+
+__global__ void getcorrTRI_z(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j){
+  /*****************************************************************
+    !!!!!!!!!!!!!!! It can be used for square lattice and triangular lattice.
+    Set ( original_i, original_j) as our original point.
+    for tx_o , ty_o in 2x2 block of (original_i, original_j):
+    corr[i - tx_o][j - ty_o] <-  the correlation between  and  (i, j)
+    corr[   tx   ][   ty   ]
+    use the periodic condition to keep the index positive.
+    We need to sum over different (original_i, original_j) to get the correlation.
+   *****************************************************************/
+  //Energy variables
+  const int x = threadIdx.x % (corr_BlockSize_x);
+  const int y = (threadIdx.x / corr_BlockSize_x);
+  const int tx = 3 * (((blockIdx.x % corr_BN) % corr_GridSize_x) * corr_BlockSize_x + x);
+  const int ty =(blockIdx.x / corr_BN) * corr_SpinSize +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
+  const int ox = original_i;
+  const int oy =(blockIdx.x / corr_BN) * corr_SpinSize + original_j;
+  //const int txp = tx +1 ;
+  //const int typ = ty +1 ;
+  //const int ty = 2 * ((blockIdx.x / BN) * SpinSize + ((blockIdx.x % BN) / GridSize_x) * BlockSize_y + y);
+  float sz00, sz01, sz02,
+        sz10, sz11, sz12,
+        sz20, sz21, sz22;
+  int fx0, fy0,
+      fx1, fy1,
+      fx2, fy2,
+      fx3, fy3,//from o to f
+      fx4, fy4;
+  //calculate all the final position first
+
+  fx0 = (tx + original_i) % corr_SpinSize;
+  fx1 = (tx + original_i + 1) % corr_SpinSize;
+  fx2 = (tx + original_i + 2) % corr_SpinSize;
+  fx3 = (tx + original_i + 3) % corr_SpinSize;
+  fx4 = (tx + original_i + 4) % corr_SpinSize;
+
+  if((ty % corr_SpinSize + original_j) >= corr_SpinSize)	fy0 = ty + original_j - corr_SpinSize;
+  else  fy0 = ty + original_j;
+  if((ty % corr_SpinSize + original_j + 1) >= corr_SpinSize)	fy1 = ty + original_j + 1 - corr_SpinSize;
+  else  fy1 = ty + original_j + 1;
+  if((ty % corr_SpinSize + original_j + 2) >= corr_SpinSize)	fy2 = ty + original_j + 2 - corr_SpinSize;
+  else  fy2 = ty + original_j + 2;
+  if((ty % corr_SpinSize + original_j + 3) >= corr_SpinSize)	fy3 = ty + original_j + 3 - corr_SpinSize;
+  else  fy3 = ty + original_j + 3;
+  if((ty % corr_SpinSize + original_j + 4) >= corr_SpinSize)	fy4 = ty + original_j + 4 - corr_SpinSize;
+  else  fy4 = ty + original_j + 4;
+
+  //Calculate the two pair-energy of each spin on the thread square step by step and store the summing energy of each thread square in sD.
+  sz00 = confz[corr_coo2D(oy,ox)];
+  sz01 = confz[corr_coo2D(oy,ox+1)];
+  sz02 = confz[corr_coo2D(oy,ox+2)];
+  sz10 = confz[corr_coo2D(oy+1,ox)];
+  sz11 = confz[corr_coo2D(oy+1,ox+1)];
+  sz12 = confz[corr_coo2D(oy+1,ox+2)];
+  sz20 = confz[corr_coo2D(oy+2,ox)];
+  sz21 = confz[corr_coo2D(oy+2,ox+1)];
+  sz22 = confz[corr_coo2D(oy+2,ox+2)];
+  corr[corr_coo2D(ty,tx)] += sz00 * confz[corr_coo2D( fy0,fx0)] +
+                        sz01 * confz[corr_coo2D( fy0,fx1)] +
+                        sz02 * confz[corr_coo2D( fy0,fx2)] +
+                        sz10 * confz[corr_coo2D( fy1,fx0)] +
+                        sz11 * confz[corr_coo2D( fy1,fx1)] +
+                        sz12 * confz[corr_coo2D( fy1,fx2)] +
+                        sz20 * confz[corr_coo2D( fy2,fx0)] +
+                        sz21 * confz[corr_coo2D( fy2,fx1)] +
+                        sz22 * confz[corr_coo2D( fy2,fx2)];
+  corr[corr_coo2D(ty,tx+1)] += sz00 * confz[corr_coo2D( fy0,fx1)] +
+                          sz01 * confz[corr_coo2D( fy0,fx2)] +
+                          sz02 * confz[corr_coo2D( fy0,fx3)] +
+                          sz10 * confz[corr_coo2D( fy1,fx1)] +
+                          sz11 * confz[corr_coo2D( fy1,fx2)] +
+                          sz12 * confz[corr_coo2D( fy1,fx3)] +
+                          sz20 * confz[corr_coo2D( fy2,fx1)] +
+                          sz21 * confz[corr_coo2D( fy2,fx2)] +
+                          sz22 * confz[corr_coo2D( fy2,fx3)];
+  corr[corr_coo2D(ty,tx+2)] += sz00 * confz[corr_coo2D( fy0,fx2)] +
+                          sz01 * confz[corr_coo2D( fy0,fx3)] +
+                          sz02 * confz[corr_coo2D( fy0,fx4)] +
+                          sz10 * confz[corr_coo2D( fy1,fx2)] +
+                          sz11 * confz[corr_coo2D( fy1,fx3)] +
+                          sz12 * confz[corr_coo2D( fy1,fx4)] +
+                          sz20 * confz[corr_coo2D( fy2,fx2)] +
+                          sz21 * confz[corr_coo2D( fy2,fx3)] +
+                          sz22 * confz[corr_coo2D( fy2,fx4)];
+  corr[corr_coo2D((ty+1),tx)] += sz00 * confz[corr_coo2D( fy1,fx0)] +
+                            sz01 * confz[corr_coo2D( fy1,fx1)] +
+                            sz02 * confz[corr_coo2D( fy1,fx2)] +
+                            sz10 * confz[corr_coo2D( fy2,fx0)] +
+                            sz11 * confz[corr_coo2D( fy2,fx1)] +
+                            sz12 * confz[corr_coo2D( fy2,fx2)] +
+                            sz20 * confz[corr_coo2D( fy3,fx0)] +
+                            sz21 * confz[corr_coo2D( fy3,fx1)] +
+                            sz22 * confz[corr_coo2D( fy3,fx2)];
+  corr[corr_coo2D((ty+1),tx+1)] += sz00 * confz[corr_coo2D( fy1,fx1)] +
+                              sz01 * confz[corr_coo2D( fy1,fx2)] +
+                              sz02 * confz[corr_coo2D( fy1,fx3)] +
+                              sz10 * confz[corr_coo2D( fy2,fx1)] +
+                              sz11 * confz[corr_coo2D( fy2,fx2)] +
+                              sz12 * confz[corr_coo2D( fy2,fx3)] +
+                              sz20 * confz[corr_coo2D( fy3,fx1)] +
+                              sz21 * confz[corr_coo2D( fy3,fx2)] +
+                              sz22 * confz[corr_coo2D( fy3,fx3)];
+  corr[corr_coo2D((ty+1),tx+2)] += sz00 * confz[corr_coo2D( fy1,fx2)] +
+                              sz01 * confz[corr_coo2D( fy1,fx3)] +
+                              sz02 * confz[corr_coo2D( fy1,fx4)] +
+                              sz10 * confz[corr_coo2D( fy2,fx2)] +
+                              sz11 * confz[corr_coo2D( fy2,fx3)] +
+                              sz12 * confz[corr_coo2D( fy2,fx4)] +
+                              sz20 * confz[corr_coo2D( fy3,fx2)] +
+                              sz21 * confz[corr_coo2D( fy3,fx3)] +
+                              sz22 * confz[corr_coo2D( fy3,fx4)];
+  corr[corr_coo2D((ty+2),tx)] += sz00 * confz[corr_coo2D( fy2,fx0)] +
+                            sz01 * confz[corr_coo2D( fy2,fx1)] +
+                            sz02 * confz[corr_coo2D( fy2,fx2)] +
+                            sz10 * confz[corr_coo2D( fy3,fx0)] +
+                            sz11 * confz[corr_coo2D( fy3,fx1)] +
+                            sz12 * confz[corr_coo2D( fy3,fx2)] +
+                            sz20 * confz[corr_coo2D( fy4,fx0)] +
+                            sz21 * confz[corr_coo2D( fy4,fx1)] +
+                            sz22 * confz[corr_coo2D( fy4,fx2)];
+  corr[corr_coo2D((ty+2),tx+1)] += sz00 * confz[corr_coo2D( fy2,fx1)] +
+                              sz01 * confz[corr_coo2D( fy2,fx2)] +
+                              sz02 * confz[corr_coo2D( fy2,fx3)] +
+                              sz10 * confz[corr_coo2D( fy3,fx1)] +
+                              sz11 * confz[corr_coo2D( fy3,fx2)] +
+                              sz12 * confz[corr_coo2D( fy3,fx3)] +
+                              sz20 * confz[corr_coo2D( fy4,fx1)] +
+                              sz21 * confz[corr_coo2D( fy4,fx2)] +
+                              sz22 * confz[corr_coo2D( fy4,fx3)];
+  corr[corr_coo2D((ty+2),tx+2)] += sz00 * confz[corr_coo2D( fy2,fx2)] +
+                              sz01 * confz[corr_coo2D( fy2,fx3)] +
+                              sz02 * confz[corr_coo2D( fy2,fx4)] +
+                              sz10 * confz[corr_coo2D( fy3,fx2)] +
+                              sz11 * confz[corr_coo2D( fy3,fx3)] +
+                              sz12 * confz[corr_coo2D( fy3,fx4)] +
+                              sz20 * confz[corr_coo2D( fy4,fx2)] +
+                              sz21 * confz[corr_coo2D( fy4,fx3)] +
+                              sz22 * confz[corr_coo2D( fy4,fx4)];
+  __syncthreads();
+}
+
 __global__ void avgcorrTRI(double *DSum_corr, double N_corr){
   /*****************************************************************
     Set ( original_i, original_j) as our original point.

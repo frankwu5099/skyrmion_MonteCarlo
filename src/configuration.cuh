@@ -7,6 +7,7 @@ class configuration{
 		configuration(int Pnum, char* conf_dir);
 		~configuration();
 		unsigned int Spin_mem_size;
+		unsigned int Single_mem_size;
 		unsigned int configurations_num;
 		unsigned int spins_num;
 		char Confxfn[128];
@@ -21,6 +22,7 @@ class configuration{
 		void initialize (bool order);
 		void backtoHost();
 		void writedata();
+		void Dominatestateback(int hostid, int deviceid);
 		int Confxfd;
 		int Confyfd;
 		int Confzfd;
