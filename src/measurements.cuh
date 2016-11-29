@@ -11,9 +11,11 @@ __global__ void avgcorr2D(double *DSum_corr, double N_corr);
 #endif
 #ifdef TRI
 __global__ void calTRI(float *confx, float *confy, float *confz, double *out);
-__global__ void getcorrTRI(const float *confx, const float *confy, const float *confz, float *corr, int original_i, int original_j);
+__global__ void getcorrTRI(const float *confx, float *corr, int original_i, int original_j);
+__global__ void getFTskyr(const float *confx, float *corr, int original_i, int original_j);
 __global__ void sumcorrTRI(double *DSum_corr, const float *corr, int *DTo);
 __global__ void avgcorrTRI(double *DSum_corr, double N_corr);
+__global__ void skyr_den_gen(const float *confx, const float *confy, const float *confz, float *skyr_den);
 #endif
 #ifdef THIN
 __global__ void calthin(float *confx, float *confy, float *confz, double *out);
@@ -54,6 +56,7 @@ class measurements{
     std::vector<measurement> O;
     double *Hout;
     double *Dout;
+    unsigned int *EHistogram;
     void measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs);
     void virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs);
     void normalize_and_save_and_reset();
@@ -72,6 +75,7 @@ class correlation{
     int corrcount;
     double *HSum;
     float *Dcorr;
+    float *skyr_den;
     double *DSum;
     char Corrfn[128];
     int Corrfd;

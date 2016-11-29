@@ -1,14 +1,14 @@
 //Ms PT function writedata  HHs
 //Po -> Cpara
 //why exchange conf and measurement works
-using namespace std;
 
 
 #include "params.cuh"
 #include "updates.cuh"
-#include "measurements.cuh"
 #include "configuration.cuh"
+#include "measurements.cuh"
 #include "extend.cu"
+using namespace std;
 #define GET_CORR
 
 
@@ -251,6 +251,10 @@ int main(int argc, char *argv[]){
     CORR.avg_write_reset();
 #endif
   }
+  sprintf(Corrfn, "%s/%s", dir, "EHistogram");
+  FILE *f_hist = fopen(Corrfn, "w");
+  fwrite(MEASURE.EHistogram, sizeof(unsigned int), 400 * Pnum, f_hist);
+  fclose(f_hist);
 #ifdef GET_CORR
   C_i = 0;
   for(int corr_i = 0; corr_i < 5; corr_i++){

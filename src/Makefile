@@ -156,7 +156,7 @@ ifeq ($(OS_ARCH),armv7l)
 SMS ?= 20 30 32 35 37 50
 else
 #SMS ?= 11 20 30 35 37 50
-SMS ?=   35  # Change according to your GPU hardware specs
+SMS ?=  35  # Change according to your GPU hardware specs
 endif
 
 ifeq ($(SMS),)
@@ -186,7 +186,7 @@ DEPS= read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu cals
 # Target rules
 all: build
 
-build: ../simulation_TRIa_35
+build: ../simulation_TRIb_35
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -198,7 +198,7 @@ endif
 %.o:%.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-../simulation_TRIa_35: ${OBJS}
+../simulation_TRIb_35: ${OBJS}
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))

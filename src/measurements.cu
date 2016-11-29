@@ -42,6 +42,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   printf("%u\n", Out_mem_size);
   Hout = (double*)malloc(Out_mem_size);
   CudaSafeCall(cudaMalloc(&Dout, Out_mem_size));
+  EHistogram = (unsigned int*) calloc(Parallel_num * 400, sizeof(unsigned int));
 }
 
 
@@ -52,6 +53,7 @@ measurements::~measurements(){
     fclose(O[i].fp);
   }
   free(Hout);
+  free(EHistogram);
   //CudaSafeCall(cudaFree(Dout));
   printf("measure free succeed!\n");
   fflush(stdout);
@@ -158,6 +160,8 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
     O[12].outdata[Ho[t]] += spinQ2x_r * spinQ2x_r + spinQ2y_r * spinQ2y_r + spinQ2z_r * spinQ2z_r\
 			    + spinQ2x_i * spinQ2x_i + spinQ2y_i * spinQ2y_i + spinQ2z_i * spinQ2z_i;
     O[13].outdata[Ho[t]] += Mz;
+    E /= H_N;
+    if ((E<-0.4)&&(E>-0.8)) EHistogram[Ho[t]*400+int(400*(E+0.8))] +=1;
   }
 }
 
@@ -209,6 +213,7 @@ correlation::correlation(int Pnum, char* _Corrfn){
   HSum = (double*)malloc(Spin_mem_size_d);
 
   CudaSafeCall(cudaMalloc((void**)&Dcorr, Spin_mem_size_p));
+  CudaSafeCall(cudaMalloc((void**)&skyr_den, Spin_mem_size_p));
 
   CudaSafeCall(cudaMalloc((void**)&DSum, Spin_mem_size_d));
   CudaSafeCall(cudaMalloc((void**)&DPo, Pnum * sizeof(int)));
@@ -234,9 +239,11 @@ void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
   CudaCheckError();
 #endif
 #ifdef TRI
+
+  GETSKYRDEN(CONF.Dx, CONF.Dy, CONF.Dz, skyr_den);
   for (int labelx = 0; labelx < H_SpinSize; labelx += 3){
     for (int labely = 0; labely < H_SpinSize; labely += 3){
-      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
+      GETFT(skyr_den, Dcorr, labelx, labely);
     }
   }
   sumcorrTRI<<<grid, block>>>(DSum, Dcorr, DPo);
@@ -271,6 +278,7 @@ correlation::~correlation(){
   close(Corrfd);
   free(HSum);
   CudaSafeCall(cudaFree(this->Dcorr));
+  CudaSafeCall(cudaFree(this->skyr_den));
   CudaSafeCall(cudaFree(this->DPo));//
   CudaSafeCall(cudaFree(this->DSum));
 }
