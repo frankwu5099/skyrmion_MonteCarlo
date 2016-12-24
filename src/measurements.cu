@@ -161,7 +161,7 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
 			    + spinQ2x_i * spinQ2x_i + spinQ2y_i * spinQ2y_i + spinQ2z_i * spinQ2z_i;
     O[13].outdata[Ho[t]] += Mz;
     E /= H_N;
-    if ((E<-0.4)&&(E>-0.8)) EHistogram[Ho[t]*400+int(400*(E+0.8))] +=1;
+    if ((E<-1.7501)&&(E>-3.25)) EHistogram[Ho[t]*400+int(400*((E+3.25)/1.5))] +=1;
   }
 }
 
