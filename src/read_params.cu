@@ -66,8 +66,6 @@ void read_params(char* param_file){
 #ifdef TRI
   H_BlockSize_x = H_SpinSize / 3;
   H_BlockSize_y = H_SpinSize / 3;
-  H_BlockSize_x = (H_BlockSize_x > 32)?32:H_BlockSize_x;
-  H_BlockSize_y = (H_BlockSize_y > 16)?16:H_BlockSize_y;
   H_GridSize_x = H_SpinSize / H_BlockSize_x / 3;
   H_GridSize_y = H_SpinSize / H_BlockSize_y / 3;
 #endif
