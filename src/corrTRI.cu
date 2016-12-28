@@ -49,17 +49,17 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	Ax = confx[corr_coo2D(ty, tx)];
 	Ay = confy[corr_coo2D(ty, tx)];
 	Az = confz[corr_coo2D(ty, tx)];
-	Bx = confx[corr_coo2D(by, tx)];
-	By = confy[corr_coo2D(by, tx)];
-	Bz = confz[corr_coo2D(by, tx)];
+	Bx = confx[corr_coo2D(by, bx)];
+	By = confy[corr_coo2D(by, bx)];
+	Bz = confz[corr_coo2D(by, bx)];
 	Cx = confx[corr_coo2D(ty, bx)];
 	Cy = confy[corr_coo2D(ty, bx)];
 	Cz = confz[corr_coo2D(ty, bx)];
 	skyr_den[corr_coo2D(ty, tx)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Cx = confx[corr_coo2D(by, txp)];
-	Cy = confy[corr_coo2D(by, txp)];
-	Cz = confz[corr_coo2D(by, txp)];
+	Cx = confx[corr_coo2D(by, tx)];
+	Cy = confy[corr_coo2D(by, tx)];
+	Cz = confz[corr_coo2D(by, tx)];
 	skyr_den[corr_coo2D(ty, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Bx = confx[corr_coo2D(ty, txp)];
@@ -69,9 +69,9 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(ty, txp)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Ax = confx[corr_coo2D(by, txp2)];
-	Ay = confy[corr_coo2D(by, txp2)];
-	Az = confz[corr_coo2D(by, txp2)];
+	Ax = confx[corr_coo2D(by, txp)];
+	Ay = confy[corr_coo2D(by, txp)];
+	Az = confz[corr_coo2D(by, txp)];
 	skyr_den[corr_coo2D(ty, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Cx = confx[corr_coo2D(ty, txp2)];
@@ -81,9 +81,9 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(ty, txp2)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[corr_coo2D(by, txp3)];
-	By = confy[corr_coo2D(by, txp3)];
-	Bz = confz[corr_coo2D(by, txp3)];
+	Bx = confx[corr_coo2D(by, txp2)];
+	By = confy[corr_coo2D(by, txp2)];
+	Bz = confz[corr_coo2D(by, txp2)];
 	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Ax = confx[corr_coo2D(ty, txp3)];
@@ -92,63 +92,56 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	//(1,0)
-	Ax = confx[corr_coo2D(ty, bx)];
-	Ay = confy[corr_coo2D(ty, bx)];
-	Az = confz[corr_coo2D(ty, bx)];
-	Bx = confx[corr_coo2D(ty, tx)];
-	By = confy[corr_coo2D(ty, tx)];
-	Bz = confz[corr_coo2D(ty, tx)];
-	Cx = confx[corr_coo2D(typ, bx)];
-	Cy = confy[corr_coo2D(typ, bx)];
-	Cz = confz[corr_coo2D(typ, bx)];
-	skyr_den[corr_coo2D(ty, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Ax = confx[corr_coo2D(typ, tx)];
 	Ay = confy[corr_coo2D(typ, tx)];
 	Az = confz[corr_coo2D(typ, tx)];
-	skyr_den[corr_coo2D(ty, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	Bx = confx[corr_coo2D(ty, bx)];
+	By = confy[corr_coo2D(ty, bx)];
+	Bz = confz[corr_coo2D(ty, bx)];
+	Cx = confx[corr_coo2D(typ, bx)];
+	Cy = confy[corr_coo2D(typ, bx)];
+	Cz = confz[corr_coo2D(typ, bx)];
 	skyr_den[corr_coo2D(typ, tx)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Cx = confx[corr_coo2D(ty, txp)];
-	Cy = confy[corr_coo2D(ty, txp)];
-	Cz = confz[corr_coo2D(ty, txp)];
+	Cx = confx[corr_coo2D(ty, tx)];
+	Cy = confy[corr_coo2D(ty, tx)];
+	Cz = confz[corr_coo2D(ty, tx)];
 	skyr_den[corr_coo2D(ty, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	skyr_den[corr_coo2D(ty, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Bx = confx[corr_coo2D(typ, txp)];
 	By = confy[corr_coo2D(typ, txp)];
 	Bz = confz[corr_coo2D(typ, txp)];
-	skyr_den[corr_coo2D(ty, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	skyr_den[corr_coo2D(ty, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Ax = confx[corr_coo2D(ty, txp2)];
-	Ay = confy[corr_coo2D(ty, txp2)];
-	Az = confz[corr_coo2D(ty, txp2)];
+	Ax = confx[corr_coo2D(ty, txp)];
+	Ay = confy[corr_coo2D(ty, txp)];
+	Az = confz[corr_coo2D(ty, txp)];
 	skyr_den[corr_coo2D(ty, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	skyr_den[corr_coo2D(ty, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Cx = confx[corr_coo2D(typ, txp2)];
 	Cy = confy[corr_coo2D(typ, txp2)];
 	Cz = confz[corr_coo2D(typ, txp2)];
-	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	skyr_den[corr_coo2D(ty, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp2)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[corr_coo2D(ty, txp3)];
-	By = confy[corr_coo2D(ty, txp3)];
-	Bz = confz[corr_coo2D(ty, txp3)];
+	Bx = confx[corr_coo2D(ty, txp2)];
+	By = confy[corr_coo2D(ty, txp2)];
+	Bz = confz[corr_coo2D(ty, txp2)];
+	skyr_den[corr_coo2D(ty, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
@@ -156,66 +149,66 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	Ax = confx[corr_coo2D(typ, txp3)];
 	Ay = confy[corr_coo2D(typ, txp3)];
 	Az = confz[corr_coo2D(typ, txp3)];
+	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	//(2,0)
-	Ax = confx[corr_coo2D(typ, bx)];
-	Ay = confy[corr_coo2D(typ, bx)];
-	Az = confz[corr_coo2D(typ, bx)];
-	Bx = confx[corr_coo2D(typ, tx)];
-	By = confy[corr_coo2D(typ, tx)];
-	Bz = confz[corr_coo2D(typ, tx)];
-	Cx = confx[corr_coo2D(typ2, bx)];
-	Cy = confy[corr_coo2D(typ2, bx)];
-	Cz = confz[corr_coo2D(typ2, bx)];
-	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	Cx = confx[corr_coo2D(ty, txp3)];
+	Cy = confy[corr_coo2D(ty, txp3)];
+	Cz = confz[corr_coo2D(ty, txp3)];
+	skyr_den[corr_coo2D(ty, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	//(2,0)
 	Ax = confx[corr_coo2D(typ2, tx)];
 	Ay = confy[corr_coo2D(typ2, tx)];
 	Az = confz[corr_coo2D(typ2, tx)];
-	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	Bx = confx[corr_coo2D(typ, bx)];
+	By = confy[corr_coo2D(typ, bx)];
+	Bz = confz[corr_coo2D(typ, bx)];
+	Cx = confx[corr_coo2D(typ2, bx)];
+	Cy = confy[corr_coo2D(typ2, bx)];
+	Cz = confz[corr_coo2D(typ2, bx)];
 	skyr_den[corr_coo2D(typ2, tx)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Cx = confx[corr_coo2D(typ, txp)];
-	Cy = confy[corr_coo2D(typ, txp)];
-	Cz = confz[corr_coo2D(typ, txp)];
+	Cx = confx[corr_coo2D(typ, tx)];
+	Cy = confy[corr_coo2D(typ, tx)];
+	Cz = confz[corr_coo2D(typ, tx)];
 	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Bx = confx[corr_coo2D(typ2, txp)];
 	By = confy[corr_coo2D(typ2, txp)];
 	Bz = confz[corr_coo2D(typ2, txp)];
-	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, txp)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Ax = confx[corr_coo2D(typ, txp2)];
-	Ay = confy[corr_coo2D(typ, txp2)];
-	Az = confz[corr_coo2D(typ, txp2)];
+	Ax = confx[corr_coo2D(typ, txp)];
+	Ay = confy[corr_coo2D(typ, txp)];
+	Az = confz[corr_coo2D(typ, txp)];
 	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	skyr_den[corr_coo2D(typ, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Cx = confx[corr_coo2D(typ2, txp2)];
 	Cy = confy[corr_coo2D(typ2, txp2)];
 	Cz = confz[corr_coo2D(typ2, txp2)];
-	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, txp2)] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[corr_coo2D(typ, txp3)];
-	By = confy[corr_coo2D(typ, txp3)];
-	Bz = confz[corr_coo2D(typ, txp3)];
+	Bx = confx[corr_coo2D(typ, txp2)];
+	By = confy[corr_coo2D(typ, txp2)];
+	Bz = confz[corr_coo2D(typ, txp2)];
+	skyr_den[corr_coo2D(typ, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	skyr_den[corr_coo2D(typ2, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
@@ -225,50 +218,57 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	Az = confz[corr_coo2D(typ2, txp3)];
 	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	//(3,0)
-	Ax = confx[corr_coo2D(typ2, bx)];
-	Ay = confy[corr_coo2D(typ2, bx)];
-	Az = confz[corr_coo2D(typ2, bx)];
-	Bx = confx[corr_coo2D(typ2, tx)];
-	By = confy[corr_coo2D(typ2, tx)];
-	Bz = confz[corr_coo2D(typ2, tx)];
-	Cx = confx[corr_coo2D(typ3, bx)];
-	Cy = confy[corr_coo2D(typ3, bx)];
-	Cz = confz[corr_coo2D(typ3, bx)];
-	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	skyr_den[corr_coo2D(typ2, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	Cx = confx[corr_coo2D(typ, txp3)];
+	Cy = confy[corr_coo2D(typ, txp3)];
+	Cz = confz[corr_coo2D(typ, txp3)];
+	skyr_den[corr_coo2D(typ, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	//(3,0)
 	Ax = confx[corr_coo2D(typ3, tx)];
 	Ay = confy[corr_coo2D(typ3, tx)];
 	Az = confz[corr_coo2D(typ3, tx)];
-	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Cx = confx[corr_coo2D(typ2, txp)];
-	Cy = confy[corr_coo2D(typ2, txp)];
-	Cz = confz[corr_coo2D(typ2, txp)];
+	Bx = confx[corr_coo2D(typ2, bx)];
+	By = confy[corr_coo2D(typ2, bx)];
+	Bz = confz[corr_coo2D(typ2, bx)];
+	Cx = confx[corr_coo2D(typ2, tx)];
+	Cy = confy[corr_coo2D(typ2, tx)];
+	Cz = confz[corr_coo2D(typ2, tx)];
 	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Bx = confx[corr_coo2D(typ3, txp)];
 	By = confy[corr_coo2D(typ3, txp)];
 	Bz = confz[corr_coo2D(typ3, txp)];
-	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Ax = confx[corr_coo2D(typ2, txp2)];
-	Ay = confy[corr_coo2D(typ2, txp2)];
-	Az = confz[corr_coo2D(typ2, txp2)];
+	Ax = confx[corr_coo2D(typ2, txp)];
+	Ay = confy[corr_coo2D(typ2, txp)];
+	Az = confz[corr_coo2D(typ2, txp)];
 	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	skyr_den[corr_coo2D(typ2, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	skyr_den[corr_coo2D(typ2, tx)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	Cx = confx[corr_coo2D(typ3, txp2)];
 	Cy = confy[corr_coo2D(typ3, txp2)];
 	Cz = confz[corr_coo2D(typ3, txp2)];
+	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	Bx = confx[corr_coo2D(typ2, txp2)];
+	By = confy[corr_coo2D(typ2, txp2)];
+	Bz = confz[corr_coo2D(typ2, txp2)];
+	skyr_den[corr_coo2D(typ2, txp)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	skyr_den[corr_coo2D(typ2, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
+	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	Ax = confx[corr_coo2D(typ3, txp3)];
+	Ay = confy[corr_coo2D(typ3, txp3)];
+	Az = confz[corr_coo2D(typ3, txp3)];
 	skyr_den[corr_coo2D(typ2, txp2)] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
-	Bx = confx[corr_coo2D(typ2, txp3)];
-	By = confy[corr_coo2D(typ2, txp3)];
-	Bz = confz[corr_coo2D(typ2, txp3)];
+	Cx = confx[corr_coo2D(typ2, txp3)];
+	Cy = confy[corr_coo2D(typ2, txp3)];
+	Cz = confz[corr_coo2D(typ2, txp3)];
 	skyr_den[corr_coo2D(typ2, txp2)] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
 	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
 	__syncthreads();
