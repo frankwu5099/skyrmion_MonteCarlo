@@ -44,7 +44,7 @@ __global__ void skyr_den_gen(const float *confx, const float *confy, const float
 	bx = (tx + corr_SpinSize - 1) % corr_SpinSize;
 	if((ty % corr_SpinSize) == 0)	by = ty + corr_SpinSize - 1;
 	else				by = ty - 1;
-	if((typ3 % corr_SpinSize) == 0)	typ3 = typ3 - corr_SpinSize;
+	if((ty % corr_SpinSize) == (corr_SpinSize - 3))	typ3 = typ3 - corr_SpinSize;
 	//try to measure Chern number
 	Ax = confx[corr_coo2D(ty, tx)];
 	Ay = confy[corr_coo2D(ty, tx)];
