@@ -243,7 +243,7 @@ void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
   GETSKYRDEN(CONF.Dx, CONF.Dy, CONF.Dz, skyr_den);
   for (int labelx = 0; labelx < H_SpinSize; labelx += 3){
     for (int labely = 0; labely < H_SpinSize; labely += 3){
-      GETFT(skyr_den, Dcorr, labelx, labely);
+      GETCORR(skyr_den, Dcorr, labelx, labely);
     }
   }
   sumcorrTRI<<<grid, block>>>(DSum, Dcorr, DPo);
