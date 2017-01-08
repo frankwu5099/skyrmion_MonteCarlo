@@ -401,6 +401,10 @@ void tempering_simple(double *Ms, double *Es, int *accept){
 	  flag = 0;
 	}
       }
+    }
+  }
+  for(i = 0; i < Tnum; i++){
+    for (j = 0; j < Hnum; j++){
       //H excnange
       if (j < Hnum -1){
         delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
@@ -473,6 +477,10 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
 	  staytmp[j * Tnum + i + 1] *= 0;
 	}
       }
+    }
+  }
+  for(i = 0; i < Tnum; i++){
+    for (j = 0; j < Hnum; j++){
       //H excnange
       if (j < Hnum -1){
         delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
