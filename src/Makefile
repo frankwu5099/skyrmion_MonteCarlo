@@ -182,11 +182,11 @@ endif
 ################################################################################
 
 OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o flipTRI.o measurements.o WarpStandard.o read_params.o
-DEPS= read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu WarpStandard.cu
+DEPS= Heisenberg.cu read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu WarpStandard.cu
 # Target rules
 all: build
 
-build: ../simulation_TRIspin_20
+build: ../simulation_TRIspin_20_block
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -198,7 +198,7 @@ endif
 %.o:%.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-../simulation_TRIspin_20: ${OBJS}
+../simulation_TRIspin_20_block: ${OBJS}
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))

@@ -372,10 +372,10 @@ void tempering_simple(double *Ms, double *Es, int *accept){
   double delta;
   int flag = 0;
   for(i = 0; i < Tnum; i++){
-    for (j = 0; j < Hnum; j++){
+    for (j = 4; j < Hnum; j++){
       //T excnange
       if (i < Tnum -1){
-	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
+	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[0][j*Tnum + i]) - (1.0 / Tls[0][j*Tnum +i + 1]));
 	if(delta > 0)
 	  flag = 1;
 	else if(uni01_sampler() < exp(delta))
@@ -397,9 +397,13 @@ void tempering_simple(double *Ms, double *Es, int *accept){
 	  flag = 0;
 	}
       }
+    }
+  }
+  for(i = 0; i < Tnum; i++){
+    for (j = 4; j < Hnum; j++){
       //H excnange
       if (j < Hnum -1){
-        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
+        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[0][j * Tnum + i] - Hls[0][(j + 1) * Tnum + i]) / Tls[0][j * Tnum + i];
         if(delta > 0)
           flag = 1;
         else if(uni01_sampler() < exp(delta))
@@ -445,7 +449,7 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
     for (j = 0; j < Hnum; j++){
       //T excnange
       if (i < Tnum -1){
-	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
+	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[0][j*Tnum + i]) - (1.0 / Tls[0][j*Tnum +i + 1]));
 	if(delta > 0)
 	  flag = 1;
 	else if(uni01_sampler() < exp(delta))
@@ -469,9 +473,13 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
 	  staytmp[j * Tnum + i + 1] *= 0;
 	}
       }
+    }
+  }
+  for(i = 0; i < Tnum; i++){
+    for (j = 0; j < Hnum; j++){
       //H excnange
       if (j < Hnum -1){
-        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
+        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[0][j * Tnum + i] - Hls[0][(j + 1) * Tnum + i]) / Tls[0][j * Tnum + i];
         if(delta > 0)
           flag = 1;
         else if(uni01_sampler() < exp(delta))
