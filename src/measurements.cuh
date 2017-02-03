@@ -57,6 +57,7 @@ class measurements{
     double *Hout;
     double *Dout;
     unsigned int *EHistogram;
+    unsigned int *ChernHistogram;
     void measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs);
     void virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs);
     void normalize_and_save_and_reset();

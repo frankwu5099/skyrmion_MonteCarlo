@@ -42,7 +42,8 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   printf("%u\n", Out_mem_size);
   Hout = (double*)malloc(Out_mem_size);
   CudaSafeCall(cudaMalloc(&Dout, Out_mem_size));
-  EHistogram = (unsigned int*) calloc(Parallel_num * 400, sizeof(unsigned int));
+  EHistogram = (unsigned int*) calloc(Parallel_num * Slice_NUM, sizeof(unsigned int));
+  ChernHistogram = (unsigned int*) calloc(Parallel_num * Slice_CNUM, sizeof(unsigned int));
 }
 
 
@@ -54,6 +55,7 @@ measurements::~measurements(){
   }
   free(Hout);
   free(EHistogram);
+  free(ChernHistogram);
   //CudaSafeCall(cudaFree(Dout));
   printf("measure free succeed!\n");
   fflush(stdout);
@@ -161,7 +163,8 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
 			    + spinQ2x_i * spinQ2x_i + spinQ2y_i * spinQ2y_i + spinQ2z_i * spinQ2z_i;
     O[13].outdata[Ho[t]] += Mz;
     E /= H_N;
-    if ((E<-1.7501)&&(E>-3.25)) EHistogram[Ho[t]*400+int(400*((E+3.25)/1.5))] +=1;
+    if ((E<E_highest)&&(E>E_lowest)) EHistogram[Ho[t]*Slice_NUM+int(Slice_NUM*((E-E_lowest)/(E_highest-E_lowest)))] +=1;
+    if ((-Chern<Chern_highest)&&(-Chern>Chern_lowest)) ChernHistogram[Ho[t]*Slice_CNUM+int(Slice_CNUM*((Chern-Chern_lowest)/(Chern_highest-Chern_lowest)))] +=1;
   }
 }
 
