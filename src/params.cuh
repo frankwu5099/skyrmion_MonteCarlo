@@ -20,6 +20,9 @@
 
 //==================== cuda error checker ====================
 #define CUDA_ERROR_CHECK
+#define E_lowest float(-8.8)
+#define E_highest float(-3.2)
+#define Slice_NUM int(800)
 
 #define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )
 #define CudaCheckError()    __cudaCheckError( __FILE__, __LINE__ )
@@ -294,4 +297,7 @@ extern char Output[128];  //set the output directory
 //#define BIN_NUM 3//0
 //#define EQUI_N 20000//0//0//00////16000000
 void read_params(char* param_file);
+
+//----- simulation setting -----
+
 #endif

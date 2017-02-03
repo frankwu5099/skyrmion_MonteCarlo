@@ -6,8 +6,8 @@ using namespace std;
 
 #include "params.cuh"
 #include "updates.cuh"
-#include "measurements.cuh"
 #include "configuration.cuh"
+#include "measurements.cuh"
 #include "extend.cu"
 #define GET_CORR
 
@@ -251,6 +251,10 @@ int main(int argc, char *argv[]){
     CORR.avg_write_reset();
 #endif
   }
+  sprintf(Corrfn, "%s/%s", dir, "EHistogram");
+  FILE *f_hist = fopen(Corrfn, "w");
+  fwrite(MEASURE.EHistogram, sizeof(unsigned int), 400 * Pnum, f_hist);
+  fclose(f_hist);
 #ifdef GET_CORR
   C_i = 0;
   for(int corr_i = 0; corr_i < 5; corr_i++){
@@ -372,10 +376,10 @@ void tempering_simple(double *Ms, double *Es, int *accept){
   double delta;
   int flag = 0;
   for(i = 0; i < Tnum; i++){
-    for (j = 4; j < Hnum; j++){
+    for (j = 0; j < Hnum; j++){
       //T excnange
       if (i < Tnum -1){
-	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[0][j*Tnum + i]) - (1.0 / Tls[0][j*Tnum +i + 1]));
+	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
 	if(delta > 0)
 	  flag = 1;
 	else if(uni01_sampler() < exp(delta))
@@ -400,10 +404,10 @@ void tempering_simple(double *Ms, double *Es, int *accept){
     }
   }
   for(i = 0; i < Tnum; i++){
-    for (j = 4; j < Hnum; j++){
+    for (j = 0; j < Hnum; j++){
       //H excnange
       if (j < Hnum -1){
-        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[0][j * Tnum + i] - Hls[0][(j + 1) * Tnum + i]) / Tls[0][j * Tnum + i];
+        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
         if(delta > 0)
           flag = 1;
         else if(uni01_sampler() < exp(delta))
@@ -449,7 +453,7 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
     for (j = 0; j < Hnum; j++){
       //T excnange
       if (i < Tnum -1){
-	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[0][j*Tnum + i]) - (1.0 / Tls[0][j*Tnum +i + 1]));
+	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
 	if(delta > 0)
 	  flag = 1;
 	else if(uni01_sampler() < exp(delta))
@@ -479,7 +483,7 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
     for (j = 0; j < Hnum; j++){
       //H excnange
       if (j < Hnum -1){
-        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[0][j * Tnum + i] - Hls[0][(j + 1) * Tnum + i]) / Tls[0][j * Tnum + i];
+        delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
         if(delta > 0)
           flag = 1;
         else if(uni01_sampler() < exp(delta))
