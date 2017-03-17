@@ -2,7 +2,7 @@
 
 
 measurements::measurements(char * indir, int Parallel_num, unsigned int binSize){
-  measurement_num = 14;
+  measurement_num = 15;
   //raw_memmory = operator new[] (measurement_num * sizeof(measurement));
   strcpy(names[0], "E");
   strcpy(names[1], "M");
@@ -18,6 +18,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   strcpy(names[11], "SQ1");
   strcpy(names[12], "SQ2");
   strcpy(names[13], "Mz");
+  strcpy(names[14], "EMz");
   norms[0] = double(binSize) * H_N;
   norms[1] = double(binSize) * H_N;
   norms[2] = double(binSize) * 2;
@@ -32,6 +33,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   norms[11] = double(binSize) * H_N * H_N;
   norms[12] = double(binSize) * H_N * H_N;
   norms[13] = double(binSize) * H_N;
+  norms[14] = double(binSize) * H_N * H_N;
   O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
     O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
@@ -162,9 +164,10 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
     O[12].outdata[Ho[t]] += spinQ2x_r * spinQ2x_r + spinQ2y_r * spinQ2y_r + spinQ2z_r * spinQ2z_r\
 			    + spinQ2x_i * spinQ2x_i + spinQ2y_i * spinQ2y_i + spinQ2z_i * spinQ2z_i;
     O[13].outdata[Ho[t]] += Mz;
+    O[14].outdata[Ho[t]] += E*Mz;
     E /= H_N;
     if ((E<E_highest)&&(E>E_lowest)) EHistogram[Ho[t]*Slice_NUM+int(Slice_NUM*((E-E_lowest)/(E_highest-E_lowest)))] +=1;
-    if ((Chern<Chern_highest)&&(Chern>Chern_lowest)) ChernHistogram[Ho[t]*Slice_CNUM+int(Slice_CNUM*((Chern-Chern_lowest)/(Chern_highest-Chern_lowest)))] +=1;
+    if ((-Chern<Chern_highest)&&(-Chern>Chern_lowest)) ChernHistogram[Ho[t]*Slice_CNUM+int(Slice_CNUM*((-Chern-Chern_lowest)/(Chern_highest-Chern_lowest)))] +=1;
   }
 }
 

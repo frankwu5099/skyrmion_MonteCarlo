@@ -108,7 +108,7 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
   const int x = threadIdx.x % (flip_BlockSize_x);
   const int y = (threadIdx.x / flip_BlockSize_x);
   const int tx = 3 * (((blockIdx.x % flip_BN) % flip_GridSize_x) * flip_BlockSize_x + x);
-  const int ty =(blockIdx.x / flip_BN) * flip_SpinSize +  3 * ((((blockIdx.x % flip_BN) / flip_GridSize_x) % flip_GridSize_y) * flip_BlockSize_y + y);
+  const int ty =(blockIdx.x / flip_BN) * flip_SpinSize +  3 * (((blockIdx.x % flip_BN) / flip_GridSize_x) * flip_BlockSize_y + y);
   int i, j, ib, jb;
   //0..
   //...

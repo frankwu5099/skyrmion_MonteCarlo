@@ -20,11 +20,11 @@
 
 //==================== cuda error checker ====================
 #define CUDA_ERROR_CHECK
-#define E_lowest float(-8.8)
-#define E_highest float(-3.2)
-#define Chern_lowest float(-10.5*2.0*3.1415926536)
-#define Chern_highest float(89.5*2.0*3.1415926536)
-#define Slice_NUM int(800)
+#define E_lowest float(-6.8)
+#define E_highest float(-2.2)
+#define Chern_lowest float(-10.5*4.0*3.1415926536)
+#define Chern_highest float(89.5*4.0*3.1415926536)
+#define Slice_NUM int(1200)
 #define Slice_CNUM int(100)
 
 #define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )
