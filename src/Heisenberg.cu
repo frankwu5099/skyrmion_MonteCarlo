@@ -108,7 +108,7 @@ int main(int argc, char *argv[]){
 
   //begin (initialize random seeds)
   //Declare sizes
-  unsigned int totalRngs = Pnum * H_TN / WarpStandard_K;
+  unsigned int totalRngs = Pnum * H_BN * H_TN / WarpStandard_K;
   unsigned seedBytes = totalRngs * sizeof(unsigned int) * WarpStandard_STATE_WORDS;
   unsigned int *seedDevice = 0;
   CudaSafeCall(cudaMalloc((void **)&seedDevice, seedBytes));
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]){
       HHs[t] = Hls[C_i][Po[t]];
       invTs[t] = 1.0/Tls[C_i][Po[t]];
     }
-    for (int i = 0; i< Pnum-1; i++) accept[i] = 0;
+    for (int i = 0; i< (Tnum - 1)*Hnum + Tnum*(Hnum - 1); i++) accept[i] = 0;
     CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
 
@@ -342,7 +342,7 @@ int main(int argc, char *argv[]){
   fprintf(detailFp, "\n");
   fprintf(detailFp, "Acceptance rates: ");
   if (PTF != 0 ){
-    for(int i = 0; i < Pnum - 1; i++)
+    for(int i = 0; i < (Tnum - 1)*Hnum + Tnum*(Hnum - 1); i++)
       fprintf(detailFp, "%4.3f  ", float(accept[i]) / (BIN_SZ * BIN_NUM * PTF));
   }
   fprintf(detailFp, "\n");
@@ -352,6 +352,12 @@ int main(int argc, char *argv[]){
   else {
     fprintf(detailFp, "Configurations start from random state.\n");
   }
+  fprintf(detailFp, "N_histE = %d\n", Slice_NUM);
+  fprintf(detailFp, "E_lowest = %4.3f\n", E_lowest);
+  fprintf(detailFp, "E_highest = %4.3f\n", E_highest);
+  fprintf(detailFp, "N_histChern = %d\n", Slice_CNUM);
+  fprintf(detailFp, "Chern_lowest = %4.3f\n", Chern_lowest);
+  fprintf(detailFp, "Chern_highest = %4.3f\n", Chern_highest);
   fprintf(detailFp, "Done by Po-Kuan Wu ^_^\n", EQUI_N);
   fclose(detailFp);
 //===================== print details end =========================
@@ -383,27 +389,27 @@ void tempering_simple(double *Ms, double *Es, int *accept){
     for (j = 0; j < Hnum; j++){
       //T excnange
       if (i < Tnum -1){
-	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
-	if(delta > 0)
-	  flag = 1;
-	else if(uni01_sampler() < exp(delta))
-	  flag = 1;
-	if(flag){
-	  tmp = Po[map[j * Tnum + i]];
-	  Po[map[j * Tnum + i]] = Po[map[j * Tnum + i + 1]];
-	  Po[map[j * Tnum + i + 1]] = tmp;
-	  tmp = map[j * Tnum + i];
-	  map[j * Tnum + i] = map[j * Tnum + i + 1];
-	  map[j * Tnum + i + 1] = tmp;
-	  tmpEM = Es[j * Tnum + i];
-	  Es[j * Tnum + i] = Es[j * Tnum + i + 1];
-	  Es[j * Tnum + i + 1] = tmpEM;
-	  tmpEM = Ms[j * Tnum + i];
-	  Ms[j * Tnum + i] = Ms[j * Tnum + i + 1];
-	  Ms[j * Tnum + i + 1] = tmpEM;
-	  accept[j * (Tnum - 1) + i] += 1;
-	  flag = 0;
-	}
+        delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
+        if(delta > 0)
+          flag = 1;
+        else if(uni01_sampler() < exp(delta))
+          flag = 1;
+        if(flag){
+          tmp = Po[map[j * Tnum + i]];
+          Po[map[j * Tnum + i]] = Po[map[j * Tnum + i + 1]];
+          Po[map[j * Tnum + i + 1]] = tmp;
+          tmp = map[j * Tnum + i];
+          map[j * Tnum + i] = map[j * Tnum + i + 1];
+          map[j * Tnum + i + 1] = tmp;
+          tmpEM = Es[j * Tnum + i];
+          Es[j * Tnum + i] = Es[j * Tnum + i + 1];
+          Es[j * Tnum + i + 1] = tmpEM;
+          tmpEM = Ms[j * Tnum + i];
+          Ms[j * Tnum + i] = Ms[j * Tnum + i + 1];
+          Ms[j * Tnum + i + 1] = tmpEM;
+          accept[j * (Tnum - 1) + i] += 1;
+          flag = 0;
+        }
       }
     }
   }
@@ -507,7 +513,7 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
           Ms[(j + 1) * Tnum + i] = tmpEM;
           accept[partT_num + j * Tnum + i] += 1;
           flag = 0;
-	  staytmp[j * Tnum + i] *= 0;
+	  staytmp[(j+1) * Tnum + i] *= 0;
 	  staytmp[j * Tnum + i + 1] *= 0;
         }
       }

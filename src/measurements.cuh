@@ -50,8 +50,8 @@ class measurements{
     measurements(char* indir, int Parallel_num, unsigned int binSize);
     ~measurements();
     int measurement_num;
-    char names[14][10];
-    double norms[14];
+    char names[15][10];
+    double norms[15];
     int data_num;
     std::vector<measurement> O;
     double *Hout;
