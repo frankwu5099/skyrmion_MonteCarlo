@@ -83,7 +83,7 @@ void measurements::virtual_measure(float** Dconfx, float** Dconfy, float** Dconf
   CudaCheckError();
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i * data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -120,7 +120,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
   CudaCheckError();
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i * data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
