@@ -11,22 +11,26 @@ int setDev(){
       printf("using device %d !\n",device);
       //cudaFree(Dtest);
       cudaDeviceReset();
+      flag = device;
       break;
 
-    }else{
+    }
+    else{
       /* if GPU busy*/
       if (error == cudaErrorDevicesUnavailable){
-	printf("device %d is busy >> try another!\n",device);
-      }else{
-	printf("cudaMalloc returned error code %d, line(%d)\n", error, __LINE__);
-	printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("device %d is busy >> try another!\n",device);
       }
-      if(device==num_devices-1)
-	{printf("%s\n","ERROR! no avalible device now!");flag=1;}
+      else{
+        printf("cudaMalloc returned error code %d, line(%d)\n", error, __LINE__);
+        printf("CUDA error: %s\n", cudaGetErrorString(error));
+      }
+      if(device==num_devices-1){
+        printf("%s\n","ERROR! no avalible device now!");
+        flag=-1;
+      }
     }
-
   }
-  return flag ;
+  return flag;
 }
 
 

@@ -2,10 +2,13 @@
 
 
 configuration::configuration(int Pnum, char* conf_dir){
-  Spin_mem_size = Pnum * H_N * sizeof(float);
-  Single_mem_size = H_N * sizeof(float);
-  spins_num = Pnum * H_N;
   configurations_num = Pnum;
+  configurations_num_s = Pnum/StreamN;
+  Spin_mem_size = configurations_num * H_N * sizeof(float);
+  Single_mem_size = H_N * sizeof(float);
+  spins_num = configurations_num * H_N;
+  Spin_mem_size_s = configurations_num_s * H_N * sizeof(float);
+  spins_num_s = configurations_num_s * H_N;
   sprintf(Confxfn, "%s/Confx", conf_dir);
   sprintf(Confyfn, "%s/Confy", conf_dir);
   sprintf(Confzfn, "%s/Confz", conf_dir);
@@ -15,9 +18,15 @@ configuration::configuration(int Pnum, char* conf_dir){
   Confxfd = open(Confxfn, O_CREAT | O_WRONLY, 0644);
   Confyfd = open(Confyfn, O_CREAT | O_WRONLY, 0644);
   Confzfd = open(Confzfn, O_CREAT | O_WRONLY, 0644);
-  CudaSafeCall(cudaMalloc((void**)&Dx, Spin_mem_size));
-  CudaSafeCall(cudaMalloc((void**)&Dy, Spin_mem_size));
-  CudaSafeCall(cudaMalloc((void**)&Dz, Spin_mem_size));
+  Dx = (float**)calloc(StreamN, sizeof(float*));
+  Dy = (float**)calloc(StreamN, sizeof(float*));
+  Dz = (float**)calloc(StreamN, sizeof(float*));
+  for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMalloc((void**)&Dx[gpu_i], Spin_mem_size_s));
+    CudaSafeCall(cudaMalloc((void**)&Dy[gpu_i], Spin_mem_size_s));
+    CudaSafeCall(cudaMalloc((void**)&Dz[gpu_i], Spin_mem_size_s));
+  }
 }
 
 
@@ -42,20 +51,35 @@ void configuration::initialize (bool order){
       Hz[i] = 1;
     }
   }
-  CudaSafeCall(cudaMemcpy(Dx, Hx, Spin_mem_size, cudaMemcpyHostToDevice));
-  CudaSafeCall(cudaMemcpy(Dy, Hy, Spin_mem_size, cudaMemcpyHostToDevice));
-  CudaSafeCall(cudaMemcpy(Dz, Hz, Spin_mem_size, cudaMemcpyHostToDevice));
+  for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(Dx[gpu_i], Hx + gpu_i * spins_nums, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyasync(Dy[gpu_i], Hy + gpu_i * spins_nums, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyasync(Dz[gpu_i], Hz + gpu_i * spins_nums, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+  }
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    cudaDeviceSynchronize();
+  }
 }
 void configuration::backtoHost(){
-  CudaSafeCall(cudaMemcpy(Hx, Dx, Spin_mem_size, cudaMemcpyDeviceToHost));
-  CudaSafeCall(cudaMemcpy(Hy, Dy, Spin_mem_size, cudaMemcpyDeviceToHost));
-  CudaSafeCall(cudaMemcpy(Hz, Dz, Spin_mem_size, cudaMemcpyDeviceToHost));
-  //cudaFree(Dcorr);
+  for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(Hx + gpu_i * spins_nums, Dx[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyasync(Hy + gpu_i * spins_nums, Dy[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyasync(Hz + gpu_i * spins_nums, Dz[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+  }
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    cudaDeviceSynchronize();
+  }
 }
+
 void configuration::Dominatestateback(int hostid, int deviceid){
-  CudaSafeCall(cudaMemcpy(((float*)Hx) + hostid * H_N, ((float*)Dx) + deviceid * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
-  CudaSafeCall(cudaMemcpy(((float*)Hy) + hostid * H_N, ((float*)Dy) + deviceid * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
-  CudaSafeCall(cudaMemcpy(((float*)Hz) + hostid * H_N, ((float*)Dz) + deviceid * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
+  cudaSetDevice(device_0 + deviceid/configurations_num_s);
+  CudaSafeCall(cudaMemcpy(((float*)Hx) + hostid * H_N, ((float*)Dx[deviceid/configurations_num_s]) + (deviceid%configurations_num_s) * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
+  CudaSafeCall(cudaMemcpy(((float*)Hy) + hostid * H_N, ((float*)Dy[deviceid/configurations_num_s]) + (deviceid%configurations_num_s) * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
+  CudaSafeCall(cudaMemcpy(((float*)Hz) + hostid * H_N, ((float*)Dz[deviceid/configurations_num_s]) + (deviceid%configurations_num_s) * H_N, Single_mem_size, cudaMemcpyDeviceToHost));
   //cudaFree(Dcorr);
 }
 void configuration::writedata(){
@@ -70,9 +94,12 @@ configuration::~configuration(){
   free(Hx);
   free(Hy);
   free(Hz);
-  CudaSafeCall(cudaFree(Dx));
-  CudaSafeCall(cudaFree(Dy));
-  CudaSafeCall(cudaFree(Dz));
+  for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaFree(Dx[gpu_i]));
+    CudaSafeCall(cudaFree(Dy[gpu_i]));
+    CudaSafeCall(cudaFree(Dz[gpu_i]));
+  }
   close(Confxfd);
   close(Confyfd);
   close(Confzfd);

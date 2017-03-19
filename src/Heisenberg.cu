@@ -36,15 +36,28 @@ void var_examine();
 int main(int argc, char *argv[]){
   //call GPU
   read_params(argv[1]);
+  int deviceNum, gpu_i;
+  cudaGetDeviceCount(&deviceNum);
+  device_0 = setDev();
+  StreamN = deviceNum -device_0;
 
-  if (setDev()==1){
+  if (device_0 == -1){
     return 1;
+  }
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    cudaStreamCreate(&&stream[gpu_i]);
   }
   cudaGetLastError();
   CudaCheckError();
-  move_params_device_flip();
-  move_params_device_cals();
-  move_params_device_corr();
+  //note: gpu part
+
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    move_params_device_flip();
+    move_params_device_cals();
+    move_params_device_corr();
+  }
 
   //examine variables
   var_examine();
@@ -62,14 +75,14 @@ int main(int argc, char *argv[]){
     fscanf(paramsfp, "%d %d", &Tnum, &Hnum);
     while(fscanf(paramsfp, "%f %f", &tmpT, &tmpH) != EOF){
       if (tmpT < 0){
-	Tls.push_back(tmpTls);
-	Hls.push_back(tmpHls);
-	tmpTls.clear();
-	tmpHls.clear();
+        Tls.push_back(tmpTls);
+        Hls.push_back(tmpHls);
+        tmpTls.clear();
+        tmpHls.clear();
       }
       else {
-	tmpTls.push_back(tmpT);
-	tmpHls.push_back(tmpH*(DR*DR + DD*DD));
+        tmpTls.push_back(tmpT);
+        tmpHls.push_back(tmpH*(DR*DR + DD*DD));
       }
     }
     fclose(paramsfp);
@@ -90,6 +103,13 @@ int main(int argc, char *argv[]){
   }
   //end (read in temperatures)
 
+  if (Pnum%StreamN != 0){
+    printf("Fatal error: The number of replicas is not consistent with the number of streams.")
+    return 1;
+  }
+  int Pnum_s = Pnum/StreamN;
+  int params_mem_size_s = Pnum_s * sizeof(float);
+
 
   //invTs is the inverse temperature in order of configurations on GPU.
   for (int i = 0; i < Pnum ; i++){
@@ -97,26 +117,40 @@ int main(int argc, char *argv[]){
     ivPo.push_back(i);
   }
   float *HHs;
-  float *DHs;
+  float **DHs;
+  DHs = (float**)calloc(StreamN, sizeof(float*));
   float *invTs;
-  float *DinvTs;
+  float **DinvTs;
+  DinvTs = (float**)calloc(StreamN, sizeof(float*));
   HHs = (float*)malloc(params_mem_size);
   invTs = (float*)malloc(params_mem_size);
-  CudaSafeCall(cudaMalloc((void**)&DHs, params_mem_size));
-  CudaSafeCall(cudaMalloc((void**)&DinvTs, params_mem_size));
 
+  //note: gpu part
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMalloc((void**)&DHs[gpu_i], params_mem_size/StreamN));
+    CudaSafeCall(cudaMalloc((void**)&DinvTs[gpu_i], params_mem_size/StreamN));
+  }
 
   //begin (initialize random seeds)
   //Declare sizes
   unsigned int totalRngs = Pnum * H_BN * H_TN / WarpStandard_K;
   unsigned seedBytes = totalRngs * sizeof(unsigned int) * WarpStandard_STATE_WORDS;
-  unsigned int *seedDevice = 0;
-  CudaSafeCall(cudaMalloc((void **)&seedDevice, seedBytes));
+  unsigned int **seedDevice;
+  seedDevice = (unsigned int**)calloc(StreamN, sizeof(unsigned int*));
+  //note: gpu part
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMalloc((void **)&seedDevice[gpu_i], seedBytes/StreamN));
+  }
   unsigned int* seedHost = (unsigned int*)malloc(seedBytes);
   srand(seed);
   for(int i = 0; i < seedBytes / sizeof(unsigned int); i++)
     seedHost[i] = uni01_sampler() * UINT_MAX;
-  CudaSafeCall(cudaMemcpy(seedDevice, seedHost, seedBytes, cudaMemcpyHostToDevice));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(seedDevice[gpu_i], seedHost + (seedBytes/sizeof(unsigned int)/StreamN)*gpu_i, (seedBytes/sizeof(unsigned int)/StreamN), cudaMemcpyHostToDevice, stream[gpu_i]));
+  }
   //end (initialize random seeds)
 
 
@@ -153,8 +187,11 @@ int main(int argc, char *argv[]){
     HHs[i] = Hls[0][i];
     invTs[i] = 1.0/Tls[0][i];
   }
-  CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
-  CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
+    CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+  }
   double *Ms = (double*)malloc(Pnum * sizeof(double));
   double *Es = (double*)malloc(Pnum * sizeof(double));
   int *accept1 = (int*)calloc((Tnum - 1)*Hnum + Tnum*(Hnum - 1), sizeof(int));
@@ -165,18 +202,24 @@ int main(int argc, char *argv[]){
 
   for(int i = 0; i < EQUI_N; i++){
     if (i % 10 ==0) printf("%d\n",i);
-    SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
+    for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+      cudaSetDevice(device_0 + gpu_i);
+      SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+    }
     //Parallel Tempering
     cnt += PTF;
     for(int p = 0; p < int(cnt); p++){
       MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
       tempering_simple(Ms, Es, accept1);
       for(int t = 0; t < Pnum; t++){
-	HHs[t] = Hls[0][Po[t]];
-	invTs[t] = 1.0/Tls[0][Po[t]];
+        HHs[t] = Hls[0][Po[t]];
+        invTs[t] = 1.0/Tls[0][Po[t]];
       }
-      CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
-      CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+      for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+        cudaSetDevice(device_0 + gpu_i);
+        CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
+        CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+      }
     }
     if(int(cnt))
     cnt = 0;
@@ -193,52 +236,67 @@ int main(int argc, char *argv[]){
       invTs[t] = 1.0/Tls[C_i][Po[t]];
     }
     for (int i = 0; i< (Tnum - 1)*Hnum + Tnum*(Hnum - 1); i++) accept[i] = 0;
-    CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
-    CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+    for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+      cudaSetDevice(device_0 + gpu_i);
+      CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
+      CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    }
 
     for(int i = 0; i < EQUI_Ni; i++){
-      SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
+      for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+        cudaSetDevice(device_0 + gpu_i);
+        SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+      }
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
-	MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
-	tempering_simple(Ms, Es, accept1);
-	for(int t = 0; t < Pnum; t++){
-	  HHs[t] = Hls[C_i][Po[t]];
-	  invTs[t] = 1.0/Tls[C_i][Po[t]];
-	}
-	CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
-	CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+        MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
+        tempering_simple(Ms, Es, accept1);
+        for(int t = 0; t < Pnum; t++){
+          HHs[t] = Hls[C_i][Po[t]];
+          invTs[t] = 1.0/Tls[C_i][Po[t]];
+        }
+        for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+          cudaSetDevice(device_0 + gpu_i);
+          CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
+          CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+        }
       }
       if(int(cnt))
-	cnt = 0;
+        cnt = 0;
     }
     cnt = 0;
     for(int b = 0; b < BIN_NUM; b++){
       //Take the ensemble average
       for(int i = 0; i < BIN_SZ; i++){
-	SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
-	MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
+        for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+          cudaSetDevice(device_0 + gpu_i);
+          SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+        }
+        MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
 #ifdef GET_CORR
-	if ( i % f_CORR==0){
-	  CORR.extract(Po, CONF);//==
-	}
+        if ( i % f_CORR==0){
+          CORR.extract(Po, CONF);//==
+        }
 #endif
-	cnt += PTF;
-	for(int p = 0; p < int(cnt); p++){
-	  tempering(Ms, Es, accept, staytmp, stay);
-	  for(int t = 0; t < Pnum; t++){
-	    HHs[t] = Hls[C_i][Po[t]];
-	    invTs[t] = 1.0/Tls[C_i][Po[t]];
-	    if (stay[Po[t]] > staylargest[Po[t]]){
-	      CONF.Dominatestateback(Po[t],t);
-	      staylargest[Po[t]] = stay[Po[t]];
-	    }
-	  }
-	  CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
-	  CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
-	}
-	if(int(cnt))
-	  cnt = 0;
+        cnt += PTF;
+        for(int p = 0; p < int(cnt); p++){
+          tempering(Ms, Es, accept, staytmp, stay);
+          for(int t = 0; t < Pnum; t++){
+            HHs[t] = Hls[C_i][Po[t]];
+            invTs[t] = 1.0/Tls[C_i][Po[t]];
+            if (stay[Po[t]] > staylargest[Po[t]]){
+              CONF.Dominatestateback(Po[t],t);
+              staylargest[Po[t]] = stay[Po[t]];
+            }
+          }
+          for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+            cudaSetDevice(device_0 + gpu_i);
+            CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
+            CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+          }
+        }
+        if(int(cnt))
+          cnt = 0;
       }
       MEASURE.normalize_and_save_and_reset();
     }
@@ -265,25 +323,34 @@ int main(int argc, char *argv[]){
     sprintf(Corrfn, "%s/Corr_%d", dir, corr_i);
     CORR.changefile(Corrfn);
     for(int i = 0; i < CORR_N * f_CORR; i++){
-      SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
+      for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+        cudaSetDevice(device_0 + gpu_i);
+        SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+      }
       if ( i % f_CORR==0){
-	CORR.extract(Po, CONF);//==
+        CORR.extract(Po, CONF);//==
       }
     }
     CORR.avg_write_reset();
     for(int i = 0; i < 1000; i++){
-      SSF(CONF.Dx, CONF.Dy, CONF.Dz, seedDevice, DHs, DinvTs);
+      for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+        cudaSetDevice(device_0 + gpu_i);
+        SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+      }
       //Parallel Tempering
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
-	MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
-	tempering_simple(Ms, Es, accept);
-	for(int t = 0; t < Pnum; t++){
-	  HHs[t] = Hls[0][Po[t]];
-	  invTs[t] = 1.0/Tls[0][Po[t]];
-	}
-	CudaSafeCall(cudaMemcpy(DinvTs, invTs, params_mem_size, cudaMemcpyHostToDevice));
-	CudaSafeCall(cudaMemcpy(DHs, HHs, params_mem_size, cudaMemcpyHostToDevice));
+        MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
+        tempering_simple(Ms, Es, accept);
+        for(int t = 0; t < Pnum; t++){
+          HHs[t] = Hls[0][Po[t]];
+          invTs[t] = 1.0/Tls[0][Po[t]];
+        }
+        for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+          cudaSetDevice(device_0 + gpu_i);
+          CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
+          CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+        }
       }
       if(int(cnt))
       cnt = 0;
@@ -364,9 +431,12 @@ int main(int argc, char *argv[]){
 
   //Set free memory
   free(seedHost);
-  CudaSafeCall(cudaFree(DinvTs));
-  CudaSafeCall(cudaFree(DHs));
-  CudaSafeCall(cudaFree(seedDevice));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaFree(DinvTs[gpu_i]));
+    CudaSafeCall(cudaFree(DHs[gpu_i]));
+    CudaSafeCall(cudaFree(seedDevice[gpu_i]));
+  }
   //CORR.~correlation();
   //MEASURE.~measurements();
   //CONF.~configuration();

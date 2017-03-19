@@ -40,10 +40,16 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
     O[O.size() - 1].fp = fopen(O[O.size() - 1].fn, "w");
   }
   data_num = Parallel_num;
+  data_num_s = Parallel_num/StreamN;
   Out_mem_size = Parallel_num * MEASURE_NUM * H_BN * sizeof(double);
+  Out_mem_size_s = data_num_s * MEASURE_NUM * H_BN * sizeof(double);
   printf("%u\n", Out_mem_size);
   Hout = (double*)malloc(Out_mem_size);
-  CudaSafeCall(cudaMalloc(&Dout, Out_mem_size));
+  Dout = (double**)calloc(StreamN, sizeof(double*));
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMalloc(&Dout[gpu_i], Out_mem_size_s));
+  }
   EHistogram = (unsigned int*) calloc(Parallel_num * Slice_NUM, sizeof(unsigned int));
   ChernHistogram = (unsigned int*) calloc(Parallel_num * Slice_CNUM, sizeof(unsigned int));
 }
@@ -69,9 +75,20 @@ void measurements::virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, 
   static int raw_off;
   static double E;
   static double Mz;
-  CAL(Dconfx, Dconfy, Dconfz, Dout);//cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout);
+  int gpu_i;
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CAL(Dconfx[gpu_i], Dconfy[gpu_i], Dconfz[gpu_i], Dout[gpu_i], stream[gpu_i]);//cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout);
+  }
   CudaCheckError();
-  CudaSafeCall(cudaMemcpy(Hout, Dout, Out_mem_size, cudaMemcpyDeviceToHost));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+  }
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    cudaDeviceSynchronize();
+  }
 
   for(int t = 0; t < data_num; t++){
     raw_off = t * MEASURE_NUM * H_BN;
@@ -95,9 +112,21 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
   static double Mx, My, Mz, Chern, M2, Mz2, Chern2;
   static double spinQ1x_r, spinQ1y_r, spinQ1z_r, spinQ1x_i, spinQ1y_i, spinQ1z_i;
   static double spinQ2x_r, spinQ2y_r, spinQ2z_r, spinQ2x_i, spinQ2y_i, spinQ2z_i;
-  CAL(Dconfx, Dconfy, Dconfz, Dout);//cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout);
+  int gpu_i;
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CAL(Dconfx[gpu_i], Dconfy[gpu_i], Dconfz[gpu_i], Dout[gpu_i], stream[gpu_i]);//cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout);
+  }
   CudaCheckError();
-  CudaSafeCall(cudaMemcpy(Hout, Dout, Out_mem_size, cudaMemcpyDeviceToHost));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+  }
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    cudaDeviceSynchronize();
+  }
+
 
   for(int t = 0; t < data_num; t++){
     raw_off = t * MEASURE_NUM * H_BN;
@@ -212,44 +241,67 @@ void measurements::normalize_and_save_and_reset(){
 
 correlation::correlation(int Pnum, char* _Corrfn){
   data_num = Pnum;
-  Spin_mem_size = Pnum * H_N * sizeof(float);
-  Spin_mem_size_p = Pnum * H_Nplane * sizeof(float);
-  Spin_mem_size_d = Pnum * H_Nplane * sizeof(double);
+  data_num_s = Pnum/StreamN;
+  Spin_mem_size_s = data_num_s * H_N * sizeof(float);
+  Spin_mem_size_p_s = data_num_s * H_Nplane * sizeof(float);
+  Spin_mem_size_d_s = data_num_s * H_Nplane * sizeof(double);
+  Spin_mem_size_d = data_num * H_Nplane * sizeof(double);
   corrcount = 0;
   HSum = (double*)malloc(Spin_mem_size_d);
+  Dcorr = (float**)calloc(StreamN, sizeof(float*));
+  DSum = (double**)calloc(StreamN, sizeof(double*));
+  DPo = (int**)calloc(StreamN, sizeof(int*));
 
-  CudaSafeCall(cudaMalloc((void**)&Dcorr, Spin_mem_size_p));
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMalloc((void**)&Dcorr[gpu_i], Spin_mem_size_p_s));
+    CudaSafeCall(cudaMalloc((void**)&DSum[gpu_i], Spin_mem_size_d_s));
+    CudaSafeCall(cudaMalloc((void**)&DPo[gpu_i], data_num_s * sizeof(int)));
+  }
 
-  CudaSafeCall(cudaMalloc((void**)&DSum, Spin_mem_size_d));
-  CudaSafeCall(cudaMalloc((void**)&DPo, Pnum * sizeof(int)));
   strcpy(Corrfn, _Corrfn);
   Corrfd = open(Corrfn, O_CREAT | O_WRONLY, 0644);
   for(int i = 0; i < H_Nplane * data_num; i++){
     HSum[i] = 0.0; //initialize
   }
-  CudaSafeCall(cudaMemcpy(DSum, HSum, Spin_mem_size_d, cudaMemcpyHostToDevice));
+  CudaSafeCall(cudaMemcpy(DSum[gpu_i], HSum + gpu_i * data_num_s * H_Nplane, Spin_mem_size_d_s, cudaMemcpyHostToDevice));
 }
 
 
 void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
-  CudaSafeCall(cudaMemcpy(DPo, &Ho[0], data_num * sizeof(int), cudaMemcpyHostToDevice));
-  CudaSafeCall(cudaMemset(Dcorr, 0, Spin_mem_size_p));
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpy(DPo[gpu_i], &Ho[gpu_i * data_num_s], data_num_s * sizeof(int), cudaMemcpyHostToDevice));
+    CudaSafeCall(cudaMemset(Dcorr[gpu_i], 0, Spin_mem_size_p_s));
+  }
 #ifndef TRI
   for (int labelx = 0; labelx < H_SpinSize; labelx += 4){
     for (int labely = 0; labely < H_SpinSize; labely += 4){
-      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
+      for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+        cudaSetDevice(device_0 + gpu_i);
+        GETCORR(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], Dcorr[gpu_i], labelx, labely, stream[gpu_i]);
+      }
     }
   }
-  sumcorr<<<grid, block>>>(DSum, Dcorr, DPo);
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    sumcorr<<<grid, block, 0, stream[gpu_i]>>>(DSum[gpu_i], Dcorr[gpu_i], DPo[gpu_i]);
+  }
   CudaCheckError();
 #endif
 #ifdef TRI
   for (int labelx = 0; labelx < H_SpinSize; labelx += 3){
     for (int labely = 0; labely < H_SpinSize; labely += 3){
-      GETCORR(CONF.Dx, CONF.Dy, CONF.Dz, Dcorr, labelx, labely);
+      for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+        cudaSetDevice(device_0 + gpu_i);
+        GETCORR(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], Dcorr[gpu_i], labelx, labely, stream[gpu_i]);
+      }
     }
   }
-  sumcorrTRI<<<grid, block>>>(DSum, Dcorr, DPo);
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    sumcorrTRI<<<grid, block, 0, stream[gpu_i]>>>(DSum[gpu_i], Dcorr[gpu_i], DPo[gpu_i]);
+  }
   CudaCheckError();
 #endif
   corrcount += 1;
@@ -257,17 +309,34 @@ void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
 
 
 void correlation::avg_write_reset(){
+  int gpu_i;
 #ifdef TRI
-  avgcorrTRI<<<grid, block>>>(DSum, double(corrcount));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    avgcorrTRI<<<grid, block, 0, stream[gpu_i]>>>(DSum[gpu_i], double(corrcount));
+  }
   CudaCheckError();
 #endif
 #ifndef TRI
-  avgcorr<<<grid, block>>>(DSum, double(corrcount));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    avgcorr<<<grid, block, 0, stream[gpu_i]>>>(DSum[gpu_i], double(corrcount));
+  }
   CudaCheckError();
 #endif
-  CudaSafeCall(cudaMemcpy(HSum, DSum, Spin_mem_size_d, cudaMemcpyDeviceToHost));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpyasync(HSum + gpu_i * data_num_s * H_Nplane, DSum[gpu_i], Spin_mem_size_d_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+  }
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    cudaDeviceSynchronize();
+  }
   write(Corrfd, HSum, Spin_mem_size_d);
-  CudaSafeCall(cudaMemset(DSum, 0, Spin_mem_size_d));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemset(DSum[gpu_i], 0, Spin_mem_size_d_s));
+  }
   corrcount = 0;
 }
 
@@ -280,8 +349,11 @@ void correlation::changefile(char* _Corrfn){
 correlation::~correlation(){
   close(Corrfd);
   free(HSum);
-  CudaSafeCall(cudaFree(this->Dcorr));
-  CudaSafeCall(cudaFree(this->DPo));//
-  CudaSafeCall(cudaFree(this->DSum));
+  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaFree(this->Dcorr[gpu_i]));
+    CudaSafeCall(cudaFree(this->DPo[gpu_i]));//
+    CudaSafeCall(cudaFree(this->DSum[gpu_i]));
+  }
 }
 
