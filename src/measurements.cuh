@@ -45,17 +45,15 @@ class measurements{
   public:
     void* raw_memmory;
     unsigned int Out_mem_size;
-    unsigned int Out_mem_size_s;
     measurements(char* indir, int Parallel_num, unsigned int binSize);
     ~measurements();
     int measurement_num;
     char names[15][10];
     double norms[15];
     int data_num;
-    int data_num_s;
     std::vector<measurement> O;
     double *Hout;
-    double **Dout;
+    double *Dout;
     unsigned int *EHistogram;
     unsigned int *ChernHistogram;
     void measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs);
@@ -70,18 +68,16 @@ class correlation{
     correlation(int Pnum, char* _Corrfn);
     ~correlation();
     int data_num;
-    int data_num_s;
-    unsigned int Spin_mem_size_s;
-    unsigned int Spin_mem_size_p_s;
-    unsigned int Spin_mem_size_d_s;
+    unsigned int Spin_mem_size;
+    unsigned int Spin_mem_size_p;
     unsigned int Spin_mem_size_d;
     int corrcount;
     double *HSum;
-    float **Dcorr;
-    double **DSum;
+    float *Dcorr;
+    double *DSum;
     char Corrfn[128];
     int Corrfd;
-    int **DPo;//only use it only when extracting correlation
+    int *DPo;//only use it only when extracting correlation
     void avg_write_reset();//set zero
     void extract(std::vector<int>& Ho, configuration &CONF);//==
     void changefile(char* _Corrfn);

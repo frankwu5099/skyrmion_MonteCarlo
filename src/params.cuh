@@ -244,11 +244,11 @@ extern uniform_01<mt19937> uni01_sampler;
 #define GETCORR(confx, confy, confz, corr, i, j) getcorrthin<<<grid, block>>>(confx, confy, confz, corr, i, j);
 #endif
 #ifdef TRI
-#define CAL(confx, confy, confz, out,stream_i) calTRI<<<grid, block, caloutputsize,stream_i>>>(confx, confy, confz, out);
-#define GETCORR(confx, confy, confz, corr, i, j,stream_i) getcorrTRI<<<grid, block,0,stream_i>>>(confx, confy, confz, corr, i, j);
-#define SSF(confx, confy, confz, rng, hs, invTs, stream_i) {  flip1_TRI<<<grid, block, rngShmemsize,stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
-  flip2_TRI<<<grid, block, rngShmemsize,stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
-  flip3_TRI<<<grid, block, rngShmemsize,stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
+#define CAL(confx, confy, confz, out) calTRI<<<grid, block, caloutputsize>>>(confx, confy, confz, out);
+#define GETCORR(confx, confy, confz, corr, i, j) getcorrTRI<<<grid, block>>>(confx, confy, confz, corr, i, j);
+#define SSF(confx, confy, confz, rng, hs, invTs) {  flip1_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
+  flip2_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
+  flip3_TRI<<<grid, block, rngShmemsize>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
 //#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}
@@ -274,11 +274,7 @@ extern unsigned int H_Nplane;
 extern unsigned int H_TN;
 extern unsigned int H_BN;
 //------ system size setting end --------
-//------ gpu setting -------
-extern int StreamN;
-extern int device_0;
-extern cudaStream_t stream[10];
-//---- gpu setting end -----
+
 //------ system variable setting --------
 //!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
 extern float H_A; //(0.0)
