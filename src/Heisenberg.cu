@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    cudaStreamCreate(&&stream[gpu_i]);
+    cudaStreamCreate(&stream[gpu_i]);
   }
   cudaGetLastError();
   CudaCheckError();
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]){
   //end (read in temperatures)
 
   if (Pnum%StreamN != 0){
-    printf("Fatal error: The number of replicas is not consistent with the number of streams.")
+    printf("Fatal error: The number of replicas is not consistent with the number of streams.");
     return 1;
   }
   int Pnum_s = Pnum/StreamN;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]){
     seedHost[i] = uni01_sampler() * UINT_MAX;
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(seedDevice[gpu_i], seedHost + (seedBytes/sizeof(unsigned int)/StreamN)*gpu_i, (seedBytes/sizeof(unsigned int)/StreamN), cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(seedDevice[gpu_i], seedHost + (seedBytes/sizeof(unsigned int)/StreamN)*gpu_i, (seedBytes/sizeof(unsigned int)/StreamN), cudaMemcpyHostToDevice, stream[gpu_i]));
   }
   //end (initialize random seeds)
 
@@ -189,8 +189,8 @@ int main(int argc, char *argv[]){
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
-    CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
   }
   double *Ms = (double*)malloc(Pnum * sizeof(double));
   double *Es = (double*)malloc(Pnum * sizeof(double));
@@ -217,8 +217,8 @@ int main(int argc, char *argv[]){
       }
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
         cudaSetDevice(device_0 + gpu_i);
-        CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
-        CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+        CudaSafeCall(cudaMemcpyAsync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+        CudaSafeCall(cudaMemcpyAsync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
       }
     }
     if(int(cnt))
@@ -238,8 +238,8 @@ int main(int argc, char *argv[]){
     for (int i = 0; i< (Tnum - 1)*Hnum + Tnum*(Hnum - 1); i++) accept[i] = 0;
     for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
       cudaSetDevice(device_0 + gpu_i);
-      CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
-      CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+      CudaSafeCall(cudaMemcpyAsync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+      CudaSafeCall(cudaMemcpyAsync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
     }
 
     for(int i = 0; i < EQUI_Ni; i++){
@@ -257,8 +257,8 @@ int main(int argc, char *argv[]){
         }
         for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
           cudaSetDevice(device_0 + gpu_i);
-          CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
-          CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+          CudaSafeCall(cudaMemcpyAsync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+          CudaSafeCall(cudaMemcpyAsync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
         }
       }
       if(int(cnt))
@@ -291,8 +291,8 @@ int main(int argc, char *argv[]){
           }
           for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
             cudaSetDevice(device_0 + gpu_i);
-            CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
-            CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+            CudaSafeCall(cudaMemcpyAsync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+            CudaSafeCall(cudaMemcpyAsync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
           }
         }
         if(int(cnt))
@@ -348,8 +348,8 @@ int main(int argc, char *argv[]){
         }
         for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
           cudaSetDevice(device_0 + gpu_i);
-          CudaSafeCall(cudaMemcpyasync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice), stream[gpu_i]);
-          CudaSafeCall(cudaMemcpyasync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+          CudaSafeCall(cudaMemcpyAsync(DinvTs[gpu_i], invTs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+          CudaSafeCall(cudaMemcpyAsync(DHs[gpu_i], HHs+gpu_i*Pnum_s, params_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
         }
       }
       if(int(cnt))
@@ -372,6 +372,7 @@ int main(int argc, char *argv[]){
   double speed = 0;
   speed = (H_N / time / 1000000000) * ((EQUI_Ni + BIN_SZ * BIN_NUM) * Cnum + EQUI_N) * Pnum;
   fprintf(detailFp, "speed = %f (GHz)\n", speed);
+  fprintf(detailFp, "number of gpu = %d\n", StreamN);
   fprintf(detailFp, "RNG: WarpStandard\n", H_SpinSize);
   fprintf(detailFp, "SpinSize = %d\n", H_SpinSize);
   fprintf(detailFp, "A = %4.3f\n", H_A);

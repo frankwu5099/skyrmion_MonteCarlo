@@ -15,6 +15,12 @@ unsigned int H_TN;
 unsigned int H_BN;
 //------ system size setting end --------
 
+//------ gpu setting -------
+int StreamN;
+int device_0;
+cudaStream_t stream[10];
+//---- gpu setting end -----
+
 //------ system variable setting --------
 //!!!!!!!!!!!!notice that the value of DD and DR are set while compile for the efficiency of triangular lattic.
 float H_A; //(0.0)

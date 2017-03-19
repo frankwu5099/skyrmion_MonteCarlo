@@ -71,7 +71,7 @@ measurements::~measurements(){
 
 
 
-void measurements::virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs){
+void measurements::virtual_measure(float** Dconfx, float** Dconfy, float** Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs){
   static int raw_off;
   static double E;
   static double Mz;
@@ -83,7 +83,7 @@ void measurements::virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, 
   CudaCheckError();
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -106,7 +106,7 @@ void measurements::virtual_measure(float* Dconfx, float* Dconfy, float* Dconfz, 
 
 
 
-void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs){
+void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::vector<int>& Ho, double* Ms, double* Es, float* HHs){
   static int raw_off;
   static double E, E2;
   static double Mx, My, Mz, Chern, M2, Mz2, Chern2;
@@ -120,7 +120,7 @@ void measurements::measure(float* Dconfx, float* Dconfy, float* Dconfz, std::vec
   CudaCheckError();
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i + data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -264,7 +264,10 @@ correlation::correlation(int Pnum, char* _Corrfn){
   for(int i = 0; i < H_Nplane * data_num; i++){
     HSum[i] = 0.0; //initialize
   }
-  CudaSafeCall(cudaMemcpy(DSum[gpu_i], HSum + gpu_i * data_num_s * H_Nplane, Spin_mem_size_d_s, cudaMemcpyHostToDevice));
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
+    cudaSetDevice(device_0 + gpu_i);
+    CudaSafeCall(cudaMemcpy(DSum[gpu_i], HSum + gpu_i * data_num_s * H_Nplane, Spin_mem_size_d_s, cudaMemcpyHostToDevice));
+  }
 }
 
 
@@ -326,7 +329,7 @@ void correlation::avg_write_reset(){
 #endif
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(HSum + gpu_i * data_num_s * H_Nplane, DSum[gpu_i], Spin_mem_size_d_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(HSum + gpu_i * data_num_s * H_Nplane, DSum[gpu_i], Spin_mem_size_d_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -349,7 +352,7 @@ void correlation::changefile(char* _Corrfn){
 correlation::~correlation(){
   close(Corrfd);
   free(HSum);
-  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
     CudaSafeCall(cudaFree(this->Dcorr[gpu_i]));
     CudaSafeCall(cudaFree(this->DPo[gpu_i]));//

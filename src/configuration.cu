@@ -53,11 +53,11 @@ void configuration::initialize (bool order){
   }
   for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(Dx[gpu_i], Hx + gpu_i * spins_nums, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
-    CudaSafeCall(cudaMemcpyasync(Dy[gpu_i], Hy + gpu_i * spins_nums, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
-    CudaSafeCall(cudaMemcpyasync(Dz[gpu_i], Hz + gpu_i * spins_nums, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Dx[gpu_i], Hx + gpu_i * spins_num_s, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Dy[gpu_i], Hy + gpu_i * spins_num_s, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Dz[gpu_i], Hz + gpu_i * spins_num_s, Spin_mem_size_s, cudaMemcpyHostToDevice, stream[gpu_i]));
   }
-  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
     cudaDeviceSynchronize();
   }
@@ -65,11 +65,11 @@ void configuration::initialize (bool order){
 void configuration::backtoHost(){
   for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyasync(Hx + gpu_i * spins_nums, Dx[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
-    CudaSafeCall(cudaMemcpyasync(Hy + gpu_i * spins_nums, Dy[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
-    CudaSafeCall(cudaMemcpyasync(Hz + gpu_i * spins_nums, Dz[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hx + gpu_i * spins_num_s, Dx[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hy + gpu_i * spins_num_s, Dy[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hz + gpu_i * spins_num_s, Dz[gpu_i], Spin_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
   }
-  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+  for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
     cudaDeviceSynchronize();
   }
