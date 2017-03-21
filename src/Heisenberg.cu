@@ -94,7 +94,6 @@ int main(int argc, char *argv[]){
     }
     params_mem_size = Pnum * sizeof(float);
 
-    grid = Pnum * H_BN;
   }
   else{
     fprintf(stderr, "Give me a temperature set!!!\n");
@@ -109,6 +108,7 @@ int main(int argc, char *argv[]){
   }
   int Pnum_s = Pnum/StreamN;
   int params_mem_size_s = Pnum_s * sizeof(float);
+	grid = Pnum_s * H_BN;
 
 
   //invTs is the inverse temperature in order of configurations on GPU.
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]){
     seedHost[i] = uni01_sampler() * UINT_MAX;
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyAsync(seedDevice[gpu_i], seedHost + (seedBytes/sizeof(unsigned int)/StreamN)*gpu_i, (seedBytes/sizeof(unsigned int)/StreamN), cudaMemcpyHostToDevice, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(seedDevice[gpu_i], seedHost + (seedBytes/sizeof(unsigned int)/StreamN)*gpu_i, (seedBytes/StreamN), cudaMemcpyHostToDevice, stream[gpu_i]));
   }
   //end (initialize random seeds)
 
@@ -204,7 +204,15 @@ int main(int argc, char *argv[]){
     if (i % 10 ==0) printf("%d\n",i);
     for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
       cudaSetDevice(device_0 + gpu_i);
-      SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+      SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+    }
+    for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+      cudaSetDevice(device_0 + gpu_i);
+      SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+    }
+    for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+      cudaSetDevice(device_0 + gpu_i);
+      SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
     }
     //Parallel Tempering
     cnt += PTF;
@@ -245,7 +253,18 @@ int main(int argc, char *argv[]){
     for(int i = 0; i < EQUI_Ni; i++){
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
         cudaSetDevice(device_0 + gpu_i);
-        SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
       }
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
@@ -270,14 +289,27 @@ int main(int argc, char *argv[]){
       for(int i = 0; i < BIN_SZ; i++){
         for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
           cudaSetDevice(device_0 + gpu_i);
-          SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+					for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+						cudaSetDevice(device_0 + gpu_i);
+						SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+					}
+					for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+						cudaSetDevice(device_0 + gpu_i);
+						SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+					}
+					for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+						cudaSetDevice(device_0 + gpu_i);
+						SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+					}
         }
         MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
+/*
 #ifdef GET_CORR
         if ( i % f_CORR==0){
           CORR.extract(Po, CONF);//==
         }
 #endif
+*/
         cnt += PTF;
         for(int p = 0; p < int(cnt); p++){
           tempering(Ms, Es, accept, staytmp, stay);
@@ -306,15 +338,16 @@ int main(int argc, char *argv[]){
     //CONF.backtoHost(); //watch out! it must be compatible with the
     CONF.writedata();
 #ifdef GET_CORR
-    CORR.avg_write_reset();
+    CORR.avg_write_reset(Po);
 #endif
   }
-  sprintf(Corrfn, "%s/%s", dir, "EHistogram");
-  FILE *f_hist = fopen(Corrfn, "w");
+  char Histfn[128];
+  sprintf(Histfn, "%s/%s", dir, "EHistogram");
+  FILE *f_hist = fopen(Histfn, "w");
   fwrite(MEASURE.EHistogram, sizeof(unsigned int),Slice_NUM * Pnum, f_hist);
   fclose(f_hist);
-  sprintf(Corrfn, "%s/%s", dir, "ChernHistogram");
-  FILE *f_chist = fopen(Corrfn, "w");
+  sprintf(Histfn, "%s/%s", dir, "ChernHistogram");
+  FILE *f_chist = fopen(Histfn, "w");
   fwrite(MEASURE.ChernHistogram, sizeof(unsigned int), Slice_CNUM * Pnum, f_chist);
   fclose(f_chist);
 #ifdef GET_CORR
@@ -325,17 +358,39 @@ int main(int argc, char *argv[]){
     for(int i = 0; i < CORR_N * f_CORR; i++){
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
         cudaSetDevice(device_0 + gpu_i);
-        SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
       }
       if ( i % f_CORR==0){
         CORR.extract(Po, CONF);//==
       }
     }
-    CORR.avg_write_reset();
+    CORR.avg_write_reset(Po);
     for(int i = 0; i < 1000; i++){
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
         cudaSetDevice(device_0 + gpu_i);
-        SSF(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
+				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+					cudaSetDevice(device_0 + gpu_i);
+					SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+				}
       }
       //Parallel Tempering
       cnt += PTF;

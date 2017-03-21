@@ -82,7 +82,7 @@ class correlation{
     char Corrfn[128];
     int Corrfd;
     int **DPo;//only use it only when extracting correlation
-    void avg_write_reset();//set zero
+    void avg_write_reset(std::vector<int>& Ho);//set zero
     void extract(std::vector<int>& Ho, configuration &CONF);//==
     void changefile(char* _Corrfn);
     //write and set

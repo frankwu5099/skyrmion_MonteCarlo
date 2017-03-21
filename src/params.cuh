@@ -246,9 +246,9 @@ extern uniform_01<mt19937> uni01_sampler;
 #ifdef TRI
 #define CAL(confx, confy, confz, out,stream_i) calTRI<<<grid, block, caloutputsize,stream_i>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j,stream_i) getcorrTRI<<<grid, block,0,stream_i>>>(confx, confy, confz, corr, i, j);
-#define SSF(confx, confy, confz, rng, hs, invTs, stream_i) {  flip1_TRI<<<grid, block, rngShmemsize,stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
-  flip2_TRI<<<grid, block, rngShmemsize,stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();\
-  flip3_TRI<<<grid, block, rngShmemsize,stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
+#define SSF1(confx, confy, confz, rng, hs, invTs, stream_i) {  flip1_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
+#define SSF2(confx, confy, confz, rng, hs, invTs, stream_i) {  flip2_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
+#define SSF3(confx, confy, confz, rng, hs, invTs, stream_i) {  flip3_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
 //#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}

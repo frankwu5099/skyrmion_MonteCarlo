@@ -44,11 +44,11 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   Out_mem_size = Parallel_num * MEASURE_NUM * H_BN * sizeof(double);
   Out_mem_size_s = data_num_s * MEASURE_NUM * H_BN * sizeof(double);
   printf("%u\n", Out_mem_size);
-  Hout = (double*)malloc(Out_mem_size);
+  Hout = (double*)calloc(Parallel_num * MEASURE_NUM * H_BN, sizeof(double));
   Dout = (double**)calloc(StreamN, sizeof(double*));
   for (int gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMalloc(&Dout[gpu_i], Out_mem_size_s));
+    CudaSafeCall(cudaMalloc((void**)&Dout[gpu_i], Out_mem_size_s));
   }
   EHistogram = (unsigned int*) calloc(Parallel_num * Slice_NUM, sizeof(unsigned int));
   ChernHistogram = (unsigned int*) calloc(Parallel_num * Slice_CNUM, sizeof(unsigned int));
@@ -76,6 +76,7 @@ void measurements::virtual_measure(float** Dconfx, float** Dconfy, float** Dconf
   static double E;
   static double Mz;
   int gpu_i;
+	printf("device start : %d, #streams = %d\n" , device_0, StreamN);
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
     CAL(Dconfx[gpu_i], Dconfy[gpu_i], Dconfz[gpu_i], Dout[gpu_i], stream[gpu_i]);//cal<<<grid, block>>>(Dconfx, Dconfy, Dconfz, Dout);
@@ -83,7 +84,7 @@ void measurements::virtual_measure(float** Dconfx, float** Dconfy, float** Dconf
   CudaCheckError();
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i * data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hout+gpu_i * data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));//Async, stream[gpu_i]
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -120,7 +121,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
   CudaCheckError();
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i * data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+    CudaSafeCall(cudaMemcpyAsync(Hout + gpu_i * data_num_s * MEASURE_NUM * H_BN, Dout[gpu_i], Out_mem_size_s, cudaMemcpyDeviceToHost, stream[gpu_i]));//Async, stream[gpu_i]
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -311,7 +312,7 @@ void correlation::extract(std::vector<int>& Ho, configuration &CONF){//in &Ho[0]
 }
 
 
-void correlation::avg_write_reset(){
+void correlation::avg_write_reset(std::vector<int>& Ho){
   int gpu_i;
 #ifdef TRI
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
@@ -327,9 +328,11 @@ void correlation::avg_write_reset(){
   }
   CudaCheckError();
 #endif
-  for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-    cudaSetDevice(device_0 + gpu_i);
-    CudaSafeCall(cudaMemcpyAsync(HSum + gpu_i * data_num_s * H_Nplane, DSum[gpu_i], Spin_mem_size_d_s, cudaMemcpyDeviceToHost, stream[gpu_i]));
+	for (int j  = 0; j < data_num_s; j++){
+		for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+			cudaSetDevice(device_0 + gpu_i);
+			CudaSafeCall(cudaMemcpyAsync(HSum + (Ho[j + gpu_i*data_num_s]) * H_Nplane, &DSum[gpu_i][j * H_Nplane], H_Nplane * sizeof(double), cudaMemcpyDeviceToHost, stream[gpu_i]));
+		}
   }
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);

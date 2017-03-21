@@ -187,17 +187,17 @@ __global__ void sumcorrTRI(double *DSum_corr, const float *corr, int *DTo){
   const int y = (threadIdx.x / corr_BlockSize_x);
   const int tx = 3 * (((blockIdx.x % corr_BN) % corr_GridSize_x) * corr_BlockSize_x + x);
   const int ty =(blockIdx.x / corr_BN) * corr_SpinSize +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
-  const int ty_pt =(DTo[blockIdx.x / corr_BN]) * corr_SpinSize +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
+	//const int ty_pt =(DTo[blockIdx.x / corr_BN]) * corr_SpinSize +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
   //calculate all the final position first
-  DSum_corr[corr_coo2D(ty_pt,tx)] += corr[corr_coo2D(ty,tx)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D(ty_pt,tx+1)] += corr[corr_coo2D(ty,tx+1)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D(ty_pt,tx+2)] += corr[corr_coo2D(ty,tx+2)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D((ty_pt + 1),tx)] += corr[corr_coo2D((ty + 1),tx)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D((ty_pt + 1),tx+1)] += corr[corr_coo2D((ty + 1),tx+1)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D((ty_pt + 1),tx+2)] += corr[corr_coo2D((ty + 1),tx+2)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D((ty_pt + 2),tx)] += corr[corr_coo2D((ty + 2),tx)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D((ty_pt + 2),tx+1)] += corr[corr_coo2D((ty + 2),tx+1)]/corr_SpinSize/corr_SpinSize;
-  DSum_corr[corr_coo2D((ty_pt + 2),tx+2)] += corr[corr_coo2D((ty + 2),tx+2)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D(ty,tx)] += corr[corr_coo2D(ty,tx)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D(ty,tx+1)] += corr[corr_coo2D(ty,tx+1)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D(ty,tx+2)] += corr[corr_coo2D(ty,tx+2)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D((ty + 1),tx)] += corr[corr_coo2D((ty + 1),tx)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D((ty + 1),tx+1)] += corr[corr_coo2D((ty + 1),tx+1)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D((ty + 1),tx+2)] += corr[corr_coo2D((ty + 1),tx+2)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D((ty + 2),tx)] += corr[corr_coo2D((ty + 2),tx)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D((ty + 2),tx+1)] += corr[corr_coo2D((ty + 2),tx+1)]/corr_SpinSize/corr_SpinSize;
+  DSum_corr[corr_coo2D((ty + 2),tx+2)] += corr[corr_coo2D((ty + 2),tx+2)]/corr_SpinSize/corr_SpinSize;
   __syncthreads();
 }
 
