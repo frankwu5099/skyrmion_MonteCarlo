@@ -1,0 +1,4 @@
+========= CUDA-MEMCHECK
+========= Error: Could not find ./simulation_TRIspin_20_debug
+========= CUDA-MEMCHECK
+========= ERROR SUMMARY: 0 errors

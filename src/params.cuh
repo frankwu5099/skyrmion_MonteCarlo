@@ -246,6 +246,8 @@ extern uniform_01<mt19937> uni01_sampler;
 #ifdef TRI
 #define CAL(confx, confy, confz, out,stream_i) calTRI<<<grid, block, caloutputsize,stream_i>>>(confx, confy, confz, out);
 #define GETCORR(confx, confy, confz, corr, i, j,stream_i) getcorrTRI<<<grid, block,0,stream_i>>>(confx, confy, confz, corr, i, j);
+#define GETCORR_SK(skyr_den, corr, i, j ,stream_i) getcorrTRI<<<grid, block,0,stream_i>>>(skyr_den, corr, i, j);
+#define GETSKYRDEN(confx, confy, confz, skyr_den, stream_i) skyr_den_gen<<<grid, block, 0, stream_i>>>(confx, confy, confz, skyr_den);
 #define SSF1(confx, confy, confz, rng, hs, invTs, stream_i) {  flip1_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
 #define SSF2(confx, confy, confz, rng, hs, invTs, stream_i) {  flip2_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
 #define SSF3(confx, confy, confz, rng, hs, invTs, stream_i) {  flip3_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
