@@ -143,7 +143,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(typ, tx)] * ( cBXMyz * confz[cals_coo2D(typ, bx)] + cBYMyz * confz[cals_coo2D(ty, tx)] + cBWMyz * confz[cals_coo2D(ty, bx)])\
 		         +confz[cals_coo2D(typ, tx)] * ( cBXMzx * confx[cals_coo2D(typ, bx)] + cBYMzx * confx[cals_coo2D(ty, tx)] + cBWMzx * confx[cals_coo2D(ty, bx)])\
 		         +confz[cals_coo2D(typ, tx)] * ( cBXMzy * confy[cals_coo2D(typ, bx)] + cBYMzy * confy[cals_coo2D(ty, tx)] + cBWMzy * confy[cals_coo2D(ty, bx)])\
-		         +confz[cals_coo2D(typ, tx)] * ( BXMzz * confz[cals_coo2D(typ, bx)] + BYMzz * confz[cals_coo2D(ty, tx)] + BWMzz * confz[cals_coo2D(ty, bx)] - cals_A * confz[cals_coo2D((ty+1), tx)]);
+		         +confz[cals_coo2D(typ, tx)] * ( BXMzz * confz[cals_coo2D(typ, bx)] + BYMzz * confz[cals_coo2D(ty, tx)] + BWMzz * confz[cals_coo2D(ty, bx)] - cals_A * confz[cals_coo2D((typ), tx)]);
 	//2,0
 	sD[threadIdx.x] -= confx[cals_coo2D(typ2, tx)] * ( BXMxx * confx[cals_coo2D(typ2, bx)] + BYMxx * confx[cals_coo2D(typ, tx)] + BWMxx * confx[cals_coo2D(typ, bx)])\
 		         +confx[cals_coo2D(typ2, tx)] * ( BXMxy * confy[cals_coo2D(typ2, bx)] + BYMxy * confy[cals_coo2D(typ, tx)] + BWMxy * confy[cals_coo2D(typ, bx)])\
@@ -153,7 +153,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(typ2, tx)] * ( cBXMyz * confz[cals_coo2D(typ2, bx)] + cBYMyz * confz[cals_coo2D(typ, tx)] + cBWMyz * confz[cals_coo2D(typ, bx)])\
 		         +confz[cals_coo2D(typ2, tx)] * ( cBXMzx * confx[cals_coo2D(typ2, bx)] + cBYMzx * confx[cals_coo2D(typ, tx)] + cBWMzx * confx[cals_coo2D(typ, bx)])\
 		         +confz[cals_coo2D(typ2, tx)] * ( cBXMzy * confy[cals_coo2D(typ2, bx)] + cBYMzy * confy[cals_coo2D(typ, tx)] + cBWMzy * confy[cals_coo2D(typ, bx)])\
-		         +confz[cals_coo2D(typ2, tx)] * ( BXMzz * confz[cals_coo2D(typ2, bx)] + BYMzz * confz[cals_coo2D(typ, tx)] + BWMzz * confz[cals_coo2D(typ, bx)] - cals_A * confz[cals_coo2D((ty+1), tx)]);
+		         +confz[cals_coo2D(typ2, tx)] * ( BXMzz * confz[cals_coo2D(typ2, bx)] + BYMzz * confz[cals_coo2D(typ, tx)] + BWMzz * confz[cals_coo2D(typ, bx)] - cals_A * confz[cals_coo2D((typ2), tx)]);
 	//0,1
 	sD[threadIdx.x] -= confx[cals_coo2D(ty, txp)] * ( BXMxx * confx[cals_coo2D(ty, tx)] + BYMxx * confx[cals_coo2D(by, txp)] + BWMxx * confx[cals_coo2D(by, tx)])\
 		         +confx[cals_coo2D(ty, txp)] * ( BXMxy * confy[cals_coo2D(ty, tx)] + BYMxy * confy[cals_coo2D(by, txp)] + BWMxy * confy[cals_coo2D(by, tx)])\
@@ -163,7 +163,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(ty, txp)] * ( cBXMyz * confz[cals_coo2D(ty, tx)] + cBYMyz * confz[cals_coo2D(by, txp)] + cBWMyz * confz[cals_coo2D(by, tx)])\
 		         +confz[cals_coo2D(ty, txp)] * ( cBXMzx * confx[cals_coo2D(ty, tx)] + cBYMzx * confx[cals_coo2D(by, txp)] + cBWMzx * confx[cals_coo2D(by, tx)])\
 		         +confz[cals_coo2D(ty, txp)] * ( cBXMzy * confy[cals_coo2D(ty, tx)] + cBYMzy * confy[cals_coo2D(by, txp)] + cBWMzy * confy[cals_coo2D(by, tx)])\
-		         +confz[cals_coo2D(ty, txp)] * ( BXMzz * confz[cals_coo2D(ty, tx)] + BYMzz * confz[cals_coo2D(by, txp)] + BWMzz * confz[cals_coo2D(by, tx)] - cals_A * confz[cals_coo2D(ty, tx+1)]);
+		         +confz[cals_coo2D(ty, txp)] * ( BXMzz * confz[cals_coo2D(ty, tx)] + BYMzz * confz[cals_coo2D(by, txp)] + BWMzz * confz[cals_coo2D(by, tx)] - cals_A * confz[cals_coo2D(ty, txp)]);
 	//1,1
 	sD[threadIdx.x] -= confx[cals_coo2D(typ, txp)] * ( BXMxx * confx[cals_coo2D(typ, tx)] + BYMxx * confx[cals_coo2D(ty, txp)] + BWMxx * confx[cals_coo2D(ty, tx)])\
 		         +confx[cals_coo2D(typ, txp)] * ( BXMxy * confy[cals_coo2D(typ, tx)] + BYMxy * confy[cals_coo2D(ty, txp)] + BWMxy * confy[cals_coo2D(ty, tx)])\
@@ -173,7 +173,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(typ, txp)] * ( cBXMyz * confz[cals_coo2D(typ, tx)] + cBYMyz * confz[cals_coo2D(ty, txp)] + cBWMyz * confz[cals_coo2D(ty, tx)])\
 		         +confz[cals_coo2D(typ, txp)] * ( cBXMzx * confx[cals_coo2D(typ, tx)] + cBYMzx * confx[cals_coo2D(ty, txp)] + cBWMzx * confx[cals_coo2D(ty, tx)])\
 		         +confz[cals_coo2D(typ, txp)] * ( cBXMzy * confy[cals_coo2D(typ, tx)] + cBYMzy * confy[cals_coo2D(ty, txp)] + cBWMzy * confy[cals_coo2D(ty, tx)])\
-		         +confz[cals_coo2D(typ, txp)] * ( BXMzz * confz[cals_coo2D(typ, tx)] + BYMzz * confz[cals_coo2D(ty, txp)] + BWMzz * confz[cals_coo2D(ty, tx)] - cals_A * confz[cals_coo2D(ty, tx+1)]);
+		         +confz[cals_coo2D(typ, txp)] * ( BXMzz * confz[cals_coo2D(typ, tx)] + BYMzz * confz[cals_coo2D(ty, txp)] + BWMzz * confz[cals_coo2D(ty, tx)] - cals_A * confz[cals_coo2D(typ, txp)]);
 	//2,1
 	sD[threadIdx.x] -= confx[cals_coo2D(typ2, txp)] * ( BXMxx * confx[cals_coo2D(typ2, tx)] + BYMxx * confx[cals_coo2D(typ, txp)] + BWMxx * confx[cals_coo2D(typ, tx)])\
 		         +confx[cals_coo2D(typ2, txp)] * ( BXMxy * confy[cals_coo2D(typ2, tx)] + BYMxy * confy[cals_coo2D(typ, txp)] + BWMxy * confy[cals_coo2D(typ, tx)])\
@@ -183,7 +183,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(typ2, txp)] * ( cBXMyz * confz[cals_coo2D(typ2, tx)] + cBYMyz * confz[cals_coo2D(typ, txp)] + cBWMyz * confz[cals_coo2D(typ, tx)])\
 		         +confz[cals_coo2D(typ2, txp)] * ( cBXMzx * confx[cals_coo2D(typ2, tx)] + cBYMzx * confx[cals_coo2D(typ, txp)] + cBWMzx * confx[cals_coo2D(typ, tx)])\
 		         +confz[cals_coo2D(typ2, txp)] * ( cBXMzy * confy[cals_coo2D(typ2, tx)] + cBYMzy * confy[cals_coo2D(typ, txp)] + cBWMzy * confy[cals_coo2D(typ, tx)])\
-		         +confz[cals_coo2D(typ2, txp)] * ( BXMzz * confz[cals_coo2D(typ2, tx)] + BYMzz * confz[cals_coo2D(typ, txp)] + BWMzz * confz[cals_coo2D(typ, tx)] - cals_A * confz[cals_coo2D(ty, tx+1)]);
+		         +confz[cals_coo2D(typ2, txp)] * ( BXMzz * confz[cals_coo2D(typ2, tx)] + BYMzz * confz[cals_coo2D(typ, txp)] + BWMzz * confz[cals_coo2D(typ, tx)] - cals_A * confz[cals_coo2D(typ2, txp)]);
 	//0,2
 	sD[threadIdx.x] -= confx[cals_coo2D(ty, txp2)] * ( BXMxx * confx[cals_coo2D(ty, txp)] + BYMxx * confx[cals_coo2D(by, txp2)] + BWMxx * confx[cals_coo2D(by, txp)])\
 		         +confx[cals_coo2D(ty, txp2)] * ( BXMxy * confy[cals_coo2D(ty, txp)] + BYMxy * confy[cals_coo2D(by, txp2)] + BWMxy * confy[cals_coo2D(by, txp)])\
@@ -193,7 +193,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(ty, txp2)] * ( cBXMyz * confz[cals_coo2D(ty, txp)] + cBYMyz * confz[cals_coo2D(by, txp2)] + cBWMyz * confz[cals_coo2D(by, txp)])\
 		         +confz[cals_coo2D(ty, txp2)] * ( cBXMzx * confx[cals_coo2D(ty, txp)] + cBYMzx * confx[cals_coo2D(by, txp2)] + cBWMzx * confx[cals_coo2D(by, txp)])\
 		         +confz[cals_coo2D(ty, txp2)] * ( cBXMzy * confy[cals_coo2D(ty, txp)] + cBYMzy * confy[cals_coo2D(by, txp2)] + cBWMzy * confy[cals_coo2D(by, txp)])\
-		         +confz[cals_coo2D(ty, txp2)] * ( BXMzz * confz[cals_coo2D(ty, txp)] + BYMzz * confz[cals_coo2D(by, txp2)] + BWMzz * confz[cals_coo2D(by, txp)] - cals_A * confz[cals_coo2D(ty, tx+1)]);
+		         +confz[cals_coo2D(ty, txp2)] * ( BXMzz * confz[cals_coo2D(ty, txp)] + BYMzz * confz[cals_coo2D(by, txp2)] + BWMzz * confz[cals_coo2D(by, txp)] - cals_A * confz[cals_coo2D(ty, txp2)]);
 	//1,2
 	sD[threadIdx.x] -= confx[cals_coo2D(typ, txp2)] * ( BXMxx * confx[cals_coo2D(typ, txp)] + BYMxx * confx[cals_coo2D(ty, txp2)] + BWMxx * confx[cals_coo2D(ty, txp)])\
 		         +confx[cals_coo2D(typ, txp2)] * ( BXMxy * confy[cals_coo2D(typ, txp)] + BYMxy * confy[cals_coo2D(ty, txp2)] + BWMxy * confy[cals_coo2D(ty, txp)])\
@@ -203,7 +203,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(typ, txp2)] * ( cBXMyz * confz[cals_coo2D(typ, txp)] + cBYMyz * confz[cals_coo2D(ty, txp2)] + cBWMyz * confz[cals_coo2D(ty, txp)])\
 		         +confz[cals_coo2D(typ, txp2)] * ( cBXMzx * confx[cals_coo2D(typ, txp)] + cBYMzx * confx[cals_coo2D(ty, txp2)] + cBWMzx * confx[cals_coo2D(ty, txp)])\
 		         +confz[cals_coo2D(typ, txp2)] * ( cBXMzy * confy[cals_coo2D(typ, txp)] + cBYMzy * confy[cals_coo2D(ty, txp2)] + cBWMzy * confy[cals_coo2D(ty, txp)])\
-		         +confz[cals_coo2D(typ, txp2)] * ( BXMzz * confz[cals_coo2D(typ, txp)] + BYMzz * confz[cals_coo2D(ty, txp2)] + BWMzz * confz[cals_coo2D(ty, txp)] - cals_A * confz[cals_coo2D(ty, tx+1)]);
+		         +confz[cals_coo2D(typ, txp2)] * ( BXMzz * confz[cals_coo2D(typ, txp)] + BYMzz * confz[cals_coo2D(ty, txp2)] + BWMzz * confz[cals_coo2D(ty, txp)] - cals_A * confz[cals_coo2D(typ, txp2)]);
 	//2,2
 	sD[threadIdx.x] -= confx[cals_coo2D(typ2, txp2)] * ( BXMxx * confx[cals_coo2D(typ2, txp)] + BYMxx * confx[cals_coo2D(typ, txp2)] + BWMxx * confx[cals_coo2D(typ, txp)])\
 		         +confx[cals_coo2D(typ2, txp2)] * ( BXMxy * confy[cals_coo2D(typ2, txp)] + BYMxy * confy[cals_coo2D(typ, txp2)] + BWMxy * confy[cals_coo2D(typ, txp)])\
@@ -213,7 +213,7 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confy[cals_coo2D(typ2, txp2)] * ( cBXMyz * confz[cals_coo2D(typ2, txp)] + cBYMyz * confz[cals_coo2D(typ, txp2)] + cBWMyz * confz[cals_coo2D(typ, txp)])\
 		         +confz[cals_coo2D(typ2, txp2)] * ( cBXMzx * confx[cals_coo2D(typ2, txp)] + cBYMzx * confx[cals_coo2D(typ, txp2)] + cBWMzx * confx[cals_coo2D(typ, txp)])\
 		         +confz[cals_coo2D(typ2, txp2)] * ( cBXMzy * confy[cals_coo2D(typ2, txp)] + cBYMzy * confy[cals_coo2D(typ, txp2)] + cBWMzy * confy[cals_coo2D(typ, txp)])\
-		         +confz[cals_coo2D(typ2, txp2)] * ( BXMzz * confz[cals_coo2D(typ2, txp)] + BYMzz * confz[cals_coo2D(typ, txp2)] + BWMzz * confz[cals_coo2D(typ, txp)] - cals_A * confz[cals_coo2D(ty, tx+1)]);
+		         +confz[cals_coo2D(typ2, txp2)] * ( BXMzz * confz[cals_coo2D(typ2, txp)] + BYMzz * confz[cals_coo2D(typ, txp2)] + BWMzz * confz[cals_coo2D(typ, txp)] - cals_A * confz[cals_coo2D(typ2, txp2)]);
 	__syncthreads();
 
 
