@@ -83,9 +83,19 @@ void configuration::Dominatestateback(int hostid, int deviceid){
   //cudaFree(Dcorr);
 }
 void configuration::writedata(){
+	f_index += 1;
   write(Confxfd, Hx, Spin_mem_size);
   write(Confyfd, Hy, Spin_mem_size);
   write(Confzfd, Hz, Spin_mem_size);
+  close(Confxfd);
+  close(Confyfd);
+  close(Confzfd);
+  sprintf(Confxfn, "%s/Confx_%d", dirfn, f_index);
+  sprintf(Confyfn, "%s/Confy_%d", dirfn, f_index);
+  sprintf(Confzfn, "%s/Confz_%d", dirfn, f_index);
+  Confxfd = open(Confxfn, O_CREAT | O_WRONLY, 0644);
+  Confyfd = open(Confyfn, O_CREAT | O_WRONLY, 0644);
+  Confzfd = open(Confzfn, O_CREAT | O_WRONLY, 0644);
 }
 
 configuration::~configuration(){
