@@ -13,6 +13,8 @@ class configuration{
 		unsigned int configurations_num_s;
 		unsigned int spins_num;
 		unsigned int spins_num_s;
+		unsigned int f_index;
+		char dirfn[128];
 		char Confxfn[128];
 		char Confyfn[128];
 		char Confzfn[128];

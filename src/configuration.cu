@@ -2,6 +2,7 @@
 
 
 configuration::configuration(int Pnum, char* conf_dir){
+	f_index = 0;
   configurations_num = Pnum;
   configurations_num_s = Pnum/StreamN;
   Spin_mem_size = configurations_num * H_N * sizeof(float);
@@ -9,9 +10,10 @@ configuration::configuration(int Pnum, char* conf_dir){
   spins_num = configurations_num * H_N;
   Spin_mem_size_s = configurations_num_s * H_N * sizeof(float);
   spins_num_s = configurations_num_s * H_N;
-  sprintf(Confxfn, "%s/Confx", conf_dir);
-  sprintf(Confyfn, "%s/Confy", conf_dir);
-  sprintf(Confzfn, "%s/Confz", conf_dir);
+  sprintf(dirfn, "%s", conf_dir);
+  sprintf(Confxfn, "%s/Confx_%d", dirfn, f_index);
+  sprintf(Confyfn, "%s/Confy_%d", dirfn, f_index);
+  sprintf(Confzfn, "%s/Confz_%d", dirfn, f_index);
   Hx = (float*)malloc(Spin_mem_size);
   Hy = (float*)malloc(Spin_mem_size);
   Hz = (float*)malloc(Spin_mem_size);
