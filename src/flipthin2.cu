@@ -140,7 +140,7 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
   hy = BXPyx * confx[flip_coo(k, j, i+1)] + BYPyx * confx[flip_coo(k, j+1, i)] + BWPyx * confx[flip_coo(k, j+1, i+1)] + BXMyx * confx[flip_coo(k, j, ib)] + BYMyx * confx[flip_coo(k, jb, i)] + BWMyx * confx[flip_coo(k, jb, ib)]\
      + BXPyy * confy[flip_coo(k, j, i+1)] + BYPyy * confy[flip_coo(k, j+1, i)] + BWPyy * confy[flip_coo(k, j+1, i+1)] + BXMyy * confy[flip_coo(k, j, ib)] + BYMyy * confy[flip_coo(k, jb, i)] + BWMyy * confy[flip_coo(k, jb, ib)]\
      + BXPyz * confz[flip_coo(k, j, i+1)] + BYPyz * confz[flip_coo(k, j+1, i)] + BWPyz * confz[flip_coo(k, j+1, i+1)] + BXMyz * confz[flip_coo(k, j, ib)] + BYMyz * confz[flip_coo(k, jb, i)] + BWMyz * confz[flip_coo(k, jb, ib)]\
-       + BZPyx * confx[coo(k+1, j, i)] + BZPyy * confy[coo(k+1, j, i)];
+     + BZPyx * confx[coo(k+1, j, i)] + BZPyy * confy[coo(k+1, j, i)];
   hz = BXPzx * confx[flip_coo(k, j, i+1)] + BYPzx * confx[flip_coo(k, j+1, i)] + BWPzx * confx[flip_coo(k, j+1, i+1)] + BXMzx * confx[flip_coo(k, j, ib)] + BYMzx * confx[flip_coo(k, jb, i)] + BWMzx * confx[flip_coo(k, jb, ib)]\
      + BXPzy * confy[flip_coo(k, j, i+1)] + BYPzy * confy[flip_coo(k, j+1, i)] + BWPzy * confy[flip_coo(k, j+1, i+1)] + BXMzy * confy[flip_coo(k, j, ib)] + BYMzy * confy[flip_coo(k, jb, i)] + BWMzy * confy[flip_coo(k, jb, ib)]\
      + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, j+1, i)] + BWPzz * confz[flip_coo(k, j+1, i+1)] + BXMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, ib)] + H\
