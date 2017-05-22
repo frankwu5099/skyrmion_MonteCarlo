@@ -338,22 +338,7 @@ int main(int argc, char *argv[]){
     //CONF.backtoHost(); //watch out! it must be compatible with the
     CONF.writedata();
 #ifdef GET_CORR
-    CORR.avg_write_reset(Po);
-#endif
-  }
-  char Histfn[128];
-  sprintf(Histfn, "%s/%s", dir, "EHistogram");
-  FILE *f_hist = fopen(Histfn, "w");
-  fwrite(MEASURE.EHistogram, sizeof(unsigned int),Slice_NUM * Pnum, f_hist);
-  fclose(f_hist);
-  sprintf(Histfn, "%s/%s", dir, "ChernHistogram");
-  FILE *f_chist = fopen(Histfn, "w");
-  fwrite(MEASURE.ChernHistogram, sizeof(unsigned int), Slice_CNUM * Pnum, f_chist);
-  fclose(f_chist);
-#ifdef GET_CORR
-  C_i = 0;
-  for(int corr_i = 0; corr_i < 5; corr_i++){
-    sprintf(Corrfn, "%s/Corr_%d", dir, corr_i);
+    sprintf(Corrfn, "%s/Corr_%d", dir, b);
     CORR.changefile(Corrfn);
     for(int i = 0; i < CORR_N * f_CORR; i++){
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
@@ -410,8 +395,17 @@ int main(int argc, char *argv[]){
       if(int(cnt))
       cnt = 0;
     }
-  }
 #endif
+  }
+  char Histfn[128];
+  sprintf(Histfn, "%s/%s", dir, "EHistogram");
+  FILE *f_hist = fopen(Histfn, "w");
+  fwrite(MEASURE.EHistogram, sizeof(unsigned int),Slice_NUM * Pnum, f_hist);
+  fclose(f_hist);
+  sprintf(Histfn, "%s/%s", dir, "ChernHistogram");
+  FILE *f_chist = fopen(Histfn, "w");
+  fwrite(MEASURE.ChernHistogram, sizeof(unsigned int), Slice_CNUM * Pnum, f_chist);
+  fclose(f_chist);
   free(Ms);
   sdkStopTimer(&timer);
   double time = 1.0e-3 * sdkGetTimerValue(&timer);
