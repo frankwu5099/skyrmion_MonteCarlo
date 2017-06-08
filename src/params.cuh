@@ -107,6 +107,12 @@ extern uniform_01<mt19937> uni01_sampler;
 #define BYPyx (0.000000)
 #define BXMyx (0.000000)
 #define BYMyx (0.000000)
+#define BZPxx (1.000000)
+#define BZPyy (1.000000)
+#define BZPzz (1.000000)
+#define BZMxx (1.000000)
+#define BZMyy (1.000000)
+#define BZMzz (1.000000)
 
 
 #define BXPyz (DD)

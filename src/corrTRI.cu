@@ -36,9 +36,10 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
   const int x = threadIdx.x % (corr_BlockSize_x);
   const int y = (threadIdx.x / corr_BlockSize_x);
   const int tx = 3 * (((blockIdx.x % corr_BN) % corr_GridSize_x) * corr_BlockSize_x + x);
-  const int ty =(blockIdx.x / corr_BN) * corr_SpinSize +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
+  const int ty =(blockIdx.x / corr_BN) * corr_SpinSize * corr_SpinSize_z +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
+  const int tycorr =(blockIdx.x / corr_BN) * corr_SpinSize +  3 * ((((blockIdx.x % corr_BN) / corr_GridSize_x) % corr_GridSize_y) * corr_BlockSize_y + y);
   const int ox = original_i;
-  const int oy =(blockIdx.x / corr_BN) * corr_SpinSize + original_j;
+  const int oy =(blockIdx.x / corr_BN) * corr_SpinSize * corr_SpinSize_z + original_j;
   //const int txp = tx +1 ;
   //const int typ = ty +1 ;
   //const int ty = 2 * ((blockIdx.x / BN) * SpinSize + ((blockIdx.x % BN) / GridSize_x) * BlockSize_y + y);
@@ -97,7 +98,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
   sx22 = confx[corr_coo2D(oy+2,ox+2)];
   sy22 = confy[corr_coo2D(oy+2,ox+2)];
   sz22 = confz[corr_coo2D(oy+2,ox+2)];
-  corr[corr_coo2D(ty,tx)] += sx00 * confx[corr_coo2D( fy0,fx0)] + sy00 * confy[corr_coo2D( fy0,fx0)] + sz00 * confz[corr_coo2D( fy0,fx0)] +
+  corr[corr_coo2D(tycorr,tx)] += sx00 * confx[corr_coo2D( fy0,fx0)] + sy00 * confy[corr_coo2D( fy0,fx0)] + sz00 * confz[corr_coo2D( fy0,fx0)] +
                         sx01 * confx[corr_coo2D( fy0,fx1)] + sy01 * confy[corr_coo2D( fy0,fx1)] + sz01 * confz[corr_coo2D( fy0,fx1)] +
                         sx02 * confx[corr_coo2D( fy0,fx2)] + sy02 * confy[corr_coo2D( fy0,fx2)] + sz02 * confz[corr_coo2D( fy0,fx2)] +
                         sx10 * confx[corr_coo2D( fy1,fx0)] + sy10 * confy[corr_coo2D( fy1,fx0)] + sz10 * confz[corr_coo2D( fy1,fx0)] +
@@ -106,7 +107,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                         sx20 * confx[corr_coo2D( fy2,fx0)] + sy20 * confy[corr_coo2D( fy2,fx0)] + sz20 * confz[corr_coo2D( fy2,fx0)] +
                         sx21 * confx[corr_coo2D( fy2,fx1)] + sy21 * confy[corr_coo2D( fy2,fx1)] + sz21 * confz[corr_coo2D( fy2,fx1)] +
                         sx22 * confx[corr_coo2D( fy2,fx2)] + sy22 * confy[corr_coo2D( fy2,fx2)] + sz22 * confz[corr_coo2D( fy2,fx2)];
-  corr[corr_coo2D(ty,tx+1)] += sx00 * confx[corr_coo2D( fy0,fx1)] + sy00 * confy[corr_coo2D( fy0,fx1)] + sz00 * confz[corr_coo2D( fy0,fx1)] +
+  corr[corr_coo2D(tycorr,tx+1)] += sx00 * confx[corr_coo2D( fy0,fx1)] + sy00 * confy[corr_coo2D( fy0,fx1)] + sz00 * confz[corr_coo2D( fy0,fx1)] +
                           sx01 * confx[corr_coo2D( fy0,fx2)] + sy01 * confy[corr_coo2D( fy0,fx2)] + sz01 * confz[corr_coo2D( fy0,fx2)] +
                           sx02 * confx[corr_coo2D( fy0,fx3)] + sy02 * confy[corr_coo2D( fy0,fx3)] + sz02 * confz[corr_coo2D( fy0,fx3)] +
                           sx10 * confx[corr_coo2D( fy1,fx1)] + sy10 * confy[corr_coo2D( fy1,fx1)] + sz10 * confz[corr_coo2D( fy1,fx1)] +
@@ -115,7 +116,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                           sx20 * confx[corr_coo2D( fy2,fx1)] + sy20 * confy[corr_coo2D( fy2,fx1)] + sz20 * confz[corr_coo2D( fy2,fx1)] +
                           sx21 * confx[corr_coo2D( fy2,fx2)] + sy21 * confy[corr_coo2D( fy2,fx2)] + sz21 * confz[corr_coo2D( fy2,fx2)] +
                           sx22 * confx[corr_coo2D( fy2,fx3)] + sy22 * confy[corr_coo2D( fy2,fx3)] + sz22 * confz[corr_coo2D( fy2,fx3)];
-  corr[corr_coo2D(ty,tx+2)] += sx00 * confx[corr_coo2D( fy0,fx2)] + sy00 * confy[corr_coo2D( fy0,fx2)] + sz00 * confz[corr_coo2D( fy0,fx2)] +
+  corr[corr_coo2D(tycorr,tx+2)] += sx00 * confx[corr_coo2D( fy0,fx2)] + sy00 * confy[corr_coo2D( fy0,fx2)] + sz00 * confz[corr_coo2D( fy0,fx2)] +
                           sx01 * confx[corr_coo2D( fy0,fx3)] + sy01 * confy[corr_coo2D( fy0,fx3)] + sz01 * confz[corr_coo2D( fy0,fx3)] +
                           sx02 * confx[corr_coo2D( fy0,fx4)] + sy02 * confy[corr_coo2D( fy0,fx4)] + sz02 * confz[corr_coo2D( fy0,fx4)] +
                           sx10 * confx[corr_coo2D( fy1,fx2)] + sy10 * confy[corr_coo2D( fy1,fx2)] + sz10 * confz[corr_coo2D( fy1,fx2)] +
@@ -124,7 +125,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                           sx20 * confx[corr_coo2D( fy2,fx2)] + sy20 * confy[corr_coo2D( fy2,fx2)] + sz20 * confz[corr_coo2D( fy2,fx2)] +
                           sx21 * confx[corr_coo2D( fy2,fx3)] + sy21 * confy[corr_coo2D( fy2,fx3)] + sz21 * confz[corr_coo2D( fy2,fx3)] +
                           sx22 * confx[corr_coo2D( fy2,fx4)] + sy22 * confy[corr_coo2D( fy2,fx4)] + sz22 * confz[corr_coo2D( fy2,fx4)];
-  corr[corr_coo2D((ty+1),tx)] += sx00 * confx[corr_coo2D( fy1,fx0)] + sy00 * confy[corr_coo2D( fy1,fx0)] + sz00 * confz[corr_coo2D( fy1,fx0)] +
+  corr[corr_coo2D((tycorr+1),tx)] += sx00 * confx[corr_coo2D( fy1,fx0)] + sy00 * confy[corr_coo2D( fy1,fx0)] + sz00 * confz[corr_coo2D( fy1,fx0)] +
                             sx01 * confx[corr_coo2D( fy1,fx1)] + sy01 * confy[corr_coo2D( fy1,fx1)] + sz01 * confz[corr_coo2D( fy1,fx1)] +
                             sx02 * confx[corr_coo2D( fy1,fx2)] + sy02 * confy[corr_coo2D( fy1,fx2)] + sz02 * confz[corr_coo2D( fy1,fx2)] +
                             sx10 * confx[corr_coo2D( fy2,fx0)] + sy10 * confy[corr_coo2D( fy2,fx0)] + sz10 * confz[corr_coo2D( fy2,fx0)] +
@@ -133,7 +134,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                             sx20 * confx[corr_coo2D( fy3,fx0)] + sy20 * confy[corr_coo2D( fy3,fx0)] + sz20 * confz[corr_coo2D( fy3,fx0)] +
                             sx21 * confx[corr_coo2D( fy3,fx1)] + sy21 * confy[corr_coo2D( fy3,fx1)] + sz21 * confz[corr_coo2D( fy3,fx1)] +
                             sx22 * confx[corr_coo2D( fy3,fx2)] + sy22 * confy[corr_coo2D( fy3,fx2)] + sz22 * confz[corr_coo2D( fy3,fx2)];
-  corr[corr_coo2D((ty+1),tx+1)] += sx00 * confx[corr_coo2D( fy1,fx1)] + sy00 * confy[corr_coo2D( fy1,fx1)] + sz00 * confz[corr_coo2D( fy1,fx1)] +
+  corr[corr_coo2D((tycorr+1),tx+1)] += sx00 * confx[corr_coo2D( fy1,fx1)] + sy00 * confy[corr_coo2D( fy1,fx1)] + sz00 * confz[corr_coo2D( fy1,fx1)] +
                               sx01 * confx[corr_coo2D( fy1,fx2)] + sy01 * confy[corr_coo2D( fy1,fx2)] + sz01 * confz[corr_coo2D( fy1,fx2)] +
                               sx02 * confx[corr_coo2D( fy1,fx3)] + sy02 * confy[corr_coo2D( fy1,fx3)] + sz02 * confz[corr_coo2D( fy1,fx3)] +
                               sx10 * confx[corr_coo2D( fy2,fx1)] + sy10 * confy[corr_coo2D( fy2,fx1)] + sz10 * confz[corr_coo2D( fy2,fx1)] +
@@ -142,7 +143,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                               sx20 * confx[corr_coo2D( fy3,fx1)] + sy20 * confy[corr_coo2D( fy3,fx1)] + sz20 * confz[corr_coo2D( fy3,fx1)] +
                               sx21 * confx[corr_coo2D( fy3,fx2)] + sy21 * confy[corr_coo2D( fy3,fx2)] + sz21 * confz[corr_coo2D( fy3,fx2)] +
                               sx22 * confx[corr_coo2D( fy3,fx3)] + sy22 * confy[corr_coo2D( fy3,fx3)] + sz22 * confz[corr_coo2D( fy3,fx3)];
-  corr[corr_coo2D((ty+1),tx+2)] += sx00 * confx[corr_coo2D( fy1,fx2)] + sy00 * confy[corr_coo2D( fy1,fx2)] + sz00 * confz[corr_coo2D( fy1,fx2)] +
+  corr[corr_coo2D((tycorr+1),tx+2)] += sx00 * confx[corr_coo2D( fy1,fx2)] + sy00 * confy[corr_coo2D( fy1,fx2)] + sz00 * confz[corr_coo2D( fy1,fx2)] +
                               sx01 * confx[corr_coo2D( fy1,fx3)] + sy01 * confy[corr_coo2D( fy1,fx3)] + sz01 * confz[corr_coo2D( fy1,fx3)] +
                               sx02 * confx[corr_coo2D( fy1,fx4)] + sy02 * confy[corr_coo2D( fy1,fx4)] + sz02 * confz[corr_coo2D( fy1,fx4)] +
                               sx10 * confx[corr_coo2D( fy2,fx2)] + sy10 * confy[corr_coo2D( fy2,fx2)] + sz10 * confz[corr_coo2D( fy2,fx2)] +
@@ -151,7 +152,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                               sx20 * confx[corr_coo2D( fy3,fx2)] + sy20 * confy[corr_coo2D( fy3,fx2)] + sz20 * confz[corr_coo2D( fy3,fx2)] +
                               sx21 * confx[corr_coo2D( fy3,fx3)] + sy21 * confy[corr_coo2D( fy3,fx3)] + sz21 * confz[corr_coo2D( fy3,fx3)] +
                               sx22 * confx[corr_coo2D( fy3,fx4)] + sy22 * confy[corr_coo2D( fy3,fx4)] + sz22 * confz[corr_coo2D( fy3,fx4)];
-  corr[corr_coo2D((ty+2),tx)] += sx00 * confx[corr_coo2D( fy2,fx0)] + sy00 * confy[corr_coo2D( fy2,fx0)] + sz00 * confz[corr_coo2D( fy2,fx0)] +
+  corr[corr_coo2D((tycorr+2),tx)] += sx00 * confx[corr_coo2D( fy2,fx0)] + sy00 * confy[corr_coo2D( fy2,fx0)] + sz00 * confz[corr_coo2D( fy2,fx0)] +
                             sx01 * confx[corr_coo2D( fy2,fx1)] + sy01 * confy[corr_coo2D( fy2,fx1)] + sz01 * confz[corr_coo2D( fy2,fx1)] +
                             sx02 * confx[corr_coo2D( fy2,fx2)] + sy02 * confy[corr_coo2D( fy2,fx2)] + sz02 * confz[corr_coo2D( fy2,fx2)] +
                             sx10 * confx[corr_coo2D( fy3,fx0)] + sy10 * confy[corr_coo2D( fy3,fx0)] + sz10 * confz[corr_coo2D( fy3,fx0)] +
@@ -160,7 +161,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                             sx20 * confx[corr_coo2D( fy4,fx0)] + sy20 * confy[corr_coo2D( fy4,fx0)] + sz20 * confz[corr_coo2D( fy4,fx0)] +
                             sx21 * confx[corr_coo2D( fy4,fx1)] + sy21 * confy[corr_coo2D( fy4,fx1)] + sz21 * confz[corr_coo2D( fy4,fx1)] +
                             sx22 * confx[corr_coo2D( fy4,fx2)] + sy22 * confy[corr_coo2D( fy4,fx2)] + sz22 * confz[corr_coo2D( fy4,fx2)];
-  corr[corr_coo2D((ty+2),tx+1)] += sx00 * confx[corr_coo2D( fy2,fx1)] + sy00 * confy[corr_coo2D( fy2,fx1)] + sz00 * confz[corr_coo2D( fy2,fx1)] +
+  corr[corr_coo2D((tycorr+2),tx+1)] += sx00 * confx[corr_coo2D( fy2,fx1)] + sy00 * confy[corr_coo2D( fy2,fx1)] + sz00 * confz[corr_coo2D( fy2,fx1)] +
                               sx01 * confx[corr_coo2D( fy2,fx2)] + sy01 * confy[corr_coo2D( fy2,fx2)] + sz01 * confz[corr_coo2D( fy2,fx2)] +
                               sx02 * confx[corr_coo2D( fy2,fx3)] + sy02 * confy[corr_coo2D( fy2,fx3)] + sz02 * confz[corr_coo2D( fy2,fx3)] +
                               sx10 * confx[corr_coo2D( fy3,fx1)] + sy10 * confy[corr_coo2D( fy3,fx1)] + sz10 * confz[corr_coo2D( fy3,fx1)] +
@@ -169,7 +170,7 @@ __global__ void getcorrTRI(const float *confx, const float *confy, const float *
                               sx20 * confx[corr_coo2D( fy4,fx1)] + sy20 * confy[corr_coo2D( fy4,fx1)] + sz20 * confz[corr_coo2D( fy4,fx1)] +
                               sx21 * confx[corr_coo2D( fy4,fx2)] + sy21 * confy[corr_coo2D( fy4,fx2)] + sz21 * confz[corr_coo2D( fy4,fx2)] +
                               sx22 * confx[corr_coo2D( fy4,fx3)] + sy22 * confy[corr_coo2D( fy4,fx3)] + sz22 * confz[corr_coo2D( fy4,fx3)];
-  corr[corr_coo2D((ty+2),tx+2)] += sx00 * confx[corr_coo2D( fy2,fx2)] + sy00 * confy[corr_coo2D( fy2,fx2)] + sz00 * confz[corr_coo2D( fy2,fx2)] +
+  corr[corr_coo2D((tycorr+2),tx+2)] += sx00 * confx[corr_coo2D( fy2,fx2)] + sy00 * confy[corr_coo2D( fy2,fx2)] + sz00 * confz[corr_coo2D( fy2,fx2)] +
                               sx01 * confx[corr_coo2D( fy2,fx3)] + sy01 * confy[corr_coo2D( fy2,fx3)] + sz01 * confz[corr_coo2D( fy2,fx3)] +
                               sx02 * confx[corr_coo2D( fy2,fx4)] + sy02 * confy[corr_coo2D( fy2,fx4)] + sz02 * confz[corr_coo2D( fy2,fx4)] +
                               sx10 * confx[corr_coo2D( fy3,fx2)] + sy10 * confy[corr_coo2D( fy3,fx2)] + sz10 * confz[corr_coo2D( fy3,fx2)] +

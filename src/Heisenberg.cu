@@ -39,7 +39,9 @@ int main(int argc, char *argv[]){
   int deviceNum, gpu_i;
   cudaGetDeviceCount(&deviceNum);
   device_0 = setDev();
-  StreamN = deviceNum -device_0;
+  StreamN = deviceNum - device_0;
+  printf("# of gpus = %d\n", deviceNum);
+  printf("# of gpu = %d\n", device_0);
 
   if (device_0 == -1){
     return 1;
@@ -47,9 +49,9 @@ int main(int argc, char *argv[]){
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
     cudaStreamCreate(&stream[gpu_i]);
+    cudaGetLastError();
+    CudaCheckError();
   }
-  cudaGetLastError();
-  CudaCheckError();
   //note: gpu part
 
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
@@ -252,19 +254,19 @@ int main(int argc, char *argv[]){
 
     for(int i = 0; i < EQUI_Ni; i++){
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-        cudaSetDevice(device_0 + gpu_i);
-				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-					cudaSetDevice(device_0 + gpu_i);
-					SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-				}
-				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-					cudaSetDevice(device_0 + gpu_i);
-					SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-				}
-				for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-					cudaSetDevice(device_0 + gpu_i);
-					SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-				}
+	cudaSetDevice(device_0 + gpu_i);
+	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+	  cudaSetDevice(device_0 + gpu_i);
+	  SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+	}
+	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+	  cudaSetDevice(device_0 + gpu_i);
+	  SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+	}
+	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+	  cudaSetDevice(device_0 + gpu_i);
+	  SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+	}
       }
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
@@ -669,10 +671,10 @@ void var_examine(){
     exit(0);
   }
 #endif
-#ifndef THIN
-  if (H_SpinSize_z != 1){
-    fprintf(stderr, "SpinSize_z must be 1 %d\n", H_BlockSize_y * 2);
-    exit(0);
-  }
-#endif
+//#ifndef THIN
+//  if (H_SpinSize_z != 1){
+//    fprintf(stderr, "SpinSize_z must be 1 %d\n", H_BlockSize_y * 2);
+//    exit(0);
+//  }
+//#endif
 }

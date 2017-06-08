@@ -55,19 +55,19 @@ void read_params(char* param_file){
     fprintf(stderr, "Please give a legal Size or revise cals.cu.\n");
     exit(0);
   }
-#ifdef THIN
   readidx = fscanf(paramfp, "%s %d", tmp, &H_SpinSize_z);
-  if ((readidx == -1)||(strcmp(tmp,"Size")!=0)){
+  if ((readidx == -1)||(strcmp(tmp,"Size_z")!=0)){
     printf("read size error");
     exit(0);
   }
-  if (H_SpinSize_z % 16 != 0){
-    fprintf(stderr, "Please give a legal Size or revise cals.cu.\n");
-    exit(0);
-  }
+  //if (H_SpinSize_z % 16 != 0){
+  //  fprintf(stderr, "Please give a legal Size or revise cals.cu.\n");
+  //  exit(0);
+  //}
+#ifdef THIN
 #endif
 #ifndef THIN
-  H_SpinSize_z = 1;
+  //H_SpinSize_z = 1;
 #endif
 #ifdef TRI
   H_BlockSize_x = H_SpinSize / 3;
