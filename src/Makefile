@@ -183,8 +183,8 @@ endif
 
 #OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o corrTRI_sk.o flip2D.o flipTRI.o measurements.o measurements_sk.o WarpStandard.o read_params.o
 #DEPS= Heisenberg_sk.cu read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu corrTRI_sk.cu flip2D.cu flipTRI.cu measurements.cu measurements_sk.cu WarpStandard.cu
-OBJS= Heisenberg_sk.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI_sk.o flip2D.o flipTRI.o measurements_sk.o WarpStandard.o read_params.o
-DEPS= Heisenberg_sk.cu read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI_sk.cu flip2D.cu flipTRI.cu measurements_sk.cu WarpStandard.cu
+OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o flipTRI.o measurements.o WarpStandard.o read_params.o
+DEPS= Heisenberg.cu read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu WarpStandard.cu
 # Target rules
 all: build
 
