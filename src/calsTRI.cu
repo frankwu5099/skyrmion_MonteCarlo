@@ -78,27 +78,27 @@ void move_params_device_cals(){
   cudaMemcpyToSymbol( cBWMzy, &tmpp, sizeof(float));
   tmpp = (DR);
   cudaMemcpyToSymbol( cBXPxz, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( cBYPxz, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( cBWPxz, &tmpp, sizeof(float));
   tmpp = (-DR);
   cudaMemcpyToSymbol( cBXMxz, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( cBYMxz, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( cBWMxz, &tmpp, sizeof(float));
   tmpp = (-DR);
   cudaMemcpyToSymbol( cBXPzx, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( cBYPzx, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( cBWPzx, &tmpp, sizeof(float));
   tmpp = (DR);
   cudaMemcpyToSymbol( cBXMzx, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( cBYMzx, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( cBWMzx, &tmpp, sizeof(float));
 }
 __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
@@ -452,13 +452,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(by, bx)];
 	Cy = confy[cals_coo2D(by, bx)];
 	Cz = confz[cals_coo2D(by, bx)];
-	sD[threadIdx.x] = 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] = 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(by, tx)];
 	By = confy[cals_coo2D(by, tx)];
 	Bz = confz[cals_coo2D(by, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(1,0)
 	Ax = confx[cals_coo2D(typ, tx)];
 	Ay = confy[cals_coo2D(typ, tx)];
@@ -469,13 +471,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(ty, bx)];
 	Cy = confy[cals_coo2D(ty, bx)];
 	Cz = confz[cals_coo2D(ty, bx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(ty, tx)];
 	By = confy[cals_coo2D(ty, tx)];
 	Bz = confz[cals_coo2D(ty, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(2,0)
 	Ax = confx[cals_coo2D(typ2, tx)];
 	Ay = confy[cals_coo2D(typ2, tx)];
@@ -486,13 +490,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(typ, bx)];
 	Cy = confy[cals_coo2D(typ, bx)];
 	Cz = confz[cals_coo2D(typ, bx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(typ, tx)];
 	By = confy[cals_coo2D(typ, tx)];
 	Bz = confz[cals_coo2D(typ, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(0,1)
 	Ax = confx[cals_coo2D(ty, txp)];
 	Ay = confy[cals_coo2D(ty, txp)];
@@ -503,13 +509,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(by, tx)];
 	Cy = confy[cals_coo2D(by, tx)];
 	Cz = confz[cals_coo2D(by, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(by, txp)];
 	By = confy[cals_coo2D(by, txp)];
 	Bz = confz[cals_coo2D(by, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(1,1)
 	Ax = confx[cals_coo2D(typ, txp)];
 	Ay = confy[cals_coo2D(typ, txp)];
@@ -520,13 +528,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(ty, tx)];
 	Cy = confy[cals_coo2D(ty, tx)];
 	Cz = confz[cals_coo2D(ty, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(ty, txp)];
 	By = confy[cals_coo2D(ty, txp)];
 	Bz = confz[cals_coo2D(ty, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(2,1)
 	Ax = confx[cals_coo2D(typ2, txp)];
 	Ay = confy[cals_coo2D(typ2, txp)];
@@ -537,13 +547,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(typ, tx)];
 	Cy = confy[cals_coo2D(typ, tx)];
 	Cz = confz[cals_coo2D(typ, tx)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(typ, txp)];
 	By = confy[cals_coo2D(typ, txp)];
 	Bz = confz[cals_coo2D(typ, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(0,2)
 	Ax = confx[cals_coo2D(ty, txp2)];
 	Ay = confy[cals_coo2D(ty, txp2)];
@@ -554,13 +566,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(by, txp)];
 	Cy = confy[cals_coo2D(by, txp)];
 	Cz = confz[cals_coo2D(by, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(by, txp2)];
 	By = confy[cals_coo2D(by, txp2)];
 	Bz = confz[cals_coo2D(by, txp2)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(1,2)
 	Ax = confx[cals_coo2D(typ, txp2)];
 	Ay = confy[cals_coo2D(typ, txp2)];
@@ -571,13 +585,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(ty, txp)];
 	Cy = confy[cals_coo2D(ty, txp)];
 	Cz = confz[cals_coo2D(ty, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(ty, txp2)];
 	By = confy[cals_coo2D(ty, txp2)];
 	Bz = confz[cals_coo2D(ty, txp2)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	//(2,2)
 	Ax = confx[cals_coo2D(typ2, txp2)];
 	Ay = confy[cals_coo2D(typ2, txp2)];
@@ -588,13 +604,15 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	Cx = confx[cals_coo2D(typ, txp)];
 	Cy = confy[cals_coo2D(typ, txp)];
 	Cz = confz[cals_coo2D(typ, txp)];
-	sD[threadIdx.x] += 2*atan((Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (By*Cz-Bz*Cy) + Ay * (Bz*Cx-Bx*Cz) + Az * (Bx*Cy-By*Cx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	Bx = confx[cals_coo2D(typ, txp2)];
 	By = confy[cals_coo2D(typ, txp2)];
 	Bz = confz[cals_coo2D(typ, txp2)];
-	sD[threadIdx.x] += 2*atan((Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx))/
-	  (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz));
+	det = (Ax * (Cy*Bz-Cz*By) + Ay * (Cz*Bx-Cx*Bz) + Az * (Cx*By-Cy*Bx));
+	div = (1.0 + Ax*Bx + Ay*By + Az*Bz + Cx*Bx + Cy*By + Cz*Bz + Ax*Cx + Ay*Cy + Az*Cz);
+	sD[threadIdx.x] += 2*atan(det/div) + ((div<0.0)?((det<0.0)?-TWOPI:TWOPI):0.0);
 	__syncthreads();
 
 	//Sum over all elements in each sD
