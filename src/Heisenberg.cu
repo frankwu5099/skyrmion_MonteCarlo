@@ -255,18 +255,15 @@ int main(int argc, char *argv[]){
     for(int i = 0; i < EQUI_Ni; i++){
       for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
 	cudaSetDevice(device_0 + gpu_i);
-	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-	  cudaSetDevice(device_0 + gpu_i);
-	  SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-	}
-	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-	  cudaSetDevice(device_0 + gpu_i);
-	  SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-	}
-	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-	  cudaSetDevice(device_0 + gpu_i);
-	  SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-	}
+	SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+      }
+      for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+	cudaSetDevice(device_0 + gpu_i);
+	SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+      }
+      for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+	cudaSetDevice(device_0 + gpu_i);
+	SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
       }
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
@@ -289,21 +286,18 @@ int main(int argc, char *argv[]){
     for(int b = 0; b < BIN_NUM; b++){
       //Take the ensemble average
       for(int i = 0; i < BIN_SZ; i++){
-        for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-          cudaSetDevice(device_0 + gpu_i);
-					for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-						cudaSetDevice(device_0 + gpu_i);
-						SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-					}
-					for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-						cudaSetDevice(device_0 + gpu_i);
-						SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-					}
-					for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
-						cudaSetDevice(device_0 + gpu_i);
-						SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
-					}
-        }
+	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+		cudaSetDevice(device_0 + gpu_i);
+		SSF1(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+	}
+	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+		cudaSetDevice(device_0 + gpu_i);
+		SSF2(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+	}
+	for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
+		cudaSetDevice(device_0 + gpu_i);
+		SSF3(CONF.Dx[gpu_i], CONF.Dy[gpu_i], CONF.Dz[gpu_i], seedDevice[gpu_i], DHs[gpu_i], DinvTs[gpu_i], stream[gpu_i]);
+	}
         MEASURE.measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
 /*
 #ifdef GET_CORR
