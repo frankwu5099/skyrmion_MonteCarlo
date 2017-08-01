@@ -68,27 +68,27 @@ void move_params_device_flip(){
   cudaMemcpyToSymbol( BWMzy, &tmpp, sizeof(float));
   tmpp = (DR);
   cudaMemcpyToSymbol( BXPxz, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( BYPxz, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( BWPxz, &tmpp, sizeof(float));
   tmpp = (-DR);
   cudaMemcpyToSymbol( BXMxz, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( BYMxz, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( BWMxz, &tmpp, sizeof(float));
   tmpp = (-DR);
   cudaMemcpyToSymbol( BXPzx, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( BYPzx, &tmpp, sizeof(float));
-  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( BWPzx, &tmpp, sizeof(float));
   tmpp = (DR);
   cudaMemcpyToSymbol( BXMzx, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD - 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD - 0.5 * DR);
   cudaMemcpyToSymbol( BYMzx, &tmpp, sizeof(float));
-  tmpp = (sqrt3d2 * DD + 0.5 * DR);
+  tmpp = (-sqrt3d2 * DD + 0.5 * DR);
   cudaMemcpyToSymbol( BWMzx, &tmpp, sizeof(float));
 }
 __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
