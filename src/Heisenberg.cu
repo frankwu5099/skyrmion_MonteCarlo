@@ -423,6 +423,7 @@ int main(int argc, char *argv[]){
   fprintf(detailFp, "number of gpu = %d\n", StreamN);
   fprintf(detailFp, "RNG: WarpStandard\n", H_SpinSize);
   fprintf(detailFp, "SpinSize = %d\n", H_SpinSize);
+  fprintf(detailFp, "Thickness = %d\n", H_SpinSize_z);
   fprintf(detailFp, "A = %4.3f\n", H_A);
   fprintf(detailFp, "D_Rashba = %4.3f\n", DR);
   fprintf(detailFp, "D_Dresselhaus = %4.3f\n", DD);
