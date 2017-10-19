@@ -114,8 +114,8 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 	const int typ2 = ty +2 ;
 	//const int ty = 2 * ((blockIdx.x / cals_BN) * cals_SpinSize + ((blockIdx.x % cals_BN) / cals_GridSize_x) * cals_BlockSize_y + y);
 	const int dataoff = (blockIdx.x / cals_BN) * MEASURE_NUM * cals_BN;
-	int bx, by, tx_ty = tx + (ty % cals_SpinSize);
-	float Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, det, div;
+	volatile int bx, by, tx_ty = tx + (ty % cals_SpinSize);
+	volatile float Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, det, div;
 	//-----Calculate the energy of each spin pairs in the system-----
 	//To avoid double counting, for each spin, choose the neighbor spin on the left hand side of each spin and also one above each spin as pairs. Each spin has two pairs.
 

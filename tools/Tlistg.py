@@ -1,6 +1,6 @@
 import math
-total=math.log(2.1/0.2)
-l=80
+total=math.log(2.2/0.2)
+l=200
 #a=2*total/3/(l)
 a=total/(l-1)
 for i in range(l):
