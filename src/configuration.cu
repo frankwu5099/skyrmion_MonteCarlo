@@ -47,10 +47,25 @@ void configuration::initialize (bool order){
     }
   }
   else {
+    /*
     for(int i = 0; i < spins_num; i++){
       Hx[i] = 0;
       Hy[i] = 0;
       Hz[i] = 1;
+    }*/
+    double pi = 3.141592653589793;
+    double th, phi;
+    for(int i_P = 0; i_P < configurations_num; i_P++){
+      for(int iz = 0; iz < H_SpinSize_z; iz++){
+        for(int ix = 0; ix < H_SpinSize; ix++){
+          for(int iy = 0; iy < H_SpinSize; iy++){
+            phi = (ix-0.5*iy) * pi/3.0;
+            Hx[H_N * i_P + H_Nplane * iz + H_SpinSize * iy + ix] = 0;
+            Hy[H_N * i_P + H_Nplane * iz + H_SpinSize * iy + ix] = cos(phi);
+            Hz[H_N * i_P + H_Nplane * iz + H_SpinSize * iy + ix] = sin(phi);
+          }
+        }
+      }
     }
   }
   for (int gpu_i = 0 ; gpu_i < StreamN; gpu_i++){
