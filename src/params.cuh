@@ -74,7 +74,7 @@ extern uniform_01<mt19937> uni01_sampler;
 //#deinfe THIN
 #define TRI
 //#define SQ
-#define ORDER 0
+#define ORDER 1
 
 //control the changing parameter and the parallel parameter
 #define exchangecriterion(i) ((Ms[i + 1] - Ms[i]) * ( Hls[i] - Hls[i + 1]) * invT)  //for parallel on H
