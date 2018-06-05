@@ -49,8 +49,9 @@ class measurements{
     measurements(char* indir, int Parallel_num, unsigned int binSize);
     ~measurements();
     int measurement_num;
-    char names[15][10];
-    double norms[15];
+    char names[16][10];
+    double norms[16];
+    int hist_start;
     int data_num;
     int data_num_s;
     std::vector<measurement> O;

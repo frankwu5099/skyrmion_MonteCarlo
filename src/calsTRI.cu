@@ -345,11 +345,11 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+32];
 	}
 	__syncthreads();
-	if(threadIdx.x < 16){
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+16];
 	}
 	__syncthreads();
@@ -407,11 +407,11 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+32];
 	}
 	__syncthreads();
-	if(threadIdx.x < 16){
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+16];
 	}
 	__syncthreads();
@@ -469,11 +469,11 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+32];
 	}
 	__syncthreads();
-	if(threadIdx.x < 16){
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+16];
 	}
 	__syncthreads();
@@ -531,11 +531,11 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+32];
 	}
 	__syncthreads();
-	if(threadIdx.x < 16){
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+16];
 	}
 	__syncthreads();
@@ -753,11 +753,11 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+32];
 	}
 	__syncthreads();
-	if(threadIdx.x < 16){
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
 		sD[threadIdx.x] += sD[threadIdx.x+16];
 	}
 	__syncthreads();
@@ -781,18 +781,85 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		out[dataoff + (blockIdx.x % cals_BN) + 4*cals_BN] = sD[0];
 	__syncthreads();
 
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confx[cals_coo(z, ty, tx)]     * cosf(Q1x*(tx  ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, tx)]    * cosf(Q1x*(tx  ) + Q1y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, tx)]   * cosf(Q1x*(tx  ) + Q1y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp)]    * cosf(Q1x*(txp ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp)]   * cosf(Q1x*(txp ) + Q1y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp)]  * cosf(Q1x*(txp ) + Q1y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp2)]   * cosf(Q1x*(txp2) + Q1y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp2)]  * cosf(Q1x*(txp2) + Q1y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp2)] * cosf(Q1x*(txp2) + Q1y*(typ2));
-	__syncthreads();
+  //nematic
+	//(0,0)
+  det = 0;
+  div = 0;
+  Cz = 0;
+	z=0;
+	Bx = confx[cals_coo(z, ty, tx)];
+	By = confy[cals_coo(z, ty, tx)];
+	Bz = confz[cals_coo(z, ty, tx)];
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, typ, tx)];
+	By = confy[cals_coo(z, typ, tx)];
+	Bz = confz[cals_coo(z, typ, tx)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, typ2, tx)];
+	By = confy[cals_coo(z, typ2, tx)];
+	Bz = confz[cals_coo(z, typ2, tx)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, ty, txp)];
+	By = confy[cals_coo(z, ty, txp)];
+	Bz = confz[cals_coo(z, ty, txp)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, typ, txp)];
+	By = confy[cals_coo(z, typ, txp)];
+	Bz = confz[cals_coo(z, typ, txp)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, typ2, txp)];
+	By = confy[cals_coo(z, typ2, txp)];
+	Bz = confz[cals_coo(z, typ2, txp)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, ty, txp2)];
+	By = confy[cals_coo(z, ty, txp2)];
+	Bz = confz[cals_coo(z, ty, txp2)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, typ, txp2)];
+	By = confy[cals_coo(z, typ, txp2)];
+	Bz = confz[cals_coo(z, typ, txp2)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
+	Bx = confx[cals_coo(z, typ2, txp2)];
+	By = confy[cals_coo(z, typ2, txp2)];
+	Bz = confz[cals_coo(z, typ2, txp2)];
+  Cx = Ay * Bz - Az * By;
+  Cy = Az * Bx - Ax * Bz;
+	det += Cx * Cx; //mapping det : Mxx
+	div += Cy * Cy; //mapping div : Myy
+  Cz += Cx * Cy; //mapping Cz : Mxy
 
+	sD[threadIdx.x] = det;
+	__syncthreads();
 	//Sum over all elements in each sD
 	if(cals_TN>256){
 		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
@@ -812,14 +879,14 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
+  if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
+    sD[threadIdx.x] += sD[threadIdx.x+32];
+  }
+  __syncthreads();
+  if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
+    sD[threadIdx.x] += sD[threadIdx.x+16];
+  }
+  __syncthreads();
 	if(threadIdx.x < 8){
 		sD[threadIdx.x] += sD[threadIdx.x+8];
 	}
@@ -840,18 +907,9 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		out[dataoff + (blockIdx.x % cals_BN) + 5*cals_BN] = sD[0];
 	__syncthreads();
 
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confy[cals_coo(z, ty, tx)]     * cosf(Q1x*(tx  ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, tx)]    * cosf(Q1x*(tx  ) + Q1y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, tx)]   * cosf(Q1x*(tx  ) + Q1y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp)]    * cosf(Q1x*(txp ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp)]   * cosf(Q1x*(txp ) + Q1y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp)]  * cosf(Q1x*(txp ) + Q1y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp2)]   * cosf(Q1x*(txp2) + Q1y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp2)]  * cosf(Q1x*(txp2) + Q1y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp2)] * cosf(Q1x*(txp2) + Q1y*(typ2));
-	__syncthreads();
 
+	sD[threadIdx.x] = div;
+	__syncthreads();
 	//Sum over all elements in each sD
 	if(cals_TN>256){
 		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
@@ -871,14 +929,14 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
+  if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
+    sD[threadIdx.x] += sD[threadIdx.x+32];
+  }
+  __syncthreads();
+  if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
+    sD[threadIdx.x] += sD[threadIdx.x+16];
+  }
+  __syncthreads();
 	if(threadIdx.x < 8){
 		sD[threadIdx.x] += sD[threadIdx.x+8];
 	}
@@ -899,18 +957,9 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		out[dataoff + (blockIdx.x % cals_BN) + 6*cals_BN] = sD[0];
 	__syncthreads();
 
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confz[cals_coo(z, ty, tx)]     * cosf(Q1x*(tx  ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, tx)]    * cosf(Q1x*(tx  ) + Q1y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, tx)]   * cosf(Q1x*(tx  ) + Q1y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp)]    * cosf(Q1x*(txp ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp)]   * cosf(Q1x*(txp ) + Q1y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp)]  * cosf(Q1x*(txp ) + Q1y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp2)]   * cosf(Q1x*(txp2) + Q1y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp2)]  * cosf(Q1x*(txp2) + Q1y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp2)] * cosf(Q1x*(txp2) + Q1y*(typ2));
-	__syncthreads();
 
+	sD[threadIdx.x] = Cz;
+	__syncthreads();
 	//Sum over all elements in each sD
 	if(cals_TN>256){
 		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
@@ -930,14 +979,14 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		}
 		__syncthreads();
 	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
+  if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
+    sD[threadIdx.x] += sD[threadIdx.x+32];
+  }
+  __syncthreads();
+  if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
+    sD[threadIdx.x] += sD[threadIdx.x+16];
+  }
+  __syncthreads();
 	if(threadIdx.x < 8){
 		sD[threadIdx.x] += sD[threadIdx.x+8];
 	}
@@ -958,535 +1007,5 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		out[dataoff + (blockIdx.x % cals_BN) + 7*cals_BN] = sD[0];
 	__syncthreads();
 
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confx[cals_coo(z, ty, tx)]     * sinf(Q1x*(tx  ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, tx)]    * sinf(Q1x*(tx  ) + Q1y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, tx)]   * sinf(Q1x*(tx  ) + Q1y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp)]    * sinf(Q1x*(txp ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp)]   * sinf(Q1x*(txp ) + Q1y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp)]  * sinf(Q1x*(txp ) + Q1y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp2)]   * sinf(Q1x*(txp2) + Q1y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp2)]  * sinf(Q1x*(txp2) + Q1y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp2)] * sinf(Q1x*(txp2) + Q1y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 8*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confy[cals_coo(z, ty, tx)]     * sinf(Q1x*(tx  ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, tx)]    * sinf(Q1x*(tx  ) + Q1y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, tx)]   * sinf(Q1x*(tx  ) + Q1y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp)]    * sinf(Q1x*(txp ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp)]   * sinf(Q1x*(txp ) + Q1y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp)]  * sinf(Q1x*(txp ) + Q1y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp2)]   * sinf(Q1x*(txp2) + Q1y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp2)]  * sinf(Q1x*(txp2) + Q1y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp2)] * sinf(Q1x*(txp2) + Q1y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 9*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confz[cals_coo(z, ty, tx)]     * sinf(Q1x*(tx  ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, tx)]    * sinf(Q1x*(tx  ) + Q1y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, tx)]   * sinf(Q1x*(tx  ) + Q1y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp)]    * sinf(Q1x*(txp ) + Q1y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp)]   * sinf(Q1x*(txp ) + Q1y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp)]  * sinf(Q1x*(txp ) + Q1y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp2)]   * sinf(Q1x*(txp2) + Q1y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp2)]  * sinf(Q1x*(txp2) + Q1y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp2)] * sinf(Q1x*(txp2) + Q1y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 10*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confx[cals_coo(z, ty, tx)]     * cosf(Q2x*(tx  ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, tx)]    * cosf(Q2x*(tx  ) + Q2y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, tx)]   * cosf(Q2x*(tx  ) + Q2y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp)]    * cosf(Q2x*(txp ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp)]   * cosf(Q2x*(txp ) + Q2y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp)]  * cosf(Q2x*(txp ) + Q2y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp2)]   * cosf(Q2x*(txp2) + Q2y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp2)]  * cosf(Q2x*(txp2) + Q2y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp2)] * cosf(Q2x*(txp2) + Q2y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 11*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confy[cals_coo(z, ty, tx)]     * cosf(Q2x*(tx  ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, tx)]    * cosf(Q2x*(tx  ) + Q2y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, tx)]   * cosf(Q2x*(tx  ) + Q2y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp)]    * cosf(Q2x*(txp ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp)]   * cosf(Q2x*(txp ) + Q2y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp)]  * cosf(Q2x*(txp ) + Q2y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp2)]   * cosf(Q2x*(txp2) + Q2y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp2)]  * cosf(Q2x*(txp2) + Q2y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp2)] * cosf(Q2x*(txp2) + Q2y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 12*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confz[cals_coo(z, ty, tx)]     * cosf(Q2x*(tx  ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, tx)]    * cosf(Q2x*(tx  ) + Q2y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, tx)]   * cosf(Q2x*(tx  ) + Q2y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp)]    * cosf(Q2x*(txp ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp)]   * cosf(Q2x*(txp ) + Q2y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp)]  * cosf(Q2x*(txp ) + Q2y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp2)]   * cosf(Q2x*(txp2) + Q2y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp2)]  * cosf(Q2x*(txp2) + Q2y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp2)] * cosf(Q2x*(txp2) + Q2y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 13*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confx[cals_coo(z, ty, tx)]     * sinf(Q2x*(tx  ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, tx)]    * sinf(Q2x*(tx  ) + Q2y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, tx)]   * sinf(Q2x*(tx  ) + Q2y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp)]    * sinf(Q2x*(txp ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp)]   * sinf(Q2x*(txp ) + Q2y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp)]  * sinf(Q2x*(txp ) + Q2y*(typ2));
-	sD[threadIdx.x] += confx[cals_coo(z, ty, txp2)]   * sinf(Q2x*(txp2) + Q2y*(ty  ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ, txp2)]  * sinf(Q2x*(txp2) + Q2y*(typ ));
-	sD[threadIdx.x] += confx[cals_coo(z, typ2, txp2)] * sinf(Q2x*(txp2) + Q2y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 14*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confy[cals_coo(z, ty, tx)]     * sinf(Q2x*(tx  ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, tx)]    * sinf(Q2x*(tx  ) + Q2y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, tx)]   * sinf(Q2x*(tx  ) + Q2y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp)]    * sinf(Q2x*(txp ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp)]   * sinf(Q2x*(txp ) + Q2y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp)]  * sinf(Q2x*(txp ) + Q2y*(typ2));
-	sD[threadIdx.x] += confy[cals_coo(z, ty, txp2)]   * sinf(Q2x*(txp2) + Q2y*(ty  ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ, txp2)]  * sinf(Q2x*(txp2) + Q2y*(typ ));
-	sD[threadIdx.x] += confy[cals_coo(z, typ2, txp2)] * sinf(Q2x*(txp2) + Q2y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 15*cals_BN] = sD[0];
-	__syncthreads();
-
-	//Sum over the magnetic moments in x direction of the eight spins on each thread cubic and store the result of each thread cubic in sD.
-	sD[threadIdx.x]  = confz[cals_coo(z, ty, tx)]     * sinf(Q2x*(tx  ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, tx)]    * sinf(Q2x*(tx  ) + Q2y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, tx)]   * sinf(Q2x*(tx  ) + Q2y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp)]    * sinf(Q2x*(txp ) + Q2y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp)]   * sinf(Q2x*(txp ) + Q2y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp)]  * sinf(Q2x*(txp ) + Q2y*(typ2));
-	sD[threadIdx.x] += confz[cals_coo(z, ty, txp2)]   * sinf(Q2x*(txp2) + Q2y*(ty  ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ, txp2)]  * sinf(Q2x*(txp2) + Q2y*(typ ));
-	sD[threadIdx.x] += confz[cals_coo(z, typ2, txp2)] * sinf(Q2x*(txp2) + Q2y*(typ2));
-	__syncthreads();
-
-	//Sum over all elements in each sD
-	if(cals_TN>256){
-		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+256];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>128){
-		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+128];
-		}
-		__syncthreads();
-	}
-	if(cals_TN>64){
-		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
-			sD[threadIdx.x] += sD[threadIdx.x+64];
-		}
-		__syncthreads();
-	}
-	if(threadIdx.x < 32){
-		sD[threadIdx.x] += sD[threadIdx.x+32];
-	}
-	__syncthreads();
-	if(threadIdx.x < 16){
-		sD[threadIdx.x] += sD[threadIdx.x+16];
-	}
-	__syncthreads();
-	if(threadIdx.x < 8){
-		sD[threadIdx.x] += sD[threadIdx.x+8];
-	}
-	__syncthreads();
-	if(threadIdx.x < 4){
-		sD[threadIdx.x] += sD[threadIdx.x+4];
-	}
-	__syncthreads();
-	if(threadIdx.x < 2){
-		sD[threadIdx.x] += sD[threadIdx.x+2];
-	}
-	__syncthreads();
-	if(threadIdx.x < 1){
-		sD[threadIdx.x] += sD[threadIdx.x+1];
-	}
-	__syncthreads();
-	if(threadIdx.x == 0)
-		out[dataoff + (blockIdx.x % cals_BN) + 16*cals_BN] = sD[0];
-	__syncthreads();
 }
 #endif

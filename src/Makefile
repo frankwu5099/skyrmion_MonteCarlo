@@ -1,4 +1,4 @@
-###############################################################################
+################################################################################
 #
 # Copyright 1993-2013 NVIDIA Corporation.  All rights reserved.
 #
@@ -183,12 +183,12 @@ endif
 
 #OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o corrTRI_sk.o flip2D.o flipTRI.o measurements.o measurements_sk.o WarpStandard.o read_params.o
 #DEPS= Heisenberg_sk.cu read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu corrTRI_sk.cu flip2D.cu flipTRI.cu measurements.cu measurements_sk.cu WarpStandard.cu
-OBJS= Heisenberg.o cals2D.o calsTRI.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o flipTRI.o measurements.o WarpStandard.o read_params.o
-DEPS= Heisenberg.cu read_params.cu cals2D.cu calsTRI.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu flipTRI.cu measurements.cu WarpStandard.cu
+OBJS= Heisenberg.o cals2D.o calsTRI_crossing.o corrthin.o flipthin.o calsthin.o configuration.o corr2D.o corrTRI.o flip2D.o measurements.o WarpStandard.o read_params.o flipTRI_heatbath_curand.o MTGP32.so
+DEPS= Heisenberg.cu read_params.cu cals2D.cu calsTRI_crossing.cu corrthin.cu extend.cu flipthin.cu calsthin.cu configuration.cu corr2D.cu corrTRI.cu flip2D.cu measurements.cu WarpStandard.cu flipTRI_heatbath_curand.cu
 # Target rules
 all: build
 
-build: ../simulation_TRIspin_20_debug_thin
+build: ../simulation_TRIspin_20_debug_thin_heatbath_curand_crossing
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -200,7 +200,7 @@ endif
 %.o:%.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-../simulation_TRIspin_20_debug_thin: ${OBJS}
+../simulation_TRIspin_20_debug_thin_heatbath_curand_crossing: ${OBJS}
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))

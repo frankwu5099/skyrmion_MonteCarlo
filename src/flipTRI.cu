@@ -105,7 +105,7 @@ void move_params_device_flip(){
   tmpp = (DD);
   cudaMemcpyToSymbol( BZMyx, &tmpp, sizeof(float));
 }
-__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
+__global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs, curandStateMtgp32 *state){
   //Energy variables
   extern __shared__ unsigned rngShmem[];
   //__shared__ unsigned rngShmem[1024];
@@ -148,16 +148,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, j+1, i)] + BWPzz * confz[flip_coo(k, j+1, i+1)] + BXMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, ib)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -184,16 +184,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, j+1, i)] + BWPzz * confz[flip_coo(k, j+1, i+1)] + BXMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, ib)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -222,16 +222,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 		 + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, j+1, i)] + BWPzz * confz[flip_coo(k, j+1, i+1)] + BXMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, ib)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
 	du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-	r = WarpStandard_Generate(rngRegs, rngShmem);
+	r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 	sz = r * NORM - 1;
 	th = asin( sz );
-	r = WarpStandard_Generate(rngRegs, rngShmem);
+	r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 	phi = r*TOPI;
 	sz = sin( th );
 	sx = cos( th ) * cos( phi );
 	sy = cos( th ) * sin( phi );
 	du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-	r = WarpStandard_Generate(rngRegs, rngShmem);
+	r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 	if(du >= 0){
 		confx[flip_coo(k, j, i)] = sx;
 		confy[flip_coo(k, j, i)] = sy;
@@ -269,16 +269,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -305,16 +305,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -343,16 +343,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -390,16 +390,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -427,16 +427,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -466,16 +466,16 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -495,7 +495,7 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, unsigned int
 
 
 
-__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
+__global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs, curandStateMtgp32 *state){
   //Energy variables
   //__shared__ unsigned rngShmem[1024];
   extern __shared__ unsigned rngShmem[];
@@ -539,16 +539,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -576,16 +576,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -615,16 +615,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -663,16 +663,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -700,16 +700,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -739,16 +739,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -786,16 +786,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -823,16 +823,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -862,16 +862,16 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -890,7 +890,7 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, unsigned int
 }
 
 
-__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs){
+__global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int *rngState, float* Hs, float* invTs, curandStateMtgp32 *state){
   //Energy variables
   //__shared__ unsigned rngShmem[1024];
   extern __shared__ unsigned rngShmem[];
@@ -934,16 +934,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -971,16 +971,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -1010,16 +1010,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -1058,16 +1058,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -1095,16 +1095,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -1134,16 +1134,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = - confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -1181,16 +1181,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZPzz * confz[flip_coo(k+1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;
@@ -1218,16 +1218,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
 			 + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 			 + BZPzz * confz[flip_coo(k+1, j, i)] + BZMzz * confz[flip_coo(k-1, j, i)];
 		du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		sz = r * NORM - 1;
 		th = asin( sz );
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		phi = r*TOPI;
 		sz = sin( th );
 		sx = cos( th ) * cos( phi );
 		sy = cos( th ) * sin( phi );
 		du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-		r = WarpStandard_Generate(rngRegs, rngShmem);
+		r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
 		if(du >= 0){
 			confx[flip_coo(k, j, i)] = sx;
 			confy[flip_coo(k, j, i)] = sy;
@@ -1257,16 +1257,16 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, unsigned int
      + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
 		 + BZMzz * confz[flip_coo(k-1, j, i)];
   du = -confx[flip_coo(k, j, i)] * hx - confy[flip_coo(k, j, i)] * hy - confz[flip_coo(k, j, i)] * hz + flip_A * confz[flip_coo(k, j, i)] * confz[flip_coo(k, j, i)];
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   sz = r * NORM - 1;
   th = asin( sz );
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   sz = sin( th );
   sx = cos( th ) * cos( phi );
   sy = cos( th ) * sin( phi );
   du += sx * hx + sy * hy + sz * hz - flip_A * sz * sz;
-  r = WarpStandard_Generate(rngRegs, rngShmem);
+  r = curand(&state[blockIdx.x]);//WarpStandard_Generate(rngRegs, rngShmem);
   if(du >= 0){
     confx[flip_coo(k, j, i)] = sx;
     confy[flip_coo(k, j, i)] = sy;

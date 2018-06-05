@@ -2,7 +2,7 @@
 
 
 measurements::measurements(char * indir, int Parallel_num, unsigned int binSize){
-  measurement_num = 15;
+  measurement_num = 16;
   //raw_memmory = operator new[] (measurement_num * sizeof(measurement));
   strcpy(names[0], "E");
   strcpy(names[1], "M");
@@ -15,10 +15,11 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   strcpy(names[8], "Mz4");
   strcpy(names[9], "Chern2");
   strcpy(names[10], "Chern4");
-  strcpy(names[11], "SQ1");
-  strcpy(names[12], "SQ2");
+  strcpy(names[11], "Nematic2");
+  strcpy(names[12], "Nematic4");
   strcpy(names[13], "Mz");
   strcpy(names[14], "EMz");
+  strcpy(names[15], "Nematic");
   norms[0] = double(binSize) * H_N;
   norms[1] = double(binSize) * H_N;
   norms[2] = double(binSize) * 2;
@@ -31,9 +32,10 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   norms[9] = double(binSize) * H_N * H_N * 2 * 2;
   norms[10] = double(binSize) * H_N * H_N * H_N * H_N * 2 * 2 * 2 * 2;
   norms[11] = double(binSize) * H_N * H_N;
-  norms[12] = double(binSize) * H_N * H_N;
+  norms[12] = double(binSize) * H_N * H_N * H_N * H_N;
   norms[13] = double(binSize) * H_N;
   norms[14] = double(binSize) * H_N * H_N;
+  norms[15] = double(binSize) * H_N;
   O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
     O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
@@ -52,6 +54,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   }
   EHistogram = (unsigned int*) calloc(Parallel_num * Slice_NUM, sizeof(unsigned int));
   ChernHistogram = (unsigned int*) calloc(Parallel_num * Slice_CNUM, sizeof(unsigned int));
+  hist_start = 0;
 }
 
 
@@ -111,8 +114,9 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
   static int raw_off;
   static double E, E2;
   static double Mx, My, Mz, Chern, M2, Mz2, Chern2;
-  static double spinQ1x_r, spinQ1y_r, spinQ1z_r, spinQ1x_i, spinQ1y_i, spinQ1z_i;
-  static double spinQ2x_r, spinQ2y_r, spinQ2z_r, spinQ2x_i, spinQ2y_i, spinQ2z_i;
+  static double Mxx, Myy, Mxy, eta;
+  //static double spinQ1x_r, spinQ1y_r, spinQ1z_r, spinQ1x_i, spinQ1y_i, spinQ1z_i;
+  //static double spinQ2x_r, spinQ2y_r, spinQ2z_r, spinQ2x_i, spinQ2y_i, spinQ2z_i;
   int gpu_i;
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
@@ -133,10 +137,13 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     raw_off = t * MEASURE_NUM * H_BN;
     E = 0, E2 = 0;
     Mx = 0, My = 0, Mz = 0, Chern = 0;
+    Mxx = 0, Myy = 0, Mxy = 0;
+    /*
     spinQ1x_r = 0, spinQ1y_r = 0, spinQ1z_r = 0;
     spinQ1x_i = 0, spinQ1y_i = 0, spinQ1z_i = 0;
     spinQ2x_r = 0, spinQ2y_r = 0, spinQ2z_r = 0;
     spinQ2x_i = 0, spinQ2y_i = 0, spinQ2z_i = 0;
+    */
     for(int j = 0; j < H_BN; j++)
       E += Hout[raw_off + j];
     for(int j = H_BN; j < 2 * H_BN; j++)
@@ -147,6 +154,13 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
       Mz += Hout[raw_off + j];
     for(int j = 4 * H_BN; j < 5 * H_BN; j++)
       Chern += Hout[raw_off + j];
+    for(int j = 5 * H_BN; j < 6 * H_BN; j++)
+      Mxx += Hout[raw_off + j];
+    for(int j = 6 * H_BN; j < 7 * H_BN; j++)
+      Myy += Hout[raw_off + j];
+    for(int j = 7 * H_BN; j < 8 * H_BN; j++)
+      Mxy += Hout[raw_off + j];
+    /*
     for(int j = 5 * H_BN; j < 6 * H_BN; j++)
       spinQ1x_r += Hout[raw_off + j];
     for(int j = 6 * H_BN; j < 7 * H_BN; j++)
@@ -171,6 +185,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
       spinQ2y_i += Hout[raw_off + j];
     for(int j = 16 * H_BN; j < 17 * H_BN; j++)
       spinQ2z_i += Hout[raw_off + j];
+    */
     Ms[Ho[t]] = Mz;	//Es is the energies in order of temperature set
     E = E - HHs[t] * Mz;
     Es[Ho[t]] = E;	//Es is the energies in order of temperature set
@@ -179,6 +194,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     Mz2 = Mz * Mz;
     Chern2 = Chern * Chern;
     E2 = E * E;
+    eta = sqrt(Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy);
     O[1].outdata[Ho[t]] += sqrt(M2);
     O[2].outdata[Ho[t]] += Chern;
     O[3].outdata[Ho[t]] += E2;
@@ -189,15 +205,22 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     O[8].outdata[Ho[t]] += Mz2 * Mz2;
     O[9].outdata[Ho[t]] += Chern2;
     O[10].outdata[Ho[t]] += Chern2 * Chern2;
-    O[11].outdata[Ho[t]] += spinQ1x_r * spinQ1x_r + spinQ1y_r * spinQ1y_r + spinQ1z_r * spinQ1z_r\
+    //close the output of spinQ
+    //O[11].outdata[Ho[t]] += spinQ1x_r * spinQ1x_r + spinQ1y_r * spinQ1y_r + spinQ1z_r * spinQ1z_r\
 			    + spinQ1x_i * spinQ1x_i + spinQ1y_i * spinQ1y_i + spinQ1z_i * spinQ1z_i;
-    O[12].outdata[Ho[t]] += spinQ2x_r * spinQ2x_r + spinQ2y_r * spinQ2y_r + spinQ2z_r * spinQ2z_r\
+    //O[12].outdata[Ho[t]] += spinQ2x_r * spinQ2x_r + spinQ2y_r * spinQ2y_r + spinQ2z_r * spinQ2z_r\
 			    + spinQ2x_i * spinQ2x_i + spinQ2y_i * spinQ2y_i + spinQ2z_i * spinQ2z_i;
     O[13].outdata[Ho[t]] += Mz;
     O[14].outdata[Ho[t]] += E*Mz;
+    O[15].outdata[Ho[t]] += eta;
+    O[11].outdata[Ho[t]] += (Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy);
+    O[12].outdata[Ho[t]] += (Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy)*(Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy);
     E /= H_N;
-    if ((E<E_highest)&&(E>E_lowest)) EHistogram[Ho[t]*Slice_NUM+int(Slice_NUM*((E-E_lowest)/(E_highest-E_lowest)))] +=1;
-    if ((-Chern<Chern_highest)&&(-Chern>Chern_lowest)) ChernHistogram[Ho[t]*Slice_CNUM+int(Slice_CNUM*((-Chern-Chern_lowest)/(Chern_highest-Chern_lowest)))] +=1;
+    eta /= H_N;
+    if (hist_start > 0){
+      if ((E<E_highest)&&(E>E_lowest)) EHistogram[Ho[t]*Slice_NUM+int(Slice_NUM*((E-E_lowest)/(E_highest-E_lowest)))] +=1;
+      if ((eta<Chern_highest)&&(eta>Chern_lowest)) ChernHistogram[Ho[t]*Slice_CNUM+int(Slice_CNUM*((eta-Chern_lowest)/(Chern_highest-Chern_lowest)))] +=1;
+    }
   }
 }
 

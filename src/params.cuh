@@ -11,7 +11,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
-#include <helper_timer.h>
+#include "helper_timer.h"
 #include "WarpStandard.cuh"
 #include <time.h>
 #include <boost/random/mersenne_twister.hpp>
@@ -20,12 +20,12 @@
 
 //==================== cuda error checker ====================
 #define CUDA_ERROR_CHECK
-#define E_lowest float(-6.8)
-#define E_highest float(-2.2)
-#define Chern_lowest float(-10.5*4.0*3.1415926536)
-#define Chern_highest float(89.5*4.0*3.1415926536)
+#define E_lowest float(-4.8)
+#define E_highest float(-3.5)
+#define Chern_lowest float(0.0)//(-10.5*4.0*3.1415926536)
+#define Chern_highest float(1.0) //(89.5*4.0*3.1415926536)
 #define Slice_NUM int(1200)
-#define Slice_CNUM int(100)
+#define Slice_CNUM int(1200)
 
 #define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )
 #define CudaCheckError()    __cudaCheckError( __FILE__, __LINE__ )
@@ -74,7 +74,7 @@ extern uniform_01<mt19937> uni01_sampler;
 //#deinfe THIN
 #define TRI
 //#define SQ
-#define ORDER 1
+#define ORDER 0
 
 //control the changing parameter and the parallel parameter
 #define exchangecriterion(i) ((Ms[i + 1] - Ms[i]) * ( Hls[i] - Hls[i + 1]) * invT)  //for parallel on H
@@ -229,7 +229,7 @@ extern uniform_01<mt19937> uni01_sampler;
 
 #endif
 
-#define MEASURE_NUM 17
+#define MEASURE_NUM 10
 
 
 
@@ -254,9 +254,9 @@ extern uniform_01<mt19937> uni01_sampler;
 #define GETCORR(confx, confy, confz, corr, i, j,stream_i) getcorrTRI<<<grid, block,0,stream_i>>>(confx, confy, confz, corr, i, j);
 #define GETCORR_SK(skyr_den, corr, i, j ,stream_i) getcorrTRI<<<grid, block,0,stream_i>>>(skyr_den, corr, i, j);
 #define GETSKYRDEN(confx, confy, confz, skyr_den, stream_i) skyr_den_gen<<<grid, block, 0, stream_i>>>(confx, confy, confz, skyr_den);
-#define SSF1(confx, confy, confz, rng, hs, invTs, stream_i) {  flip1_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
-#define SSF2(confx, confy, confz, rng, hs, invTs, stream_i) {  flip2_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
-#define SSF3(confx, confy, confz, rng, hs, invTs, stream_i) {  flip3_TRI<<<grid, block, rngShmemsize, stream_i>>>(confx, confy, confz, rng, hs, invTs);CudaCheckError();}
+#define SSF1(confx, confy, confz, hs, invTs, stream_i) {  flip1_TRI<<<grid, block,0 , stream_i>>>(confx, confy, confz, hs, invTs, devStates);CudaCheckError();}
+#define SSF2(confx, confy, confz, hs, invTs, stream_i) {  flip2_TRI<<<grid, block,0 , stream_i>>>(confx, confy, confz, hs, invTs, devStates);CudaCheckError();}
+#define SSF3(confx, confy, confz, hs, invTs, stream_i) {  flip3_TRI<<<grid, block,0 , stream_i>>>(confx, confy, confz, hs, invTs, devStates);CudaCheckError();}
 //#define SSF(confx, confy, confz, rng, hs, invT) {  flip1_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip2_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();\
 //  flip3_TRI<<<grid, block>>>(confx, confy, confz, rng, hs, invT);CudaCheckError();}

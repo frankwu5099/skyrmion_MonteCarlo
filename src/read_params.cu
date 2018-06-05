@@ -51,7 +51,7 @@ void read_params(char* param_file){
     printf("read size error");
     exit(0);
   }
-  if (H_SpinSize % 24 != 0){
+  if (H_SpinSize % 3 != 0){
     fprintf(stderr, "Please give a legal Size or revise cals.cu.\n");
     exit(0);
   }
@@ -72,8 +72,10 @@ void read_params(char* param_file){
 #ifdef TRI
   H_BlockSize_x = H_SpinSize / 3;
   H_BlockSize_y = H_SpinSize / 3;
-  H_BlockSize_x = (H_BlockSize_x > 32)?(H_BlockSize_x/2):H_BlockSize_x;
-  H_BlockSize_y = (H_BlockSize_y > 16)?(H_BlockSize_y/2):H_BlockSize_y;
+  for (int tmpi = 0 ; tmpi < 10;tmpi++){
+    H_BlockSize_x = (H_BlockSize_x > 16)?(H_BlockSize_x/2):H_BlockSize_x;
+    H_BlockSize_y = (H_BlockSize_y > 16)?(H_BlockSize_y/2):H_BlockSize_y;
+  }
   H_GridSize_x = H_SpinSize / H_BlockSize_x / 3;
   H_GridSize_y = H_SpinSize / H_BlockSize_y / 3;
 #endif
@@ -93,7 +95,7 @@ void read_params(char* param_file){
   printf("%d\n", block);
   fflush(stdout);
   caloutputsize = block * sizeof(double);
-  rngShmemsize = block * 4 * sizeof(unsigned);
+  rngShmemsize = block * 8 * sizeof(unsigned);
 
   readidx = fscanf(paramfp, "%s %f", tmp, &H_A);
   if ((readidx == -1)||(strcmp(tmp,"A")!=0)){
