@@ -156,7 +156,7 @@ ifeq ($(OS_ARCH),armv7l)
 SMS ?= 20 30 32 35 37 50
 else
 #SMS ?= 11 20 30 35 37 50
-SMS ?=   35  # Change according to your GPU hardware specs
+SMS ?=   50  # Change according to your GPU hardware specs
 endif
 
 ifeq ($(SMS),)

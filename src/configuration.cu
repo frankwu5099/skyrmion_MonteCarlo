@@ -100,13 +100,17 @@ void configuration::Dominatestateback(int hostid, int deviceid){
   //cudaFree(Dcorr);
 }
 void configuration::writedata(){
-	f_index += 1;
-  write(Confxfd, Hx, Spin_mem_size);
-  write(Confyfd, Hy, Spin_mem_size);
-  write(Confzfd, Hz, Spin_mem_size);
+  if (f_index > 30){
+    for (int i = 0; i < configurations_num; i+=2){
+            write(Confzfd, Hz+(i*H_N), H_N * sizeof(float));
+            write(Confyfd, Hy+(i*H_N), H_N * sizeof(float));
+            write(Confxfd, Hx+(i*H_N), H_N * sizeof(float));
+    }
+  }
   close(Confxfd);
   close(Confyfd);
   close(Confzfd);
+  f_index += 1;
   sprintf(Confxfn, "%s/Confx_%d", dirfn, f_index);
   sprintf(Confyfn, "%s/Confy_%d", dirfn, f_index);
   sprintf(Confzfn, "%s/Confz_%d", dirfn, f_index);

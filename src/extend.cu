@@ -26,7 +26,7 @@ int setDev(){
       }
       if(device==num_devices-1){
         printf("%s\n","ERROR! no avalible device now!");
-        flag=-1;
+        flag = device;
       }
     }
   }

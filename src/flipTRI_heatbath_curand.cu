@@ -192,6 +192,11 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
   for (k = 1;k < flip_SpinSize_z - 1; k++){//middle layers
@@ -225,6 +230,11 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, i+1)] + BYPzy * confy[flip_coo(k, j+1, i)] + BWPzy * confy[flip_coo(k, j+1, i+1)] + BXMzy * confy[flip_coo(k, j, ib)] + BYMzy * confy[flip_coo(k, jb, i)] + BWMzy * confy[flip_coo(k, jb, ib)]\
        + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, j+1, i)] + BWPzz * confz[flip_coo(k, j+1, i+1)] + BXMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, ib)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -254,6 +264,11 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
   for (k = 1;k < flip_SpinSize_z - 1; k++){//middle layers
@@ -287,6 +302,11 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, ib)] + BYPzy * confy[flip_coo(k, jb, i)] + BWPzy * confy[flip_coo(k, jb, ib)] + BXMzy * confy[flip_coo(k, j, i-1)] + BYMzy * confy[flip_coo(k, j-1, i)] + BWMzy * confy[flip_coo(k, j-1, i-1)]\
        + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -316,6 +336,11 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -350,6 +375,11 @@ __global__ void flip1_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, ib)] + BYPzy * confy[flip_coo(k, jb, i)] + BWPzy * confy[flip_coo(k, jb, ib)] + BXMzy * confy[flip_coo(k, j, i-1)] + BYMzy * confy[flip_coo(k, j-1, i)] + BWMzy * confy[flip_coo(k, j-1, i-1)]\
        + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -399,6 +429,11 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -434,6 +469,11 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, i+1)] + BYPzy * confy[flip_coo(k, jb, i)] + BWPzy * confy[flip_coo(k, jb, i+1)] + BXMzy * confy[flip_coo(k, j, ib)] + BYMzy * confy[flip_coo(k, (j-1), i)] + BWMzy * confy[flip_coo(k, (j-1), ib)]\
        + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -464,6 +504,11 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -499,6 +544,11 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, ib)] + BYPzy * confy[flip_coo(k, (j+1), i)] + BWPzy * confy[flip_coo(k, (j+1), ib)] + BXMzy * confy[flip_coo(k, j, i-1)] + BYMzy * confy[flip_coo(k, jb, i)] + BWMzy * confy[flip_coo(k, jb, i-1)]\
        + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -528,6 +578,11 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -563,6 +618,11 @@ __global__ void flip2_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, ib)] + BYPzy * confy[flip_coo(k, jb, i)] + BWPzy * confy[flip_coo(k, jb, ib)] + BXMzy * confy[flip_coo(k, j, i-1)] + BYMzy * confy[flip_coo(k, j-1, i)] + BWMzy * confy[flip_coo(k, j-1, i-1)]\
        + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -611,6 +671,11 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -646,6 +711,11 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, i+1)] + BYPzy * confy[flip_coo(k, jb, i)] + BWPzy * confy[flip_coo(k, jb, i+1)] + BXMzy * confy[flip_coo(k, j, ib)] + BYMzy * confy[flip_coo(k, (j-1), i)] + BWMzy * confy[flip_coo(k, (j-1), ib)]\
        + BXPzz * confz[flip_coo(k, j, i+1)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, i+1)] + BWMzz * confz[flip_coo(k, j, ib)] + BYMzz * confz[flip_coo(k, (j-1), i)] + BWMzz * confz[flip_coo(k, (j-1), ib)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -676,6 +746,11 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -711,6 +786,11 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, ib)] + BYPzy * confy[flip_coo(k, (j+1), i)] + BWPzy * confy[flip_coo(k, (j+1), ib)] + BXMzy * confy[flip_coo(k, j, i-1)] + BYMzy * confy[flip_coo(k, jb, i)] + BWMzy * confy[flip_coo(k, jb, i-1)]\
        + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, (j+1), i)] + BWPzz * confz[flip_coo(k, (j+1), ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, jb, i)] + BWMzz * confz[flip_coo(k, jb, i-1)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }
@@ -740,6 +820,11 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, float* Hs, f
     hy += BZPyx * confx[flip_coo(k+1, j, i)] + BZPyy * confy[flip_coo(k+1, j, i)];
     hz += BZPzz * confz[flip_coo(k+1, j, i)];
   }
+#ifdef ZPERIODIC
+    hx += BZMxy * confy[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMxx * confx[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hy += BZMyx * confx[flip_coo(flip_SpinSize_z - 1, j, i)] + BZMyy * confy[flip_coo(flip_SpinSize_z - 1, j, i)];
+    hz += BZMzz * confz[flip_coo(flip_SpinSize_z - 1, j, i)];
+#endif
   single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
   __syncthreads();
 
@@ -775,6 +860,11 @@ __global__ void flip3_TRI(float *confx, float *confy, float *confz, float* Hs, f
        + BXPzy * confy[flip_coo(k, j, ib)] + BYPzy * confy[flip_coo(k, jb, i)] + BWPzy * confy[flip_coo(k, jb, ib)] + BXMzy * confy[flip_coo(k, j, i-1)] + BYMzy * confy[flip_coo(k, j-1, i)] + BWMzy * confy[flip_coo(k, j-1, i-1)]\
        + BXPzz * confz[flip_coo(k, j, ib)] + BYPzz * confz[flip_coo(k, jb, i)] + BWPzz * confz[flip_coo(k, jb, ib)] + BXMzz * confz[flip_coo(k, j, i-1)] + BYMzz * confz[flip_coo(k, j-1, i)] + BWMzz * confz[flip_coo(k, j-1, i-1)] + H\
        + BZMzz * confz[flip_coo(k-1, j, i)];
+#ifdef ZPERIODIC
+    hx += BZPxy * confy[flip_coo(0, j, i)] + BZPxx * confx[flip_coo(0, j, i)];
+    hy += BZPyx * confx[flip_coo(0, j, i)] + BZPyy * confy[flip_coo(0, j, i)];
+    hz += BZPzz * confz[flip_coo(0, j, i)];
+#endif
     single_update(invT, hx, hy, hz, confx[flip_coo(k, j, i)], confy[flip_coo(k, j, i)], confz[flip_coo(k, j, i)], localState);
     __syncthreads();
   }

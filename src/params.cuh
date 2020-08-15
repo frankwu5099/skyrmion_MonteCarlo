@@ -73,6 +73,7 @@ extern mt19937 rng;
 extern uniform_01<mt19937> uni01_sampler;
 //#deinfe THIN
 #define TRI
+//#define ZPERIODIC
 //#define SQ
 #define ORDER 0
 

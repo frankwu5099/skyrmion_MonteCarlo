@@ -231,6 +231,61 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		         +confz[cals_coo(z, typ2, txp2)] * ( cBXMzx * confx[cals_coo(z, typ2, txp)] + cBYMzx * confx[cals_coo(z, typ, txp2)] + cBWMzx * confx[cals_coo(z, typ, txp)])\
 		         +confz[cals_coo(z, typ2, txp2)] * ( cBXMzy * confy[cals_coo(z, typ2, txp)] + cBYMzy * confy[cals_coo(z, typ, txp2)] + cBWMzy * confy[cals_coo(z, typ, txp)])\
 		         +confz[cals_coo(z, typ2, txp2)] * ( BXMzz * confz[cals_coo(z, typ2, txp)] + BYMzz * confz[cals_coo(z, typ, txp2)] + BWMzz * confz[cals_coo(z, typ, txp)] - cals_A * confz[cals_coo(z, typ2, txp2)]);
+#ifdef ZPERIODIC
+	sD[threadIdx.x] += -confx[cals_coo(z, ty, tx)] * (BZMxx * confx[cals_coo(cals_SpinSize_z-1, ty, tx)])\
+	           -confx[cals_coo(z, ty, tx)] * (cBZMxy * confy[cals_coo(cals_SpinSize_z-1, ty, tx)])\
+		         -confy[cals_coo(z, ty, tx)] * (cBZMyx * confx[cals_coo(cals_SpinSize_z-1, ty, tx)])\
+		         -confy[cals_coo(z, ty, tx)] * (BZMyy * confy[cals_coo(cals_SpinSize_z-1, ty, tx)])\
+		         -confz[cals_coo(z, ty, tx)] * (BZMzz * confz[cals_coo(cals_SpinSize_z-1, ty, tx)]);
+	//1,0
+	sD[threadIdx.x] -= confx[cals_coo(z, typ, tx)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, typ, tx)])\
+		         +confx[cals_coo(z, typ, tx)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, typ, tx)])\
+		         +confy[cals_coo(z, typ, tx)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, typ, tx)])\
+		         +confy[cals_coo(z, typ, tx)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, typ, tx)])\
+		         +confz[cals_coo(z, typ, tx)] * (BZMzz * confz[cals_coo(cals_SpinSize_z-1, typ, tx)]);
+	//2,0
+	sD[threadIdx.x] -= confx[cals_coo(z, typ2, tx)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, typ2, tx)])\
+		         +confx[cals_coo(z, typ2, tx)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, typ2, tx)])\
+		         +confy[cals_coo(z, typ2, tx)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, typ2, tx)])\
+		         +confy[cals_coo(z, typ2, tx)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, typ2, tx)])\
+		         +confz[cals_coo(z, typ2, tx)] * ( BZMzz * confz[cals_coo(cals_SpinSize_z-1, typ2, tx)]);
+	//0,1
+	sD[threadIdx.x] -= confx[cals_coo(z, ty, txp)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, ty, txp)])\
+		         +confx[cals_coo(z, ty, txp)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, ty, txp)])\
+		         +confy[cals_coo(z, ty, txp)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, ty, txp)])\
+		         +confy[cals_coo(z, ty, txp)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, ty, txp)])\
+		         +confz[cals_coo(z, ty, txp)] * ( BZMzz * confz[cals_coo(cals_SpinSize_z-1, ty, txp)]);
+	//1,1
+	sD[threadIdx.x] -= confx[cals_coo(z, typ, txp)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, typ, txp)])\
+		         +confx[cals_coo(z, typ, txp)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, typ, txp)])\
+		         +confy[cals_coo(z, typ, txp)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, typ, txp)])\
+		         +confy[cals_coo(z, typ, txp)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, typ, txp)])\
+		         +confz[cals_coo(z, typ, txp)] * ( BZMzz * confz[cals_coo(cals_SpinSize_z-1, typ, txp)]);
+	//2,1
+	sD[threadIdx.x] -= confx[cals_coo(z, typ2, txp)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, typ2, txp)])\
+		         +confx[cals_coo(z, typ2, txp)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, typ2, txp)])\
+		         +confy[cals_coo(z, typ2, txp)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, typ2, txp)])\
+		         +confy[cals_coo(z, typ2, txp)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, typ2, txp)])\
+		         +confz[cals_coo(z, typ2, txp)] * ( BZMzz * confz[cals_coo(cals_SpinSize_z-1, typ2, txp)]);
+	//0,2
+	sD[threadIdx.x] -= confx[cals_coo(z, ty, txp2)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, ty, txp2)])\
+		         +confx[cals_coo(z, ty, txp2)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, ty, txp2)])\
+		         +confy[cals_coo(z, ty, txp2)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, ty, txp2)])\
+		         +confy[cals_coo(z, ty, txp2)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, ty, txp2)])\
+		         +confz[cals_coo(z, ty, txp2)] * ( BZMzz * confz[cals_coo(cals_SpinSize_z-1, ty, txp2)]);
+	//1,2
+	sD[threadIdx.x] -= confx[cals_coo(z, typ, txp2)] * ( BZMxx * confx[cals_coo(cals_SpinSize_z-1, typ, txp2)])\
+		         +confx[cals_coo(z, typ, txp2)] * ( cBZMxy * confy[cals_coo(cals_SpinSize_z-1, typ, txp2)])\
+		         +confy[cals_coo(z, typ, txp2)] * ( cBZMyx * confx[cals_coo(cals_SpinSize_z-1, typ, txp2)])\
+		         +confy[cals_coo(z, typ, txp2)] * ( BZMyy * confy[cals_coo(cals_SpinSize_z-1, typ, txp2)])\
+		         +confz[cals_coo(z, typ, txp2)] * ( BZMzz * confz[cals_coo(cals_SpinSize_z-1, typ, txp2)]);
+	//2,2
+	sD[threadIdx.x] -= confx[cals_coo(z, typ2, txp2)] * ( BWMxx * confx[cals_coo(z, typ, txp)] + BZMxx * confx[cals_coo(cals_SpinSize_z-1, typ2, txp2)])\
+		         +confx[cals_coo(z, typ2, txp2)] * ( BWMxy * confy[cals_coo(z, typ, txp)] + cBZMxy * confy[cals_coo(cals_SpinSize_z-1, typ2, txp2)])\
+		         +confy[cals_coo(z, typ2, txp2)] * ( BWMyx * confx[cals_coo(z, typ, txp)] + cBZMyx * confx[cals_coo(cals_SpinSize_z-1, typ2, txp2)])\
+		         +confy[cals_coo(z, typ2, txp2)] * ( BWMyy * confy[cals_coo(z, typ, txp)] + BZMyy * confy[cals_coo(cals_SpinSize_z-1, typ2, txp2)])\
+		         +confz[cals_coo(z, typ2, txp2)] * ( BWMzz * confz[cals_coo(z, typ, txp)] + BZMzz * confz[cals_coo(cals_SpinSize_z-1, typ2, txp2)]);
+#endif
   for (z = 1; z < cals_SpinSize_z; z++){
 	//0,0
 	sD[threadIdx.x] += -confx[cals_coo(z, ty, tx)] * ( BXMxx * confx[cals_coo(z, ty, bx)] + BYMxx * confx[cals_coo(z, by, tx)] + BWMxx * confx[cals_coo(z, by, bx)] + BZMxx * confx[cals_coo(z-1, ty, tx)])\
