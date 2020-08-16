@@ -188,7 +188,7 @@ DEPS= Heisenberg.cu read_params.cu cals2D.cu calsTRI_crossing.cu corrthin.cu ext
 # Target rules
 all: build
 
-build: ../simulation_TRIspin_20_debug_thin_heatbath_curand_crossing
+build: ../bin/simulation_TRIspin_20_debug_thin_heatbath_curand_crossing
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -200,7 +200,7 @@ endif
 %.o:%.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-../simulation_TRIspin_20_debug_thin_heatbath_curand_crossing: ${OBJS}
+../bin/simulation_TRIspin_20_debug_thin_heatbath_curand_crossing: ${OBJS}
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
