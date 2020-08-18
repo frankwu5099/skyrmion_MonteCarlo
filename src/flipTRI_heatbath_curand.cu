@@ -110,13 +110,13 @@ void move_params_device_flip(){
 __device__ inline void single_update(const float &invT, float &hx, float &hy, float &hz, float &x, float &y, float &z, curandState &state){
   unsigned int r;
   float du;	//-dE
-  float sx, sy, Heff, nx, ny, nz;
+  float sx, sy, sz, Heff, nx, ny, nz;
   float costh, sinth, phi;
   r = curand(&state);//WarpStandard_Generate(rngRegs, rngShmem);
   Heff = sqrt(hx*hx + hy*hy + hz*hz);
-    hx /= Heff;
-    hy /= Heff;
-    hz /= Heff;
+  hx /= Heff;
+  hy /= Heff;
+  hz /= Heff;
   sx = r * NORM / 2.0;
   if (sx<1.0)
   costh =  log(exp(Heff*invT)*(1.00-sx) + exp(-Heff*invT)*sx) / invT /Heff;
@@ -129,20 +129,32 @@ __device__ inline void single_update(const float &invT, float &hx, float &hy, fl
   r = curand(&state);//WarpStandard_Generate(rngRegs, rngShmem);
   phi = r*TOPI;
   du = sqrt(hx*hx + hy*hy);
-    sx = cos( phi );
-    sy = sin( phi );
-  if (du>0.0000001){
-    nx = sinth * (hy*sx/du + hx*hz*sy/du);
-    ny = sinth * (-hx*sx/du + hy*hz*sy/du);
-    nz = -sinth * (hx*hx + hy*hy)/du*sy;
-    x = hx * costh + nx;
-    y = hy * costh + ny;
-    z = hz * costh + nz;
+  sx = cos( phi );
+  sy = sin( phi );
+  r = curand(&state);//WarpStandard_Generate(rngRegs, rngShmem);
+  if (du>0.00000001){
+      nx = sinth * (hy*sx/du + hx*hz*sy/du);
+      ny = sinth * (-hx*sx/du + hy*hz*sy/du);
+      nz = -sinth * (hx*hx + hy*hy)/du*sy;
+      sx = hx * costh + nx;
+      sy = hy * costh + ny;
+      sz = hz * costh + nz;
   }
   else{
-    x = sinth * sx;
-    y = sinth * sy;
-    z = hz * costh;
+      sx = sinth * sx;
+      sy = sinth * sy;
+      sz = hz * costh;
+  }
+  du = flip_A * (z*z - sz*sz);
+  if (du>=0){
+      x = sx;
+      y = sy;
+      z = sz;
+  }
+  else if ((unsigned int)(exp(du * invT) * UINT_MAX) > r){
+      x = sx;
+      y = sy;
+      z = sz;
   }
 }
 
