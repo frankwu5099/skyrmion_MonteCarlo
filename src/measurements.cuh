@@ -49,8 +49,8 @@ class measurements{
     measurements(char* indir, int Parallel_num, unsigned int binSize);
     ~measurements();
     int measurement_num;
-    char names[16][10];
-    double norms[16];
+    char names[19][10];
+    double norms[19];
     int hist_start;
     int data_num;
     int data_num_s;

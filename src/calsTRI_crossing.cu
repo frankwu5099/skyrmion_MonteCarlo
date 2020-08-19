@@ -1243,5 +1243,230 @@ __global__ void calTRI(float *confx, float *confy, float *confz, double *out){
 		out[dataoff + (blockIdx.x % cals_BN) + 7*cals_BN] = sD[0];
 	__syncthreads();
 
+
+	sD[threadIdx.x] = 0.0;
+  for (z = 0; z < cals_SpinSize_z; z++){
+		sD[threadIdx.x] += confz[cals_coo(z, ty, tx)]    *confz[cals_coo(z, ty, tx)];
+		sD[threadIdx.x] += confz[cals_coo(z, typ, tx)]   *confz[cals_coo(z, typ, tx)];
+		sD[threadIdx.x] += confz[cals_coo(z, typ2, tx)]  *confz[cals_coo(z, typ2, tx)];
+		sD[threadIdx.x] += confz[cals_coo(z, ty, txp)]   *confz[cals_coo(z, ty, txp)];
+		sD[threadIdx.x] += confz[cals_coo(z, typ, txp)]  *confz[cals_coo(z, typ, txp)];
+		sD[threadIdx.x] += confz[cals_coo(z, typ2, txp)] *confz[cals_coo(z, typ2, txp)];
+		sD[threadIdx.x] += confz[cals_coo(z, ty, txp2)]  *confz[cals_coo(z, ty, txp2)];
+		sD[threadIdx.x] += confz[cals_coo(z, typ, txp2)] *confz[cals_coo(z, typ, txp2)];
+		sD[threadIdx.x] += confz[cals_coo(z, typ2, txp2)]*confz[cals_coo(z, typ2, txp2)];
+	}
+	__syncthreads();
+
+	//Sum over all elements in each sD
+	if(cals_TN>256){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(cals_TN>128){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(cals_TN>64){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
+	__syncthreads();
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
+	__syncthreads();
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
+	__syncthreads();
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
+	__syncthreads();
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
+	__syncthreads();
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
+	__syncthreads();
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % cals_BN) + 8*cals_BN] = sD[0];
+	__syncthreads();
+
+	z = 0;
+	//0,0
+    sD[threadIdx.x] = 0.0;
+  for (z = 0; z < cals_SpinSize_z; z++){
+	//0,0
+	sD[threadIdx.x] += -confx[cals_coo(z, ty, tx)] * (BYMxx * confx[cals_coo(z, by, tx)] + BWMxx * confx[cals_coo(z, by, bx)])\
+		         -confz[cals_coo(z, ty, tx)] * (BYMzz * confz[cals_coo(z, by, tx)] + BWMzz * confz[cals_coo(z, by, bx)]);
+	//1,0
+	sD[threadIdx.x] -= confx[cals_coo(z, typ, tx)] * (BYMxx * confx[cals_coo(z, ty, tx)] + BWMxx * confx[cals_coo(z, ty, bx)])\
+		         +confz[cals_coo(z, typ, tx)] * (BYMzz * confz[cals_coo(z, ty, tx)] + BWMzz * confz[cals_coo(z, ty, bx)]);
+	//2,0
+	sD[threadIdx.x] -= confx[cals_coo(z, typ2, tx)] * (BYMxx * confx[cals_coo(z, typ, tx)] + BWMxx * confx[cals_coo(z, typ, bx)])\
+		         +confz[cals_coo(z, typ2, tx)] * (BYMzz * confz[cals_coo(z, typ, tx)] + BWMzz * confz[cals_coo(z, typ, bx)]);
+	//0,1
+	sD[threadIdx.x] -= confx[cals_coo(z, ty, txp)] * (BYMxx * confx[cals_coo(z, by, txp)] + BWMxx * confx[cals_coo(z, by, tx)])\
+		         +confz[cals_coo(z, ty, txp)] * (BYMzz * confz[cals_coo(z, by, txp)] + BWMzz * confz[cals_coo(z, by, tx)]);
+	//1,1
+	sD[threadIdx.x] -= confx[cals_coo(z, typ, txp)] * (BYMxx * confx[cals_coo(z, ty, txp)] + BWMxx * confx[cals_coo(z, ty, tx)])\
+		         +confz[cals_coo(z, typ, txp)] * (BYMzz * confz[cals_coo(z, ty, txp)] + BWMzz * confz[cals_coo(z, ty, tx)]);
+	//2,1
+	sD[threadIdx.x] -= confx[cals_coo(z, typ2, txp)] * (BYMxx * confx[cals_coo(z, typ, txp)] + BWMxx * confx[cals_coo(z, typ, tx)])\
+		         +confz[cals_coo(z, typ2, txp)] * (BYMzz * confz[cals_coo(z, typ, txp)] + BWMzz * confz[cals_coo(z, typ, tx)]);
+	//0,2
+	sD[threadIdx.x] -= confx[cals_coo(z, ty, txp2)] * (BYMxx * confx[cals_coo(z, by, txp2)] + BWMxx * confx[cals_coo(z, by, txp)])\
+		         +confz[cals_coo(z, ty, txp2)] * (BYMzz * confz[cals_coo(z, by, txp2)] + BWMzz * confz[cals_coo(z, by, txp)]);
+	//1,2
+	sD[threadIdx.x] -= confx[cals_coo(z, typ, txp2)] * (BYMxx * confx[cals_coo(z, ty, txp2)] + BWMxx * confx[cals_coo(z, ty, txp)])\
+		         +confz[cals_coo(z, typ, txp2)] * (BYMzz * confz[cals_coo(z, ty, txp2)] + BWMzz * confz[cals_coo(z, ty, txp)]);
+	//2,2
+	sD[threadIdx.x] -= confx[cals_coo(z, typ2, txp2)] * (BYMxx * confx[cals_coo(z, typ, txp2)] + BWMxx * confx[cals_coo(z, typ, txp)])\
+		         +confz[cals_coo(z, typ2, txp2)] * (BYMzz * confz[cals_coo(z, typ, txp2)] + BWMzz * confz[cals_coo(z, typ, txp)]);
+	}
+	__syncthreads();
+
+
+	//Sum over all elements in each sD
+	if(cals_TN>256){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(cals_TN>128){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(cals_TN>64){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
+	__syncthreads();
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
+	__syncthreads();
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
+	__syncthreads();
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
+	__syncthreads();
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
+	__syncthreads();
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
+	__syncthreads();
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % cals_BN) + 9*cals_BN] = sD[0];
+	__syncthreads();
+
+	z = 0;
+	//0,0
+    sD[threadIdx.x] = 0.0;
+  for (z = 0; z < cals_SpinSize_z; z++){
+	//0,0
+	sD[threadIdx.x] += -confz[cals_coo(z, ty, tx)] * (BYMxx * confx[cals_coo(z, by, tx)] + BWMxx * confx[cals_coo(z, by, bx)])\
+		         +confx[cals_coo(z, ty, tx)] * (BYMzz * confz[cals_coo(z, by, tx)] + BWMzz * confz[cals_coo(z, by, bx)]);
+	//1,0
+	sD[threadIdx.x] -= confz[cals_coo(z, typ, tx)] * (BYMxx * confx[cals_coo(z, ty, tx)] + BWMxx * confx[cals_coo(z, ty, bx)])\
+		         -confx[cals_coo(z, typ, tx)] * (BYMzz * confz[cals_coo(z, ty, tx)] + BWMzz * confz[cals_coo(z, ty, bx)]);
+	//2,0
+	sD[threadIdx.x] -= confz[cals_coo(z, typ2, tx)] * (BYMxx * confx[cals_coo(z, typ, tx)] + BWMxx * confx[cals_coo(z, typ, bx)])\
+		         -confx[cals_coo(z, typ2, tx)] * (BYMzz * confz[cals_coo(z, typ, tx)] + BWMzz * confz[cals_coo(z, typ, bx)]);
+	//0,1
+	sD[threadIdx.x] -= confz[cals_coo(z, ty, txp)] * (BYMxx * confx[cals_coo(z, by, txp)] + BWMxx * confx[cals_coo(z, by, tx)])\
+		         -confx[cals_coo(z, ty, txp)] * (BYMzz * confz[cals_coo(z, by, txp)] + BWMzz * confz[cals_coo(z, by, tx)]);
+	//1,1
+	sD[threadIdx.x] -= confz[cals_coo(z, typ, txp)] * (BYMxx * confx[cals_coo(z, ty, txp)] + BWMxx * confx[cals_coo(z, ty, tx)])\
+		         -confx[cals_coo(z, typ, txp)] * (BYMzz * confz[cals_coo(z, ty, txp)] + BWMzz * confz[cals_coo(z, ty, tx)]);
+	//2,1
+	sD[threadIdx.x] -= confz[cals_coo(z, typ2, txp)] * (BYMxx * confx[cals_coo(z, typ, txp)] + BWMxx * confx[cals_coo(z, typ, tx)])\
+		         -confx[cals_coo(z, typ2, txp)] * (BYMzz * confz[cals_coo(z, typ, txp)] + BWMzz * confz[cals_coo(z, typ, tx)]);
+	//0,2
+	sD[threadIdx.x] -= confz[cals_coo(z, ty, txp2)] * (BYMxx * confx[cals_coo(z, by, txp2)] + BWMxx * confx[cals_coo(z, by, txp)])\
+		         -confx[cals_coo(z, ty, txp2)] * (BYMzz * confz[cals_coo(z, by, txp2)] + BWMzz * confz[cals_coo(z, by, txp)]);
+	//1,2
+	sD[threadIdx.x] -= confz[cals_coo(z, typ, txp2)] * (BYMxx * confx[cals_coo(z, ty, txp2)] + BWMxx * confx[cals_coo(z, ty, txp)])\
+		         -confx[cals_coo(z, typ, txp2)] * (BYMzz * confz[cals_coo(z, ty, txp2)] + BWMzz * confz[cals_coo(z, ty, txp)]);
+	//2,2
+	sD[threadIdx.x] -= confz[cals_coo(z, typ2, txp2)] * (BYMxx * confx[cals_coo(z, typ, txp2)] + BWMxx * confx[cals_coo(z, typ, txp)])\
+		         -confx[cals_coo(z, typ2, txp2)] * (BYMzz * confz[cals_coo(z, typ, txp2)] + BWMzz * confz[cals_coo(z, typ, txp)]);
+	}
+	__syncthreads();
+
+
+	//Sum over all elements in each sD
+	if(cals_TN>256){
+		if((threadIdx.x < 256) && (threadIdx.x+256 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+256];
+		}
+		__syncthreads();
+	}
+	if(cals_TN>128){
+		if((threadIdx.x < 128) && (threadIdx.x+128 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+128];
+		}
+		__syncthreads();
+	}
+	if(cals_TN>64){
+		if((threadIdx.x < 64) && (threadIdx.x+64 < cals_TN)){
+			sD[threadIdx.x] += sD[threadIdx.x+64];
+		}
+		__syncthreads();
+	}
+	if((threadIdx.x < 32) && (threadIdx.x+32 < cals_TN)){
+		sD[threadIdx.x] += sD[threadIdx.x+32];
+	}
+	__syncthreads();
+	if((threadIdx.x < 16) && (threadIdx.x+16 < cals_TN)){
+		sD[threadIdx.x] += sD[threadIdx.x+16];
+	}
+	__syncthreads();
+	if(threadIdx.x < 8){
+		sD[threadIdx.x] += sD[threadIdx.x+8];
+	}
+	__syncthreads();
+	if(threadIdx.x < 4){
+		sD[threadIdx.x] += sD[threadIdx.x+4];
+	}
+	__syncthreads();
+	if(threadIdx.x < 2){
+		sD[threadIdx.x] += sD[threadIdx.x+2];
+	}
+	__syncthreads();
+	if(threadIdx.x < 1){
+		sD[threadIdx.x] += sD[threadIdx.x+1];
+	}
+	__syncthreads();
+	if(threadIdx.x == 0)
+		out[dataoff + (blockIdx.x % cals_BN) + 10*cals_BN] = sD[0];
+	__syncthreads();
 }
 #endif

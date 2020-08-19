@@ -2,7 +2,7 @@
 
 
 measurements::measurements(char * indir, int Parallel_num, unsigned int binSize){
-  measurement_num = 16;
+  measurement_num = 19;
   //raw_memmory = operator new[] (measurement_num * sizeof(measurement));
   strcpy(names[0], "E");
   strcpy(names[1], "M");
@@ -20,6 +20,9 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   strcpy(names[13], "Mz");
   strcpy(names[14], "EMz");
   strcpy(names[15], "Nematic");
+  strcpy(names[16], "Mzi2");
+  strcpy(names[17], "Hy");
+  strcpy(names[18], "Iy2");
   norms[0] = double(binSize) * H_N;
   norms[1] = double(binSize) * H_N;
   norms[2] = double(binSize) * 2;
@@ -36,6 +39,9 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   norms[13] = double(binSize) * H_N;
   norms[14] = double(binSize) * H_N * H_N;
   norms[15] = double(binSize) * H_N;
+  norms[16] = double(binSize) * H_N;
+  norms[17] = double(binSize) * H_N;
+  norms[18] = double(binSize) * H_N * H_N;
   O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
     O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
@@ -114,7 +120,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
   static int raw_off;
   static double E, E2;
   static double Mx, My, Mz, Chern, M2, Mz2, Chern2;
-  static double Mxx, Myy, Mxy, eta;
+  static double Mxx, Myy, Mxy, eta, Mzi2, Hy, Iy;
   //static double spinQ1x_r, spinQ1y_r, spinQ1z_r, spinQ1x_i, spinQ1y_i, spinQ1z_i;
   //static double spinQ2x_r, spinQ2y_r, spinQ2z_r, spinQ2x_i, spinQ2y_i, spinQ2z_i;
   int gpu_i;
@@ -137,7 +143,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     raw_off = t * MEASURE_NUM * H_BN;
     E = 0, E2 = 0;
     Mx = 0, My = 0, Mz = 0, Chern = 0;
-    Mxx = 0, Myy = 0, Mxy = 0;
+    Mxx = 0, Myy = 0, Mxy = 0, Iy = 0, Hy =0, Mzi2;
     /*
     spinQ1x_r = 0, spinQ1y_r = 0, spinQ1z_r = 0;
     spinQ1x_i = 0, spinQ1y_i = 0, spinQ1z_i = 0;
@@ -160,6 +166,12 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
       Myy += Hout[raw_off + j];
     for(int j = 7 * H_BN; j < 8 * H_BN; j++)
       Mxy += Hout[raw_off + j];
+    for(int j = 8 * H_BN; j < 9 * H_BN; j++)
+      Mzi2 += Hout[raw_off + j];
+    for(int j = 9 * H_BN; j < 10 * H_BN; j++)
+      Hy += Hout[raw_off + j];
+    for(int j =10 * H_BN; j < 11 * H_BN; j++)
+      Iy += Hout[raw_off + j];
     /*
     for(int j = 5 * H_BN; j < 6 * H_BN; j++)
       spinQ1x_r += Hout[raw_off + j];
@@ -215,6 +227,9 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     O[15].outdata[Ho[t]] += eta;
     O[11].outdata[Ho[t]] += (Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy);
     O[12].outdata[Ho[t]] += (Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy)*(Mxx*Mxx + Myy*Myy - 2*Mxx*Myy + 4*Mxy*Mxy);
+    O[16].outdata[Ho[t]] += Mzi2;
+    O[17].outdata[Ho[t]] += Hy;
+    O[18].outdata[Ho[t]] += Iy*Iy;
     E /= H_N;
     eta /= H_N;
     if (hist_start > 0){
