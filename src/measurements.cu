@@ -143,7 +143,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     raw_off = t * MEASURE_NUM * H_BN;
     E = 0, E2 = 0;
     Mx = 0, My = 0, Mz = 0, Chern = 0;
-    Mxx = 0, Myy = 0, Mxy = 0, Iy = 0, Hy =0, Mzi2;
+    Mxx = 0, Myy = 0, Mxy = 0, Iy = 0, Hy = 0, Mzi2 = 0;
     /*
     spinQ1x_r = 0, spinQ1y_r = 0, spinQ1z_r = 0;
     spinQ1x_i = 0, spinQ1y_i = 0, spinQ1z_i = 0;

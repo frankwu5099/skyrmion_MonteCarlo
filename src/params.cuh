@@ -230,7 +230,7 @@ extern uniform_01<mt19937> uni01_sampler;
 
 #endif
 
-#define MEASURE_NUM 11
+#define MEASURE_NUM 12
 
 
 
