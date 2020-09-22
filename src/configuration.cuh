@@ -24,7 +24,7 @@ class configuration{
 		float **Dx;
 		float **Dy;
 		float **Dz;
-		void initialize (bool order);
+		void initialize (bool order, mt19937 &generator);
 		void backtoHost();
 		void writedata();
 		void Dominatestateback(int hostid, int deviceid);

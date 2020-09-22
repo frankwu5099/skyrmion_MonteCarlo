@@ -13,11 +13,8 @@ using namespace std;
 #define GET_CORR
 
 
-unsigned seed = 73;
-mt19937 rng(seed);
-uniform_01<mt19937> uni01_sampler(rng);
-void tempering_simple(double*, double*, int*);
-void tempering(double*, double*, int*, int*, int*);
+void tempering_simple(double*, double*, int*, mt19937&);
+void tempering(double*, double*, int*, int*, int*, mt19937&);
 vector< vector<float> > Tls;
 vector< vector<float> > Hls;
 vector<int> Po;		//order of Temperature, Tls[To[t]] is the temperature of t'th configuration.
@@ -31,10 +28,13 @@ unsigned int CORR_N;
 float Cparameter = 0.8;
 int C_i = 0;
 void var_examine();
+unsigned seed = 73;
 
 
 
 int main(int argc, char *argv[]){
+  mt19937 generator(seed);
+  uniform_real_distribution<double >uni01;
   //call GPU
   bool json_read = false;
   json configj;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
 
   int deviceNum, gpu_i;
   cudaGetDeviceCount(&deviceNum);
-  device_0 = setDev();
+  device_0 = 1;//setDev(); //use setDev if using multigpu
   StreamN = deviceNum - device_0;
   printf("# of gpus = %d\n", deviceNum);
   printf("# of gpu = %d\n", device_0);
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]){
   unsigned int* seedHost = (unsigned int*)malloc(seedBytes);
   srand(seed);
   for(int i = 0; i < seedBytes / sizeof(unsigned int); i++)
-    seedHost[i] = uni01_sampler() * UINT_MAX;
+    seedHost[i] = uni01(generator) * UINT_MAX;
   for (gpu_i = 0; gpu_i < StreamN; gpu_i++){
     cudaSetDevice(device_0 + gpu_i);
     CudaSafeCall(cudaMemcpyAsync(seedDevice[gpu_i], seedHost + (seedBytes/sizeof(unsigned int)/StreamN)*gpu_i, (seedBytes/StreamN), cudaMemcpyHostToDevice, stream[gpu_i]));
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]){
   sdkStartTimer(&timer);
 
   //Give initial configuration and settle the systems down to equilibrium states
-  CONF.initialize(ORDER);
+  CONF.initialize(ORDER,generator);
   int Eqii = 0;//150;
   for(int i = 0; i < Pnum; i++){
     HHs[i] = Hls[0][i];
@@ -264,7 +264,7 @@ int main(int argc, char *argv[]){
     cnt += PTF;
     for(int p = 0; p < int(cnt); p++){
       MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
-      tempering_simple(Ms, Es, accept1);
+      tempering_simple(Ms, Es, accept1, generator);
       for(int t = 0; t < Pnum; t++){
         HHs[t] = Hls[0][Po[t]];
         invTs[t] = 1.0/Tls[0][Po[t]];
@@ -314,7 +314,7 @@ int main(int argc, char *argv[]){
       cnt += PTF;
       for(int p = 0; p < int(cnt); p++){
         MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
-        tempering_simple(Ms, Es, accept1);
+        tempering_simple(Ms, Es, accept1, generator);
         for(int t = 0; t < Pnum; t++){
           HHs[t] = Hls[C_i][Po[t]];
           invTs[t] = 1.0/Tls[C_i][Po[t]];
@@ -355,7 +355,7 @@ int main(int argc, char *argv[]){
 */
         cnt += PTF;
         for(int p = 0; p < int(cnt); p++){
-          tempering(Ms, Es, accept, staytmp, stay);
+          tempering(Ms, Es, accept, staytmp, stay, generator);
           for(int t = 0; t < Pnum; t++){
             HHs[t] = Hls[C_i][Po[t]];
             invTs[t] = 1.0/Tls[C_i][Po[t]];
@@ -422,7 +422,7 @@ int main(int argc, char *argv[]){
 				cnt += PTF;
 				for(int p = 0; p < int(cnt); p++){
 					MEASURE.virtual_measure(CONF.Dx, CONF.Dy, CONF.Dz, Po, Ms, Es, HHs);
-					tempering_simple(Ms, Es, accept);
+					tempering_simple(Ms, Es, accept, generator);
 					for(int t = 0; t < Pnum; t++){
 						HHs[t] = Hls[0][Po[t]];
 						invTs[t] = 1.0/Tls[0][Po[t]];
@@ -513,7 +513,8 @@ int main(int argc, char *argv[]){
 
 
 //=============================== functions ==================================
-void tempering_simple(double *Ms, double *Es, int *accept){
+void tempering_simple(double *Ms, double *Es, int *accept, mt19937 &generator){
+  uniform_real_distribution<double >uni01;
   int map[Pnum];	//map[t] the configuration of t'th temperature
   int i, j, tmp, partT_num = (Tnum - 1) * Hnum;
   double tmpEM;
@@ -530,7 +531,7 @@ void tempering_simple(double *Ms, double *Es, int *accept){
 	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
 	if(delta > 0)
 	  flag = 1;
-	else if(uni01_sampler() < exp(delta))
+	else if(uni01(generator) < exp(delta))
 	  flag = 1;
 	if(flag){
 	  tmp = Po[map[j * Tnum + i]];
@@ -558,7 +559,7 @@ void tempering_simple(double *Ms, double *Es, int *accept){
         delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
         if(delta > 0)
           flag = 1;
-        else if(uni01_sampler() < exp(delta))
+        else if(uni01(generator) < exp(delta))
           flag = 1;
         if(flag){
           tmp = Po[map[j * Tnum + i]];
@@ -582,7 +583,8 @@ void tempering_simple(double *Ms, double *Es, int *accept){
 }
 
 //=============================== functions ==================================
-void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
+void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay, mt19937 &generator){
+  uniform_real_distribution<double >uni01;
   int map[Pnum];	//map[t] the configuration of t'th temperature
   int i, j, tmp, partT_num = (Tnum - 1) * Hnum;
   double tmpEM;
@@ -604,7 +606,7 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
 	delta = (Es[j * Tnum + i] - Es[j * Tnum + i + 1]) * ((1.0 / Tls[C_i][j*Tnum + i]) - (1.0 / Tls[C_i][j*Tnum +i + 1]));
 	if(delta > 0)
 	  flag = 1;
-	else if(uni01_sampler() < exp(delta))
+	else if(uni01(generator) < exp(delta))
 	  flag = 1;
 	if(flag){
 	  tmp = Po[map[j * Tnum + i]];
@@ -634,7 +636,7 @@ void tempering(double *Ms, double *Es, int *accept, int *staytmp, int *stay){
         delta = (Ms[(j + 1) * Tnum + i] - Ms[j * Tnum + i]) * ( Hls[C_i][j * Tnum + i] - Hls[C_i][(j + 1) * Tnum + i]) / Tls[C_i][j * Tnum + i];
         if(delta > 0)
           flag = 1;
-        else if(uni01_sampler() < exp(delta))
+        else if(uni01(generator) < exp(delta))
           flag = 1;
         if(flag){
           tmp = Po[map[j * Tnum + i]];

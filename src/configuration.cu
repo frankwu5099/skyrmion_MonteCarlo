@@ -33,13 +33,14 @@ configuration::configuration(int Pnum, char* conf_dir){
 
 
 
-void configuration::initialize (bool order){
+void configuration::initialize (bool order, mt19937 &generator){
+  uniform_real_distribution<double >uni01;
   if (order == 0){
     double pi = 3.141592653589793;
     double th, phi;
     for(int i = 0; i < spins_num; i++){
-      th = uni01_sampler() * pi;
-      phi = uni01_sampler() * 2 * pi;
+      th = uni01(generator) * pi;
+      phi = uni01(generator) * 2 * pi;
       Hx[i] = cos(th);
       th = sin(th);
       Hy[i] = th * cos(phi);

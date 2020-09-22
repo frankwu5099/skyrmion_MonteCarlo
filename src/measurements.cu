@@ -2,7 +2,7 @@
 
 
 measurements::measurements(char * indir, int Parallel_num, unsigned int binSize){
-  measurement_num = 19;
+  measurement_num = 20;
   //raw_memmory = operator new[] (measurement_num * sizeof(measurement));
   strcpy(names[0], "E");
   strcpy(names[1], "M");
@@ -23,6 +23,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   strcpy(names[16], "Mzi2");
   strcpy(names[17], "Hy");
   strcpy(names[18], "Iy2");
+  strcpy(names[19], "cos2");
   norms[0] = double(binSize) * H_N;
   norms[1] = double(binSize) * H_N;
   norms[2] = double(binSize) * 2;
@@ -42,6 +43,7 @@ measurements::measurements(char * indir, int Parallel_num, unsigned int binSize)
   norms[16] = double(binSize) * H_N;
   norms[17] = double(binSize) * H_N;
   norms[18] = double(binSize) * H_N * H_N;
+  norms[19] = double(binSize);
   O.reserve(measurement_num);
   for (int i =0 ; i< measurement_num; i++){
     O.push_back(measurement(indir, names[i], norms[i], Parallel_num));
@@ -230,6 +232,7 @@ void measurements::measure(float** Dconfx, float** Dconfy, float** Dconfz, std::
     O[16].outdata[Ho[t]] += Mzi2;
     O[17].outdata[Ho[t]] += Hy;
     O[18].outdata[Ho[t]] += Iy*Iy;
+    O[19].outdata[Ho[t]] += Mz2/M2;
     E /= H_N;
     eta /= H_N;
     if (hist_start > 0){

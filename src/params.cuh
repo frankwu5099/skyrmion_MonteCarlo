@@ -17,8 +17,11 @@
 #include <string>
 #include <fstream>
 #include <functional>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_01.hpp>
+//#include <random/mersenne_twister.hpp>
+//#include <random/uniform_01.hpp>
+//#include <random/mersenne_twister.hpp>
+//#include <random/uniform_01.hpp>
+#include <random>
 #include <nlohmann/json.hpp>
 
 
@@ -71,12 +74,10 @@ inline void __cudaCheckError( const char *file, const int line )
   return;
 }
 //=========================================================================
-using namespace boost;
 using namespace std;
 using json = nlohmann::json;
-extern unsigned seed;
-extern mt19937 rng;
-extern uniform_01<mt19937> uni01_sampler;
+
+
 //#deinfe THIN
 #define TRI
 //#define ZPERIODIC

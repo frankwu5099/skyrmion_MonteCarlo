@@ -206,10 +206,10 @@ else
 endif
 
 %.o:%.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
+	$(EXEC) $(NVCC) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true -std=c++11
 
 ../bin/simulation_TRI: ${OBJS}
-	$(EXEC) $(NVCC) $(CXXFLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
+	$(EXEC) $(NVCC) $(CXXFLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES) -std=c++11
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
