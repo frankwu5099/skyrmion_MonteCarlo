@@ -36,7 +36,14 @@ void var_examine();
 
 int main(int argc, char *argv[]){
   //call GPU
-  read_params(argv[1]);
+  bool json_read = false;
+  json configj;
+  if (argc > 1) read_params(argv[1]);
+  else {
+    configj = read_json();
+    json_read = true;
+  } 
+
   int deviceNum, gpu_i;
   cudaGetDeviceCount(&deviceNum);
   device_0 = setDev();
@@ -71,7 +78,9 @@ int main(int argc, char *argv[]){
   //begin (read in temperatures)
   unsigned int params_mem_size;
 
-  if(argc > 2){
+  if  (json_read)
+    params_mem_size = Pnum * sizeof(float);
+  else if(argc > 2){
     float tmpT, tmpH;
     FILE *paramsfp = fopen(argv[2], "r");
     vector<float> tmpTls;
@@ -183,10 +192,16 @@ int main(int argc, char *argv[]){
 
   //Set up output data path
   char dir[128];
-  sprintf(dir, "Data/L_%d-%s", H_SpinSize, Output);
+  sprintf(dir, "Data/L_%d-%s", H_SpinSize, Output.c_str());
   mkdir(dir, 0755);
   char Seedfn[128];
-  sprintf(Seedfn, "Data/L_%d-%s/seed", H_SpinSize, Output);
+  sprintf(Seedfn, "Data/L_%d-%s/seed", H_SpinSize, Output.c_str());
+
+  char config_bak[128];
+  sprintf(config_bak, "%s/config.json", dir);
+  ofstream oconfig(config_bak);
+  oconfig << setw(8) << configj << endl;
+
   int seedfd = open(Seedfn, O_CREAT | O_WRONLY, 0644);
   write(seedfd, seedHost, seedBytes);
   close(seedfd);
@@ -222,6 +237,7 @@ int main(int argc, char *argv[]){
   double *Ms = (double*)malloc(Pnum * sizeof(double));
   double *Es = (double*)malloc(Pnum * sizeof(double));
   int *accept1 = (int*)calloc((Tnum - 1)*Hnum + Tnum*(Hnum - 1), sizeof(int));
+  vector<float> acceptance;  
   int *stay = (int*)calloc(Tnum * Hnum, sizeof(int));
   int *staylargest = (int*)calloc(Tnum * Hnum, sizeof(int));
   int *staytmp = (int*)calloc(Tnum * Hnum, sizeof(int));
@@ -445,69 +461,40 @@ int main(int argc, char *argv[]){
 
 //======================= print details ==========================
   char detailFn[128];
-  sprintf(detailFn, "%s/details", dir);
-  FILE *detailFp = fopen(detailFn, "w");
-  fprintf(detailFp, "elapsed time = %f (sec)\n", time);
+  json detailj, sdetailj, finalstatej;
+  sprintf(detailFn, "%s/details.json", dir);
+  sdetailj["elapsed_time(s)"] = time;
   double speed = 0;
   speed = (H_N / time / 1000000000) * ((EQUI_Ni + BIN_SZ * BIN_NUM) * Cnum + EQUI_N) * Pnum;
-  fprintf(detailFp, "speed = %f (GHz)\n", speed);
-  fprintf(detailFp, "number of gpu = %d\n", StreamN);
-  fprintf(detailFp, "RNG: WarpStandard\n", H_SpinSize);
-  fprintf(detailFp, "SpinSize = %d\n", H_SpinSize);
-  fprintf(detailFp, "Thickness = %d\n", H_SpinSize_z);
-  fprintf(detailFp, "A = %4.3f\n", H_A);
-  fprintf(detailFp, "D_Rashba = %4.3f\n", DR);
-  fprintf(detailFp, "D_Dresselhaus = %4.3f\n", DD);
-  fprintf(detailFp, "BlockSize_x = %d\n", H_BlockSize_x);
-  fprintf(detailFp, "BlockSize_y = %d\n", H_BlockSize_y);
-  fprintf(detailFp, "GridSize_x = %d\n", H_GridSize_x);
-  fprintf(detailFp, "GridSize_y = %d\n", H_GridSize_y);
-  fprintf(detailFp, "Bin Size = %d\n", BIN_SZ);
-  fprintf(detailFp, "Bin Number = %d\n", BIN_NUM);
-  fprintf(detailFp, "Equilibration N = %d\n", EQUI_N);
-  fprintf(detailFp, "Equilibration Ni = %d\n", EQUI_Ni);
-  fprintf(detailFp, "f_CORR = %d\n", f_CORR);
-  fprintf(detailFp, "CORR_N = %d\n", CORR_N);
-  fprintf(detailFp, "PT frequency = %3.2f\n", PTF);
-  fprintf(detailFp, "Pnum = %d\n", Pnum);
-  fprintf(detailFp, "Temperature Set: ");
-  for(int i = 0; i < Cnum; i++){
-    for(int j = 0; j < Pnum; j++){
-      fprintf(detailFp, "%.5f  ", Tls[i][j]);
-    }
-  }
-  fprintf(detailFp, "\n");
-  fprintf(detailFp, "field Set: ");
-  for(int i = 0; i < Cnum; i++){
-    for(int j = 0; j < Pnum; j++){
-      fprintf(detailFp, "%.5f  ", Hls[i][j]/(DR*DR + DD*DD));
-    }
-  }
+  sdetailj["speed(GHz)"] = speed;
+  sdetailj["NumGPU"] = StreamN;
+  sdetailj["BlockSize_x"] =  H_BlockSize_x;
+  sdetailj["BlockSize_y"] =  H_BlockSize_y;
+  sdetailj["GridSize_x"] =  H_GridSize_x;
+  sdetailj["GridSize_y"] =  H_GridSize_y;
+  finalstatej["final_order"] = Po;
+  /*
   for(int i = 0; i < Pnum; i++){
     fprintf(detailFp, "\n");
     fprintf(detailFp, "Po[%d]=%d",i,Po[i]);
-  }
-  fprintf(detailFp, "\n");
-  fprintf(detailFp, "Acceptance rates: ");
+  }*/
   if (PTF != 0 ){
     for(int i = 0; i < (Tnum - 1)*Hnum + Tnum*(Hnum - 1); i++)
-      fprintf(detailFp, "%4.3f  ", float(accept[i]) / (BIN_SZ * BIN_NUM * PTF));
+      acceptance.push_back(float(accept[i]) / (BIN_SZ * BIN_NUM * PTF));
   }
-  fprintf(detailFp, "\n");
-  if (ORDER){
-    fprintf(detailFp, "Configurations start from ordered state.\n");
-  }
-  else {
-    fprintf(detailFp, "Configurations start from random state.\n");
-  }
-  fprintf(detailFp, "N_histE = %d\n", Slice_NUM);
-  fprintf(detailFp, "E_lowest = %4.3f\n", E_lowest);
-  fprintf(detailFp, "E_highest = %4.3f\n", E_highest);
-  fprintf(detailFp, "N_histChern = %d\n", Slice_CNUM);
-  fprintf(detailFp, "Chern_lowest = %4.3f\n", Chern_lowest);
-  fprintf(detailFp, "Chern_highest = %4.3f\n", Chern_highest);
-  fprintf(detailFp, "Done by Po-Kuan Wu ^_^\n", EQUI_N);
-  fclose(detailFp);
+  finalstatej["acceptance_rates"] = acceptance;
+  finalstatej["N_histE"] = Slice_NUM;
+  finalstatej["E_lowest"]  =  E_lowest;
+  finalstatej["E_highest"] =  E_highest;
+  finalstatej["N_histChern"] = Slice_CNUM;
+  finalstatej["Chern_lowest"] = Chern_lowest;
+  finalstatej["Chern_highest"] = Chern_highest;
+  detailj["simulation"] = sdetailj;
+  detailj["finalstate"] = finalstatej;
+  ofstream odetail(detailFn);
+  odetail << setw(8) << detailj << endl;
+
+  
 //===================== print details end =========================
 
   //Set free memory

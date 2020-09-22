@@ -1,4 +1,6 @@
 #include "params.cuh"
+
+using namespace std;
 unsigned int block;
 unsigned int grid;
 unsigned int rngShmemsize;
@@ -40,7 +42,7 @@ unsigned int EQUI_Ni;
 unsigned int relax_N;
 
 float PTF = 0.1;             //Frequency of parallel tempering
-char Output[128];  //set the output directory
+string Output;  //set the output directory
 
 
 void read_params(char* param_file){
@@ -167,4 +169,101 @@ void read_params(char* param_file){
   }
   fclose(paramfp);
   //-- simulation setting end --
+}
+
+json read_json(){
+  printf("Loading configuration...");
+  fflush(stdout);
+    std::ifstream jsoni("config.json");
+	json allj;
+	jsoni >> allj;
+  json configj = allj["parameters"];
+  json ensemblej = allj["ensemble"];
+
+  H_SpinSize = configj["Size"];
+  H_SpinSize_z = configj["Size_z"];
+  if (H_SpinSize % 3 != 0){
+    fprintf(stderr, "Please give a legal Size or revise cals.cu.\n");
+    exit(0);
+  }
+  // cuda spin configuration setup
+#ifdef THIN
+#endif
+#ifndef THIN
+  //H_SpinSize_z = 1;
+#endif
+#ifdef TRI
+  H_BlockSize_x = H_SpinSize / 3;
+  H_BlockSize_y = H_SpinSize / 3;
+  for (int tmpi = 0 ; tmpi < 10;tmpi++){
+    H_BlockSize_x = (H_BlockSize_x > 16)?(H_BlockSize_x/2):H_BlockSize_x;
+    H_BlockSize_y = (H_BlockSize_y > 16)?(H_BlockSize_y/2):H_BlockSize_y;
+  }
+  H_GridSize_x = H_SpinSize / H_BlockSize_x / 3;
+  H_GridSize_y = H_SpinSize / H_BlockSize_y / 3;
+#endif
+#ifndef TRI
+  H_BlockSize_x = H_SpinSize / 2;
+  H_BlockSize_y = H_SpinSize / 2;
+  H_BlockSize_x = (H_BlockSize_x > 32)?32:H_BlockSize_x;
+  H_BlockSize_y = (H_BlockSize_y > 16)?16:H_BlockSize_y;
+  H_GridSize_x = H_SpinSize / H_BlockSize_x / 2;
+  H_GridSize_y = H_SpinSize / H_BlockSize_y / 2;
+#endif
+  H_N = H_SpinSize * H_SpinSize * H_SpinSize_z;
+  H_Nplane = H_SpinSize * H_SpinSize;
+  H_TN = H_BlockSize_x * H_BlockSize_y;
+  H_BN = H_GridSize_x * H_GridSize_y;
+  block = H_BlockSize_x * H_BlockSize_y;
+  printf("%d\n", block);
+  fflush(stdout);
+  caloutputsize = block * sizeof(double);
+  rngShmemsize = block * 8 * sizeof(unsigned);
+  // end spin configuration setup
+
+  H_A = configj["A"];
+  DR = configj["DR"];
+  DD = configj["DD"];
+
+  H_Q1x = atan(sqrt((DD*DD+DR*DR)));//atan(sqrt((DD*DD+DR*DR)/2.0));
+  H_Q1y = -0.5*atan(sqrt((DD*DD+DR*DR)));
+  H_Q2x = 2*H_Q1x;
+  H_Q2y = 2*H_Q1y;
+
+  //----- system variable setting end ------
+
+  //----- simulation setting ------
+  BIN_SZ = configj["BIN_SIZE"];
+  BIN_NUM = configj["BIN_NUM"];
+  EQUI_N = configj["EQUI_N"];
+  EQUI_Ni = configj["EQUI_Ni"];
+  relax_N = configj["relax_N"];
+  PTF = configj["PTF"];
+  f_CORR = configj["f_CORR"];
+  CORR_N = configj["CORR_N"];
+  Output = configj["Output_dir"];
+  //-- simulation setting end --
+  
+
+  //-- ensemble setting -- 
+  Tnum = ensemblej["NumTaxis"];
+  Hnum = ensemblej["NumHaxis"];
+
+  //-- ensemble setting end --
+    vector<float> tmpTls = ensemblej["Ts"];
+    vector<float> tmpHls = ensemblej["Hs"];
+    transform(tmpHls.begin(), tmpHls.end(), tmpHls.begin(),
+               bind(multiplies<float>(), std::placeholders::_1, (DR*DR + DD*DD)));// bind1st(multiplies<T>(), (DR*DR + DD*DD)));//std::
+	Tls.push_back(tmpTls);
+	Hls.push_back(tmpHls);
+	tmpTls.clear();
+	tmpHls.clear();
+    Pnum = Tls[0].size();
+    Cnum = Tls.size();
+    if (Tnum * Hnum != Pnum){
+      fprintf(stderr, "wrong temperatures and fields!!!\n");
+      exit(0);
+    }
+  // back up the config
+  return allj;
 }

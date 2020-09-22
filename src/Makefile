@@ -34,6 +34,7 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
+include conanbuildinfo.mak
 CUDA_PATH       ?= /usr/local/cuda
 
 OSUPPER = $(shell uname -s 2>/dev/null | tr "[:lower:]" "[:upper:]")
@@ -147,6 +148,13 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 INCLUDES  := -I${CUDA_PATH}/samples/common/inc
 LIBRARIES :=
 
+
+ALL_CCFLAGS     += $(CONAN_CFLAGS)
+CXXFLAGS        += $(CONAN_CXXFLAGS)
+INCLUDES        += $(addprefix -I, $(CONAN_INCLUDE_DIRS))
+CPPFLAGS        += $(addprefix -D, $(CONAN_DEFINES))
+ALL_LDFLAGS     += $(addprefix -L, $(CONAN_LIB_DIRS))
+LIBRARIES       += $(addprefix -l, $(CONAN_LIBS))
 ################################################################################
 
 SAMPLE_ENABLED := 1
@@ -188,7 +196,7 @@ DEPS= Heisenberg.cu read_params.cu cals2D.cu calsTRI_crossing.cu corrthin.cu ext
 # Target rules
 all: build
 
-build: ../bin/simulation_TRIspin_20_debug_thin_heatbath_curand_crossing
+build: ../bin/simulation_TRI
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -198,10 +206,10 @@ else
 endif
 
 %.o:%.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
+	$(EXEC) $(NVCC) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS) $(ALL_CCFLAGS) -O3 $(GENCODE_FLAGS) -o $@ -c $< --relocatable-device-code=true
 
-../bin/simulation_TRIspin_20_debug_thin_heatbath_curand_crossing: ${OBJS}
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
+../bin/simulation_TRI: ${OBJS}
+	$(EXEC) $(NVCC) $(CXXFLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -O3 -o $@ $+ $(LIBRARIES)
 #	$(EXEC) mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 #	$(EXEC) cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
@@ -209,7 +217,7 @@ endif
 #	$(EXEC) ./transpose
 
 clean:
-	rm -f JmatH2D* *.o
+	rm -f ../bin/simulation_TRI *.o
 #	rm -rf ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/transpose
 
 clobber: clean

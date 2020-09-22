@@ -14,8 +14,12 @@
 #include "helper_timer.h"
 #include "WarpStandard.cuh"
 #include <time.h>
+#include <string>
+#include <fstream>
+#include <functional>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_01.hpp>
+#include <nlohmann/json.hpp>
 
 
 //==================== cuda error checker ====================
@@ -68,6 +72,8 @@ inline void __cudaCheckError( const char *file, const int line )
 }
 //=========================================================================
 using namespace boost;
+using namespace std;
+using json = nlohmann::json;
 extern unsigned seed;
 extern mt19937 rng;
 extern uniform_01<mt19937> uni01_sampler;
@@ -308,11 +314,18 @@ extern unsigned int relax_N;
 extern float PTF;             //Frequency of parallel tempering
 extern unsigned int f_CORR;
 extern unsigned int CORR_N;
-extern char Output[128];  //set the output directory
+extern unsigned int Pnum;
+extern unsigned int Cnum;
+extern unsigned int Tnum;
+extern unsigned int Hnum;
+extern vector< vector<float> > Tls;
+extern vector< vector<float> > Hls;
+extern string Output;  //set the output directory
 //#define BIN_SZ 3000//0//00//
 //#define BIN_NUM 3//0
 //#define EQUI_N 20000//0//0//00////16000000
 void read_params(char* param_file);
+json read_json();
 
 //----- simulation setting -----
 
