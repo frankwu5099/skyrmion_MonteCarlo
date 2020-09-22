@@ -52,5 +52,5 @@ One can use ***analysis/MCdata.py*** to analysis the data easily. Please look up
 
 ### Contributor
 
-Po-Kuan Wu
-Kai-hsin Wu (random number generator and makefile)
+- Po-Kuan Wu
+- Kai-hsin Wu (random number generator and makefile)
