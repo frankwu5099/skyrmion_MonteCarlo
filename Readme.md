@@ -1,8 +1,7 @@
 ## Monte Carlo simulation program for generalized skyrmion models
 
 ### Description
-
-A program for Monte Carlo simulations of the skyrmion model 
+Monte Carlo simulations for the skyrmion model using parallel computing on GPUs
  - Skyrmion model : the model with DMI interactions between spins
  - Built-in MC algorithms: PT, annealings, single spin flips, over-relaxation
  - 1D, 2D, thin film (BC)
