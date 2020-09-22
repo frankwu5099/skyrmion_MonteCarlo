@@ -3,10 +3,10 @@
 ### Description
 
 A program for Monte Carlo simulations of the skyrmion model 
-> * Skyrmion model : the model with DMI interactions between spins
-> * Built-in MC algorithms: PT, annealings, single spin flips, over-relaxation
-> * 1D, 2D, thin film (BC)
-> * Lattice : triangular lattice, cubic lattice
+ - Skyrmion model : the model with DMI interactions between spins
+ - Built-in MC algorithms: PT, annealings, single spin flips, over-relaxation
+ - 1D, 2D, thin film (BC)
+ - Lattice : triangular lattice, cubic lattice
 
 ### Requirements
  - CUDA >6.0
@@ -48,7 +48,7 @@ Run the simulation by
 One can use ***analysis/MCdata.py*** to analysis the data easily. Please look up ***analysis/example.ipynb***.
 
 ### TODO list
-> * The simulation for square lattice(cubic).
+ - The simulation for square lattice(cubic).
 
 ### Contributor
 
