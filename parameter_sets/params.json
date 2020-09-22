@@ -1,0 +1,16 @@
+{
+    "Size": 72,
+    "Size_z": 1,
+    "A": 0.4,
+    "DR": 0.577,
+    "DD": 0.0,
+    "BIN_SIZE": 10000,
+    "BIN_NUM": 30,
+    "EQUI_N": 50000,
+    "EQUI_Ni": 100,
+    "relax_N": 0,
+    "PTF": 0.1,
+    "f_CORR": 100,
+    "CORR_N": 20,
+    "Output_dir": "dlongA04_triangular_final"
+}

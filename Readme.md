@@ -33,7 +33,7 @@ make
 Standard way is to generate config.json by tools/config.py
 
 ```bash
-python tools/config.py params/params.json Tlists/Tlist Hlists/Hlist
+python tools/config.py parameter_sets/params.json Tlists/Tlist Hlists/Hlist
 ```
 This can generate ***config.json*** with grid-like temperature and field points for parallel tempering.
 
