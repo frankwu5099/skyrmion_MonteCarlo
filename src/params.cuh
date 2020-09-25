@@ -326,7 +326,7 @@ extern string Output;  //set the output directory
 //#define BIN_NUM 3//0
 //#define EQUI_N 20000//0//0//00////16000000
 void read_params(char* param_file);
-json read_json();
+json read_json(char* param_file);
 
 //----- simulation setting -----
 

@@ -171,10 +171,10 @@ void read_params(char* param_file){
   //-- simulation setting end --
 }
 
-json read_json(){
+json read_json(char* param_file){
   printf("Loading configuration...");
   fflush(stdout);
-    std::ifstream jsoni("config.json");
+    std::ifstream jsoni(param_file);
 	json allj;
 	jsoni >> allj;
   json configj = allj["parameters"];

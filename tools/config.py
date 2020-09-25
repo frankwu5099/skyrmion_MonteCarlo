@@ -65,7 +65,11 @@ ensemble["Hs"] = Hs
 config['ensemble'] = ensemble
 
 
-with open("config.json", 'w+') as f:
-    json.dump(config, f, indent=4)
+if len(sys.argv)<5:
+    with open("config.json", 'w+') as f:
+        json.dump(config, f, indent=4)
+else:
+    with open(sys.argv[4], 'w+') as f:
+        json.dump(config, f, indent=4)
 
 print("succeed")

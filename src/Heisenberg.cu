@@ -38,15 +38,19 @@ int main(int argc, char *argv[]){
   //call GPU
   bool json_read = false;
   json configj;
-  if (argc > 1) read_params(argv[1]);
+  if (argc > 1){
+    configj = read_json(argv[1]);
+    json_read = true;
+  } 
   else {
-    configj = read_json();
+    configj = read_json("config.json");
     json_read = true;
   } 
 
   int deviceNum, gpu_i;
   cudaGetDeviceCount(&deviceNum);
-  device_0 = 1;//setDev(); //use setDev if using multigpu
+  deviceNum = 1;
+  device_0 = 0;//setDev(); //use setDev if using multigpu
   StreamN = deviceNum - device_0;
   printf("# of gpus = %d\n", deviceNum);
   printf("# of gpu = %d\n", device_0);
