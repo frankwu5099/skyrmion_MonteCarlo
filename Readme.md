@@ -1,3 +1,4 @@
+![logo](logo.png)
 ## Monte Carlo simulation program for generalized skyrmion models
 
 ### Description
