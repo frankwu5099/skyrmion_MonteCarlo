@@ -12,15 +12,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "helper_timer.h"
-#include "WarpStandard.cuh"
+//#include "WarpStandard.cuh"
 #include <time.h>
 #include <string>
 #include <fstream>
 #include <functional>
-//#include <random/mersenne_twister.hpp>
-//#include <random/uniform_01.hpp>
-//#include <random/mersenne_twister.hpp>
-//#include <random/uniform_01.hpp>
 #include <random>
 #include <nlohmann/json.hpp>
 
