@@ -1,7 +1,7 @@
 #ifndef UPDATE_H
 #define UPDATE_H
 #include "params.cuh"
-#include "port_mtgp32_kernel.h" ///device part include this header
+#include "MTGP32/port_mtgp32_kernel.h" ///device part include this header
 #include <curand_kernel.h>
 __global__ void setup_kernel(curandState *state);
 #ifdef THIN
